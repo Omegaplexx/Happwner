@@ -1,0 +1,4 @@
+/build
+*.apk
+*.aar
+local.properties

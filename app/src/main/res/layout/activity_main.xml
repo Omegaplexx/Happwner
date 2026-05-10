@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:orientation="vertical">
+
+    <View
+        android:id="@+id/statusBarBackground"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/status_bar" />
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:title="@string/app_name"
+            app:titleTextColor="@color/toolbar_text"
+            app:navigationIconTint="@color/toolbar_text"
+            app:theme="@style/ThemeOverlay.Happwner.Toolbar">
+
+            <ImageButton
+                android:id="@+id/action_settings"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_icon_ripple"
+                android:src="@drawable/ic_settings"
+                android:contentDescription="@string/title_settings"
+                app:tint="@color/toolbar_text" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:id="@+id/mainScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:id="@+id/mainContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/island_padding"
+            android:focusable="true"
+            android:focusableInTouchMode="true">
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/island_padding"
+                android:textColor="@color/brand_purple"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <!-- ОСТРОВ 1: ПЕРЕХВАТ -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/islandIntercept"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                app:cardCornerRadius="@dimen/ui_corner_radius"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/island_stroke"
+                app:cardBackgroundColor="@color/island_surface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/island_padding">
+
+                    <LinearLayout
+                        android:id="@+id/rowInterceptLinks"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/input_field_height"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="@dimen/spacing_tiny"
+                        android:background="@drawable/bg_row_ripple"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:id="@+id/labelInterceptLinks"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_intercept_links"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_size_label" />
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchInterceptLinks"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:background="@null" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/rowInterceptHwid"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/input_field_height"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="@dimen/spacing_tiny"
+                        android:layout_marginBottom="@dimen/spacing_tiny"
+                        android:background="@drawable/bg_row_ripple"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:id="@+id/labelInterceptHwid"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_intercept_hwid"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_size_label" />
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchInterceptHwid"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:background="@null" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/island_stroke"
+                        android:layout_marginBottom="@dimen/spacing_small" />
+
+                    <LinearLayout
+                        android:id="@+id/historyHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/input_field_height"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="@dimen/spacing_tiny"
+                        android:background="@drawable/bg_row_ripple"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:id="@+id/labelCapturedUrls"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_captured_urls"
+                            android:textColor="@color/brand_purple_secondary"
+                            android:textStyle="bold"
+                            android:textAllCaps="true" />
+
+                        <ImageButton
+                            android:id="@+id/btnClearHistory"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:background="@drawable/bg_icon_ripple"
+                            android:src="@drawable/ic_delete"
+                            app:tint="@color/text_secondary" />
+
+                        <ImageView
+                            android:id="@+id/btnExpandHistory"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:padding="@dimen/spacing_small"
+                            android:src="@drawable/ic_expand_more"
+                            app:tint="@color/text_secondary" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/historyContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingTop="@dimen/spacing_small"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/emptyHistoryText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_history_empty"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="@dimen/text_size_secondary" />
+
+                        <LinearLayout
+                            android:id="@+id/capturedUrlsContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ОСТРОВ 2: ЗАПРОС И ОТВЕТ -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="@dimen/ui_corner_radius"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/island_stroke"
+                app:cardBackgroundColor="@color/island_surface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/card_content_padding">
+
+                    <!-- URL Input Group -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/island_margin_bottom">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layoutUrl"
+                            style="@style/Widget.Happwner.TextInputLayout"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/urlButtonsContainer"
+                            app:layout_constraintTop_toTopOf="parent"
+                            android:hint="@string/hint_url"
+                            app:errorEnabled="false">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/inputUrl"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textMultiLine"
+                                android:minLines="1"
+                                android:maxLines="5"
+                                android:textColor="@color/text_input_color_selector"
+                                android:gravity="top|start"
+                                android:paddingEnd="0dp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <LinearLayout
+                            android:id="@+id/urlButtonsContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="0dp"
+                            android:orientation="horizontal"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/layoutUrl"
+                            app:layout_constraintBottom_toBottomOf="@+id/layoutUrl"
+                            android:gravity="center_vertical">
+
+                            <ImageButton
+                                android:id="@+id/btnPasteUrlManual"
+                                android:layout_width="@dimen/btn_icon_size"
+                                android:layout_height="@dimen/btn_icon_size"
+                                android:layout_marginStart="@dimen/spacing_small"
+                                android:background="@drawable/bg_icon_ripple"
+                                android:src="@drawable/ic_paste"
+                                app:tint="@color/text_secondary" />
+
+                            <ImageButton
+                                android:id="@+id/infoUrl"
+                                android:layout_width="@dimen/btn_icon_size"
+                                android:layout_height="@dimen/btn_icon_size"
+                                android:background="@drawable/bg_icon_ripple"
+                                android:src="@drawable/ic_info"
+                                app:tint="@color/text_secondary" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/urlErrorText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/error_red"
+                            android:textSize="@dimen/text_size_tiny"
+                            android:paddingStart="@dimen/spacing_medium"
+                            android:paddingTop="@dimen/spacing_tiny"
+                            android:visibility="gone"
+                            app:layout_constraintTop_toBottomOf="@id/layoutUrl"
+                            app:layout_constraintStart_toStartOf="@id/layoutUrl"
+                            app:layout_constraintEnd_toEndOf="@id/layoutUrl" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- HWID Input Group -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="2dp">
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layoutHwid"
+                            style="@style/Widget.Happwner.TextInputLayout"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/hint_hwid">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/inputHwid"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/text_input_color_selector"
+                                android:inputType="text" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                        <ImageButton
+                            android:id="@+id/btnEditHwidManual"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:layout_marginStart="@dimen/spacing_small"
+                            android:background="@drawable/bg_icon_ripple"
+                            android:src="@drawable/ic_edit"
+                            app:tint="@color/text_secondary" />
+                        <ImageButton
+                            android:id="@+id/infoHwid"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:background="@drawable/bg_icon_ripple"
+                            android:src="@drawable/ic_info"
+                            app:tint="@color/text_secondary" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/hwidHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/text_size_tiny"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginBottom="10dp"
+                        android:paddingStart="@dimen/spacing_tiny"
+                        android:paddingEnd="@dimen/spacing_tiny"
+                        android:visibility="gone" />
+
+                    <View android:id="@+id/hwidSpacer" android:layout_width="match_parent" android:layout_height="10dp" android:visibility="visible" />
+
+                    <!-- User Agent Input Group -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="@dimen/spacing_normal">
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Happwner.TextInputLayout"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/hint_ua">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/inputUserAgent"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textMultiLine"
+                                android:textColor="@color/text_input_color_selector"
+                                android:enabled="false"
+                                android:maxLines="2" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                        <ImageButton
+                            android:id="@+id/btnEditUaManual"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:layout_marginStart="@dimen/spacing_small"
+                            android:background="@drawable/bg_icon_ripple"
+                            android:src="@drawable/ic_edit"
+                            app:tint="@color/text_secondary" />
+                        <ImageButton
+                            android:id="@+id/infoUserAgent"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:background="@drawable/bg_icon_ripple"
+                            android:src="@drawable/ic_info"
+                            app:tint="@color/text_secondary" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="@dimen/spacing_normal">
+
+                        <Button
+                            android:id="@+id/btnGet"
+                            style="@style/Widget.MaterialComponents.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:minHeight="48dp"
+                            android:text="@string/btn_get_proxy"
+                            android:textColor="@color/btn_get_text"
+                            app:cornerRadius="@dimen/spacing_tiny"
+                            android:layout_marginEnd="@dimen/spacing_small" />
+
+                        <Button
+                            android:id="@+id/btnGetSub"
+                            style="@style/Widget.MaterialComponents.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:minHeight="48dp"
+                            android:text="@string/btn_get_sub"
+                            android:textColor="@color/btn_get_text"
+                            app:cornerRadius="@dimen/spacing_tiny" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/island_stroke"
+                        android:layout_marginBottom="@dimen/island_padding" />
+
+                    <LinearLayout
+                        android:id="@+id/outputHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/input_field_height"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="@dimen/spacing_tiny"
+                        android:background="@drawable/bg_row_ripple"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:id="@+id/labelResultHeader"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_result"
+                            android:textColor="@color/brand_purple_secondary"
+                            android:textStyle="bold"
+                            android:textAllCaps="true" />
+
+                        <ImageButton
+                            android:id="@+id/btnClearOutput"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:background="@drawable/bg_icon_ripple"
+                            android:src="@drawable/ic_delete"
+                            app:tint="@color/text_secondary" />
+                        <ImageButton
+                            android:id="@+id/btnCopyOutput"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:background="@drawable/bg_icon_ripple"
+                            android:src="@drawable/ic_copy"
+                            app:tint="@color/text_secondary" />
+
+                        <ImageView
+                            android:id="@+id/btnExpandOutput"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:padding="@dimen/spacing_small"
+                            android:src="@drawable/ic_expand_more"
+                            app:tint="@color/text_secondary" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/output"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/spacing_small"
+                        android:text="@string/label_result_default"
+                        android:textColor="@color/text_secondary"
+                        android:textIsSelectable="true"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="lspatch_mode_options">
+        <item>По умолчанию</item>
+        <item>Включён</item>
+        <item>Отключён</item>
+    </string-array>
+
+    <string-array name="theme_options">
+        <item>Системная</item>
+        <item>Светлая</item>
+        <item>Тёмная</item>
+    </string-array>
+
+    <string-array name="language_options">
+        <item>Системный</item>
+        <item>Русский</item>
+        <item>English</item>
+    </string-array>
+
+    <string-array name="xposed_scope">
+        <item>com.happproxy</item>
+        <item>su.happ.proxyutility</item>
+    </string-array>
+</resources>

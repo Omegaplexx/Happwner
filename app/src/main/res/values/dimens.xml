@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Уровни скругления (Corners) -->
+    <dimen name="ui_corner_radius">10dp</dimen>           <!-- Основной радиус карточек (Islands) -->
+    <dimen name="ui_corner_radius_ripple">8dp</dimen>    <!-- Радиус эффекта нажатия (Ripple) -->
+    <dimen name="dialog_corner_radius">24dp</dimen>      <!-- Радиус углов всех диалоговых окон -->
+
+    <!-- Основные отступы (Spacing) -->
+    <dimen name="spacing_tiny">4dp</dimen>               <!-- Минимальный отступ (например, между текстом и иконкой) -->
+    <dimen name="spacing_small">8dp</dimen>              <!-- Малый отступ (например, вертикальный между элементами) -->
+    <dimen name="spacing_medium">12dp</dimen>            <!-- Средний отступ -->
+    <dimen name="spacing_normal">16dp</dimen>            <!-- Стандартный отступ (Padding в карточках) -->
+    <dimen name="spacing_large">24dp</dimen>             <!-- Большой отступ (заголовки секций) -->
+
+    <!-- Параметры контейнеров (Islands) -->
+    <dimen name="island_padding">12dp</dimen>            <!-- Внутренний отступ контейнера -->
+    <dimen name="island_margin_bottom">8dp</dimen>       <!-- Расстояние между карточками -->
+    <dimen name="card_content_padding">16dp</dimen>      <!-- Отступ внутри MaterialCardView -->
+
+    <!-- Параметры элементов ввода и кнопок -->
+    <dimen name="input_field_height">50dp</dimen>        <!-- Высота текстовых полей ввода -->
+    <dimen name="icon_size_standard">24dp</dimen>        <!-- Стандартный размер иконки (24x24) -->
+    <dimen name="icon_size_small">20dp</dimen>           <!-- Уменьшенный размер иконки -->
+    <dimen name="btn_icon_size">40dp</dimen>             <!-- Размер хитбокса иконок-кнопок (ImageButton) -->
+
+    <!-- Параметры диалогов -->
+    <dimen name="dialog_content_padding_top">12dp</dimen>     <!-- Верхний отступ контента внутри диалога -->
+    <dimen name="dialog_checkbox_margin_start">12dp</dimen>   <!-- Левый отступ для чекбоксов и радиокнопок -->
+    <dimen name="dialog_message_padding">20dp</dimen>         <!-- Внутренний отступ текста сообщения -->
+
+    <!-- Кнопки в диалогах (Action Buttons) -->
+    <dimen name="dialog_btn_hitbox_horizontal">12dp</dimen>
+    <dimen name="dialog_btn_min_width">64dp</dimen>
+
+    <!-- Параметры текста (Typography) -->
+    <dimen name="text_size_dialog_title">18sp</dimen>    <!-- Заголовок диалога -->
+    <dimen name="text_size_label">16sp</dimen>           <!-- Надписи у тумблеров -->
+    <dimen name="text_size_body">16sp</dimen>            <!-- Основной текст и опции -->
+    <dimen name="text_size_secondary">14sp</dimen>       <!-- Вспомогательный текст и инфо-диалоги -->
+    <dimen name="text_size_tiny">12sp</dimen>            <!-- Микро-текст (ошибки, подсказки) -->
+
+    <!-- Служебные (Technical) -->
+    <dimen name="padding_history_vertical">2dp</dimen>   <!-- Вертикальный отступ строк истории -->
+    <dimen name="scroll_offset_ime">18dp</dimen>         <!-- Запас прокрутки при открытии клавиатуры -->
+</resources>
