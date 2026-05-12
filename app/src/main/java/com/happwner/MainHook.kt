@@ -1,5 +1,6 @@
 package com.happwner
 
+import android.app.Activity
 import android.content.*
 import android.database.Cursor
 import android.database.CursorWrapper
@@ -8,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.view.MotionEvent
 import de.robv.android.xposed.*
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import java.net.URL
@@ -146,6 +148,26 @@ class MainHook : IXposedHookLoadPackage {
                 }
             }
         })
+
+        // 5. Жест тремя пальцами для вызова Happwner
+        try {
+            XposedHelpers.findAndHookMethod("android.app.Activity", lpparam.classLoader, "dispatchTouchEvent",
+                "android.view.MotionEvent", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val event = param.args[0] as MotionEvent
+                        if (event.pointerCount == 3 && event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
+                            val activity = param.thisObject as Activity
+                            val intent = activity.packageManager.getLaunchIntentForPackage(MODULE_PACKAGE)
+                            if (intent != null) {
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                activity.startActivity(intent)
+                            }
+                        }
+                    }
+                })
+        } catch (e: Throwable) {
+            Log.e(TAG, "Failed to hook dispatchTouchEvent: ${e.message}")
+        }
     }
 
     private fun hookIContentProvider(classLoader: ClassLoader, currentPackage: String) {

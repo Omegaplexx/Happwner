@@ -231,56 +231,19 @@ class SettingsActivity : AppCompatActivity() {
             PrefsManager.fixSharedPrefs(this)
         }
 
-        // Настройка: Режим LSPatch
-        val itemLSPatchMode = findViewById<MaterialCardView>(R.id.itemLSPatchMode)
-        val textLSPatchStatus = findViewById<TextView>(R.id.textLSPatchStatus)
+        // Настройка: Перехват ссылок
+        val itemInterceptLinks = findViewById<MaterialCardView>(R.id.itemInterceptLinks)
+        val switchInterceptLinks = findViewById<SwitchMaterial>(R.id.switchInterceptLinks)
+        switchInterceptLinks.isChecked = prefs.getBoolean("intercept_enabled", false)
         
-        val optionsRaw = resources.getStringArray(R.array.lspatch_mode_options)
-        val options = optionsRaw.map { fromHtml(it) }.toTypedArray()
-        var currentMode = prefs.getInt("lspatch_mode_v2", 0)
-        textLSPatchStatus.text = fromHtml(optionsRaw[currentMode])
-        
-        itemLSPatchMode.setOnClickListener {
-            val dialogView = layoutInflater.inflate(R.layout.dialog_select_option, null)
-            val rg = dialogView.findViewById<android.widget.RadioGroup>(R.id.dialogRadioGroup)
-            val r1 = dialogView.findViewById<com.google.android.material.radiobutton.MaterialRadioButton>(R.id.radioOption1)
-            val r2 = dialogView.findViewById<com.google.android.material.radiobutton.MaterialRadioButton>(R.id.radioOption2)
-            val r3 = dialogView.findViewById<com.google.android.material.radiobutton.MaterialRadioButton>(R.id.radioOption3)
-            
-            r1.text = options[0]
-            r2.text = options[1]
-            r3.text = options[2]
-            
-            when(currentMode) {
-                0 -> r1.isChecked = true
-                1 -> r2.isChecked = true
-                2 -> r3.isChecked = true
-            }
-
-            val dialog = MaterialAlertDialogBuilder(this)
-                .setTitle(fromHtml(getString(R.string.setting_lspatch_mode)))
-                .setView(dialogView)
-                .show()
-
-            rg.setOnCheckedChangeListener { _, checkedId ->
-                val which = when(checkedId) {
-                    R.id.radioOption1 -> 0
-                    R.id.radioOption2 -> 1
-                    R.id.radioOption3 -> 2
-                    else -> 0
-                }
-                currentMode = which
-                prefs.edit().putInt("lspatch_mode_v2", which).apply()
-                textLSPatchStatus.text = fromHtml(optionsRaw[which])
-                
-                when (which) {
-                    1 -> prefs.edit().putBoolean("lspatch_mode", true).apply()
-                    2 -> prefs.edit().putBoolean("lspatch_mode", false).apply()
-                }
-                PrefsManager.fixSharedPrefs(this@SettingsActivity)
-                dialog.dismiss()
-            }
+        val updateInterceptLinks = { checked: Boolean ->
+            prefs.edit().putBoolean("intercept_enabled", checked).apply()
+            switchInterceptLinks.isChecked = checked
+            PrefsManager.fixSharedPrefs(this)
+            PrefsManager.broadcastSettings(this)
         }
+        itemInterceptLinks.setOnClickListener { updateInterceptLinks(!switchInterceptLinks.isChecked) }
+        switchInterceptLinks.setOnClickListener { updateInterceptLinks(switchInterceptLinks.isChecked) }
 
         // Настройка: Обрабатывать ответ
         val itemProcessResponse = findViewById<MaterialCardView>(R.id.itemProcessResponse)
@@ -441,9 +404,19 @@ class SettingsActivity : AppCompatActivity() {
             "Unknown"
         }
 
+        val prefs = getSafePrefs(this)
+        val lspatchMode = prefs.getBoolean("lspatch_mode", false)
+        val moduleActive = ModuleStatus.isModuleActive()
+        
+        val statusText = when {
+            moduleActive -> getString(R.string.label_xposed_active)
+            lspatchMode -> getString(R.string.label_lspatch_active)
+            else -> getString(R.string.label_xposed_inactive)
+        }
+
         val dialogView = layoutInflater.inflate(R.layout.dialog_info, null)
         val textInfo = dialogView.findViewById<TextView>(R.id.dialogMessage)
-        val infoHtml = getString(R.string.about_app_text, versionName)
+        val infoHtml = getString(R.string.about_app_text, versionName, statusText)
         textInfo.text = fromHtml(infoHtml)
         textInfo.movementMethod = android.text.method.LinkMovementMethod.getInstance()
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:app="http://schemas.android.com/apk/res-auto">
+<resources>
     <style name="Theme.Happwner" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/brand_purple</item>
@@ -30,27 +30,34 @@
         <item name="android:textColorLink">@color/brand_purple_secondary</item>
 
         <!-- Force TextInputLayout style to use secondary purple for stroke -->
-        <item name="textInputStyle">@style/Widget.Happwner.TextInputLayout</item>
+        <item name="textInputStyle">@style/Widget_Happwner_TextInputLayout</item>
 
-        <!-- Dialog and UI components selection colors -->
-        <item name="android:textColorHighlight">@color/brand_purple_secondary_highlight</item>
+        <!-- Highlight color for EditText focus and text selection (Gray as requested for buttons and default flash) -->
+        <item name="android:textColorHighlight">@color/ripple_gray</item>
+        <item name="colorControlHighlight">@color/ripple_gray</item>
 
         <!-- Dialog appearance -->
-        <item name="materialAlertDialogTheme">@style/Theme.Happwner.Dialog</item>
+        <item name="materialAlertDialogTheme">@style/Theme_Happwner_Dialog</item>
     </style>
 
-    <style name="Widget.Happwner.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+    <style name="Widget_Happwner_TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxStrokeColor">@color/brand_purple_secondary_selector</item>
         <item name="boxStrokeErrorColor">@color/error_red</item>
         <item name="errorTextColor">@color/error_red</item>
         <item name="hintTextColor">@color/text_input_hint_selector</item>
         <item name="android:textColorHint">@color/text_input_hint_selector</item>
-        <item name="cursorColor">@color/input_cursor_color_selector</item>
+        <item name="cursorColor">@color/brand_purple_secondary_selector</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay_Happwner_TextInput</item>
         <item name="errorIconDrawable">@null</item>
     </style>
 
-    <style name="Theme.Happwner.Dialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
-        <item name="android:windowAnimationStyle">@style/Animation.Happwner.Dialog</item>
+    <style name="ThemeOverlay_Happwner_TextInput" parent="">
+        <item name="colorControlActivated">@color/brand_purple_secondary_selector</item>
+        <item name="android:textColorHighlight">@color/text_selection_highlight_selector</item>
+    </style>
+
+    <style name="Theme_Happwner_Dialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="android:windowAnimationStyle">@style/Animation_Happwner_Dialog</item>
         <item name="colorSurface">@color/dialog_background</item>
         <item name="android:colorBackground">@color/dialog_background</item>
 
@@ -58,31 +65,31 @@
         <item name="colorPrimary">@color/brand_purple_secondary</item>
         <item name="colorAccent">@color/brand_purple_secondary</item>
 
-        <item name="materialAlertDialogTitleTextStyle">@style/Widget.Happwner.Dialog.Title</item>
-        <item name="buttonBarPositiveButtonStyle">@style/Widget.Happwner.Button.DialogPositive</item>
-        <item name="buttonBarNegativeButtonStyle">@style/Widget.Happwner.Button.TextButton</item>
-        <item name="buttonBarNeutralButtonStyle">@style/Widget.Happwner.Button.TextButton</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/Widget_Happwner_Dialog_Title</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget_Happwner_Button_DialogPositive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget_Happwner_Button_TextButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget_Happwner_Button_TextButton</item>
 
         <!-- Shape -->
-        <item name="shapeAppearance">@style/ShapeAppearance.Happwner.Dialog</item>
+        <item name="shapeAppearance">@style/ShapeAppearance_Happwner_Dialog</item>
     </style>
 
-    <style name="Widget.Happwner.Dialog.Title" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
+    <style name="Widget_Happwner_Dialog_Title" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
         <item name="android:textSize">@dimen/text_size_dialog_title</item>
         <item name="android:textColor">@color/text_primary</item>
     </style>
 
-    <style name="ShapeAppearance.Happwner.Dialog" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+    <style name="ShapeAppearance_Happwner_Dialog" parent="ShapeAppearance.MaterialComponents.MediumComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/dialog_corner_radius</item>
     </style>
 
-    <style name="Animation.Happwner.Dialog" parent="android:Animation">
+    <style name="Animation_Happwner_Dialog" parent="android:Animation">
         <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
         <item name="android:windowExitAnimation">@anim/dialog_exit</item>
     </style>
 
-    <style name="Widget.Happwner.Button.DialogPositive" parent="Widget.MaterialComponents.Button.TextButton">
+    <style name="Widget_Happwner_Button_DialogPositive" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:textColor">@color/brand_purple_secondary</item>
         <item name="rippleColor">@color/brand_purple_secondary_highlight</item>
         <item name="android:minWidth">@dimen/dialog_btn_min_width</item>
@@ -90,11 +97,11 @@
         <item name="android:paddingRight">@dimen/dialog_btn_hitbox_horizontal</item>
     </style>
 
-    <style name="Widget.Happwner.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton">
+    <style name="Widget_Happwner_Button_TextButton" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:textColor">@color/brand_purple_secondary</item>
     </style>
 
-    <style name="ThemeOverlay.Happwner.Toolbar" parent="ThemeOverlay.MaterialComponents.ActionBar">
+    <style name="ThemeOverlay_Happwner_Toolbar" parent="ThemeOverlay.MaterialComponents.ActionBar">
         <item name="colorControlNormal">@color/toolbar_text</item>
         <item name="android:textColorPrimary">@color/toolbar_text</item>
         <item name="android:textColorSecondary">@color/toolbar_text</item>

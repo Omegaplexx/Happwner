@@ -5,7 +5,9 @@
     <!-- UI Labels -->
     <string name="label_captured_urls">Перехваченные ссылки</string>
     <string name="label_result">Результат</string>
-    <string name="label_xposed_inactive">Xposed неактивен. Часть функций недоступна</string>
+    <string name="label_xposed_inactive">Xposed неактивен</string>
+    <string name="label_xposed_active">Xposed</string>
+    <string name="label_lspatch_active">LSPatch</string>
     <string name="label_hwid_unknown">HWID неизвестен. Введите вручную или запустите Happ</string>
     <string name="label_history_empty">Здесь ничего нет. Включите перехват ссылок, запустите Happ, обновите зашифрованные подписки, а затем вернитесь сюда. Расшифрованные ссылки появятся здесь.</string>
     <string name="label_result_default">Заполните три поля выше и нажмите на кнопку &lt;b&gt;Профили&lt;/b&gt; — конфигурации вашей подписки появятся здесь, и вы сможете скопировать их в любой прокси-клиент. Кнопка &lt;b&gt;Подписка&lt;/b&gt; позволяет обновлять профили в других приложениях через службу-мост.</string>
@@ -22,8 +24,8 @@
 
     <!-- Info Dialogs -->
     <string name="info_url_title">Ссылка на подписку</string>
-    <string name="info_url_msg">Вставьте дешифрованную ссылку на вашу подписку. Ссылки формата &lt;tt&gt;happ://crypt5&lt;/tt&gt; необходимо сначала расшифровать с помощью встроенного перехватчика ссылок или иным способом.&lt;br&gt;&lt;br&gt;&lt;b&gt;Для перехвата ссылок требуется Xposed или LSPatch!&lt;/b&gt;</string>
-    <string name="info_hwid_msg">Подменяет HWID на произвольный при запросе подписок, предназначенных строго для Happ.&lt;br&gt;&lt;br&gt;Android ID, часто называемый Hardware ID (HWID) — идентификатор из 16 английских букв и цифр, уникальный для каждого устройства и каждого приложения, установленного на нём. При запросе подписок Happ всегда передаёт этот ID VPN-провайдеру, привязывая подписку к конкретному устройству.</string>
+    <string name="info_url_msg">Вставьте ссылку формата &lt;tt&gt;https://&lt;/tt&gt; или &lt;tt&gt;happ://crypt&lt;/tt&gt;.</string>
+    <string name="info_hwid_msg">У каждого устройства есть свой уникальный HWID — по нему VPN-провайдер определяет, какое устройство подключено к подписке, и может ограничить доступ, если достигнут лимит по количеству подключений. Подменив идентификатор, вы сможете обойти это ограничение, если укажете HWID любого уже подключённого к подписке устройства.</string>
     <string name="info_ua_msg">При запросе подписок Happ отправляет VPN-провайдеру название и версию приложения. Happwner имитирует это поведение.</string>
 
     <!-- Settings -->
@@ -31,12 +33,14 @@
     <string name="label_theme">Тема</string>
     <string name="setting_show_duplicates">Показывать все ссылки</string>
     <string name="setting_show_duplicates_desc">Отображать все дублирующиеся перехваченные ссылки</string>
-    <string name="setting_lspatch_mode">Режим LSPatch</string>
-    <string name="setting_lspatch_mode_desc">Принудительно показывать секцию перехвата ссылок. Если Xposed недоступен, ссылки будут перехватываться только из приложений, пропатченных через LSPatch</string>
+    <string name="setting_lspatch_mode">Перехват ссылок</string>
+    <string name="setting_lspatch_mode_desc">Альтернативный способ расшифровки ссылок, требующий установленного Happ и Xposed/LSPatch. Может помочь, если встроенный расшифровщик потеряет актуальность</string>
     <string name="setting_process_response">Обрабатывать ответ</string>
     <string name="setting_process_response_desc">Конвертировать полученные от сервера JSON-массивы в URI-ссылки. Отключите при неправильной обработке профилей</string>
     <string name="setting_process_manual">При запросе профилей</string>
-    <string name="setting_process_server">При использовании сервера</string>
+    <string name="setting_process_server">При использовании Моста</string>
+    <string name="setting_header_general">Основное</string>
+    <string name="setting_header_legacy">Устаревшее</string>
     <string name="setting_bridge_header">Мост подписок</string>
     <string name="setting_enable_bridge">Мост</string>
     <string name="setting_enable_bridge_desc">Запустить локальный HTTP-прокси-сервер для обновления Happ-подписок в других приложениях</string>
@@ -60,15 +64,23 @@
     <string name="msg_text_truncated">\n\n… [Текст обрезан для экономии ресурсов. Нажмите «Копировать», чтобы получить полный результат]</string>
     <string name="msg_bridge_service_enable">Эта функция позволяет обновлять подписки для Happ в любых прокси-клиентах через службу Happwner. По нажатии «ОК» Happwner запросит разрешение на показ уведомлений, запустит службу и скопирует ссылку в буфер обмена — импортируйте её в ваше приложение.&lt;br&gt;&lt;br&gt;&lt;b&gt;Важно:&lt;/b&gt; включите «Обход LAN» или добавьте правило &lt;tt&gt;geoip:private&lt;/tt&gt; в &lt;tt&gt;direct&lt;/tt&gt;, иначе обновление не будет работать при активном соединении в вашем прокси-клиенте.</string>
 
-    <string name="error_unsupported_happ_link">Ссылка зашифрована. Перехватите расшифрованную (требуется Xposed/LSPatch)</string>
+    <string name="error_unsupported_happ_link">Расшифруйте ссылку (требуется Xposed/LSPatch)</string>
+    <string name="error_decrypt_first">Расшифруйте ссылку</string>
+    <string name="error_convert_first">Преобразуйте ссылку</string>
     <string name="error_invalid_format">Неподдерживаемый формат</string>
     <string name="error_invalid_link">Введите корректную ссылку</string>
+    <string name="msg_decrypted_success">Успешно расшифровано</string>
+    <string name="title_decryption_error">Ошибка расшифровки</string>
+    <string name="error_url_not_found">URL не найден в выводе программы</string>
+    <string name="label_exit_code">Код выхода</string>
+    <string name="msg_error">Ошибка</string>
 
     <string name="about_app">О приложении</string>
     <string name="about_app_text">
         Бесплатный и открытый инструмент для экспорта зашифрованных Happ-подписок в любое приложение.
         &lt;br&gt;&lt;br&gt;
         &lt;b&gt;Версия:&lt;/b&gt; %1$s&lt;br&gt;
+        &lt;b&gt;Состояние:&lt;/b&gt; %2$s&lt;br&gt;
         &lt;b&gt;Разработчик:&lt;/b&gt; Omegaplex&lt;br&gt;
         &lt;b&gt;Репозиторий:&lt;/b&gt; &lt;a href=\"https://github.com/Omegaplexx/Happwner\"&gt;GitHub&lt;/a&gt;
     </string>

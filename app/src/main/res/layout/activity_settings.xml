@@ -24,7 +24,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/brand_purple"
             app:titleTextColor="@color/toolbar_text"
-            app:theme="@style/ThemeOverlay.Happwner.Toolbar"
+            app:theme="@style/ThemeOverlay_Happwner_Toolbar"
             app:contentInsetStart="0dp"
             app:contentInsetStartWithNavigation="0dp">
 
@@ -80,6 +80,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="@dimen/island_padding">
+
+            <!-- Заголовок: Основное -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/setting_header_general"
+                android:textColor="@color/brand_purple_secondary"
+                android:textSize="@dimen/text_size_secondary"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                android:layout_marginStart="@dimen/spacing_tiny" />
 
             <!-- Настройка: Язык -->
             <com.google.android.material.card.MaterialCardView
@@ -185,131 +197,6 @@
                             android:textColor="@color/brand_purple_secondary"
                             android:textSize="@dimen/text_size_secondary"
                             android:layout_marginTop="2dp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size_small"
-                        android:layout_height="@dimen/icon_size_small"
-                        android:src="@drawable/ic_expand_more"
-                        app:tint="@color/text_secondary" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Настройка: Дубликаты -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/itemShowDuplicates"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/island_margin_bottom"
-                app:cardCornerRadius="@dimen/ui_corner_radius"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/island_stroke"
-                app:cardBackgroundColor="@color/island_surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="@dimen/card_content_padding"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size_standard"
-                        android:layout_height="@dimen/icon_size_standard"
-                        android:src="@drawable/ic_filter_none"
-                        app:tint="@color/brand_purple_secondary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="@dimen/card_content_padding"
-                        android:layout_marginEnd="@dimen/card_content_padding"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_show_duplicates"
-                            android:textColor="@color/text_primary"
-                            android:textSize="@dimen/text_size_label" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_show_duplicates_desc"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="@dimen/text_size_secondary"
-                            android:layout_marginTop="2dp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchShowDuplicates"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:clickable="false"
-                        android:focusable="false"
-                        android:background="@null" />
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Настройка: Режим LSPatch -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/itemLSPatchMode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/island_margin_bottom"
-                app:cardCornerRadius="@dimen/ui_corner_radius"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/island_stroke"
-                app:cardBackgroundColor="@color/island_surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="@dimen/card_content_padding"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size_standard"
-                        android:layout_height="@dimen/icon_size_standard"
-                        android:src="@drawable/ic_healing"
-                        app:tint="@color/brand_purple_secondary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="@dimen/card_content_padding"
-                        android:layout_marginEnd="@dimen/card_content_padding"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_lspatch_mode"
-                            android:textColor="@color/text_primary"
-                            android:textSize="@dimen/text_size_label" />
-
-                        <TextView
-                            android:id="@+id/textLSPatchStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/brand_purple_secondary"
-                            android:textSize="@dimen/text_size_secondary"
-                            android:layout_marginTop="2dp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_lspatch_mode_desc"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="@dimen/text_size_secondary"
-                            android:layout_marginTop="4dp" />
                     </LinearLayout>
 
                     <ImageView
@@ -521,6 +408,7 @@
                 android:id="@+id/itemWatchdog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
                 app:cardCornerRadius="@dimen/ui_corner_radius"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
@@ -571,6 +459,139 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:background="@null" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Заголовок: Устаревшее -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/setting_header_legacy"
+                android:textColor="@color/brand_purple_secondary"
+                android:textSize="@dimen/text_size_secondary"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:layout_marginTop="@dimen/spacing_large"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                android:layout_marginStart="@dimen/spacing_tiny" />
+
+            <!-- Настройка: Перехват ссылок -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/itemInterceptLinks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                app:cardCornerRadius="@dimen/ui_corner_radius"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/island_stroke"
+                app:cardBackgroundColor="@color/island_surface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/card_content_padding"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_standard"
+                        android:layout_height="@dimen/icon_size_standard"
+                        android:src="@drawable/ic_healing"
+                        app:tint="@color/brand_purple_secondary" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="@dimen/card_content_padding"
+                        android:layout_marginEnd="@dimen/card_content_padding"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_lspatch_mode"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_size_label" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_lspatch_mode_desc"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="@dimen/text_size_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchInterceptLinks"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:focusable="false"
+                        android:background="@null" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Настройка: Дубликаты -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/itemShowDuplicates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                app:cardCornerRadius="@dimen/ui_corner_radius"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/island_stroke"
+                app:cardBackgroundColor="@color/island_surface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/card_content_padding"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_standard"
+                        android:layout_height="@dimen/icon_size_standard"
+                        android:src="@drawable/ic_filter_none"
+                        app:tint="@color/brand_purple_secondary" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="@dimen/card_content_padding"
+                        android:layout_marginEnd="@dimen/card_content_padding"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_show_duplicates"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_size_label" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_show_duplicates_desc"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="@dimen/text_size_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchShowDuplicates"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:focusable="false"
+                        android:background="@null" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

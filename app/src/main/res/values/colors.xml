@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand & Accent -->
-     <color name="brand_purple">#7063FF</color>
-     <color name="brand_purple_secondary">#7063FF</color>
-     <color name="brand_purple_secondary_highlight">#667063FF</color>
+    <color name="brand_purple">#7063FF</color>
+    <color name="brand_purple_secondary">#7063FF</color>
+    <color name="brand_purple_secondary_highlight">#667063FF</color>
+    <color name="ripple_gray">#33808080</color>
 
      <!-- UI State Colors -->
     <color name="status_bar">#554DC3</color>

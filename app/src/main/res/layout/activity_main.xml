@@ -26,7 +26,7 @@
             app:title="@string/app_name"
             app:titleTextColor="@color/toolbar_text"
             app:navigationIconTint="@color/toolbar_text"
-            app:theme="@style/ThemeOverlay.Happwner.Toolbar">
+            app:theme="@style/ThemeOverlay_Happwner_Toolbar">
 
             <ImageButton
                 android:id="@+id/action_settings"
@@ -60,22 +60,13 @@
             android:focusable="true"
             android:focusableInTouchMode="true">
 
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/island_padding"
-                android:textColor="@color/brand_purple"
-                android:gravity="center"
-                android:textStyle="bold"
-                android:visibility="gone" />
-
-            <!-- ОСТРОВ 1: ПЕРЕХВАТ -->
+            <!-- ОСТРОВ 1: ИСТОРИЯ (СКРЫТО ПО УМОЛЧАНИЮ) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/islandIntercept"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/island_margin_bottom"
+                android:visibility="gone"
                 app:cardCornerRadius="@dimen/ui_corner_radius"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
@@ -86,73 +77,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/island_padding">
-
-                    <LinearLayout
-                        android:id="@+id/rowInterceptLinks"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/input_field_height"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="@dimen/spacing_tiny"
-                        android:background="@drawable/bg_row_ripple"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView
-                            android:id="@+id/labelInterceptLinks"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/label_intercept_links"
-                            android:textColor="@color/text_primary"
-                            android:textSize="@dimen/text_size_label" />
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchInterceptLinks"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:clickable="false"
-                            android:focusable="false"
-                            android:background="@null" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/rowInterceptHwid"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/input_field_height"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="@dimen/spacing_tiny"
-                        android:layout_marginBottom="@dimen/spacing_tiny"
-                        android:background="@drawable/bg_row_ripple"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView
-                            android:id="@+id/labelInterceptHwid"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/label_intercept_hwid"
-                            android:textColor="@color/text_primary"
-                            android:textSize="@dimen/text_size_label" />
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchInterceptHwid"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:clickable="false"
-                            android:focusable="false"
-                            android:background="@null" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/island_stroke"
-                        android:layout_marginBottom="@dimen/spacing_small" />
+                    android:paddingHorizontal="@dimen/island_padding"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp">
 
                     <LinearLayout
                         android:id="@+id/historyHeader"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/input_field_height"
+                        android:layout_height="42dp"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="@dimen/spacing_tiny"
@@ -176,6 +108,7 @@
                             android:layout_height="@dimen/btn_icon_size"
                             android:background="@drawable/bg_icon_ripple"
                             android:src="@drawable/ic_delete"
+                            android:translationX="4dp"
                             app:tint="@color/text_secondary" />
 
                         <ImageView
@@ -184,6 +117,7 @@
                             android:layout_height="@dimen/btn_icon_size"
                             android:padding="@dimen/spacing_small"
                             android:src="@drawable/ic_expand_more"
+                            android:translationX="4dp"
                             app:tint="@color/text_secondary" />
                     </LinearLayout>
 
@@ -226,17 +160,20 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/card_content_padding">
+                    android:paddingHorizontal="@dimen/island_padding"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="8dp">
 
                     <!-- URL Input Group -->
                     <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/urlInputGroup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/island_margin_bottom">
+                        android:layout_marginBottom="0dp">
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/layoutUrl"
-                            style="@style/Widget.Happwner.TextInputLayout"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             app:layout_constraintStart_toStartOf="parent"
@@ -251,7 +188,8 @@
                                 android:layout_height="wrap_content"
                                 android:inputType="textMultiLine"
                                 android:minLines="1"
-                                android:maxLines="5"
+                                android:maxLines="8"
+                                android:imeOptions="actionDone"
                                 android:textColor="@color/text_input_color_selector"
                                 android:gravity="top|start"
                                 android:paddingEnd="0dp" />
@@ -299,6 +237,51 @@
                             app:layout_constraintEnd_toEndOf="@id/layoutUrl" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+                    <!-- Spacer between URL and HWID option (visible only when option is visible) -->
+                    <View
+                        android:id="@+id/hwidOptionSpacer"
+                        android:layout_width="match_parent"
+                        android:layout_height="18dp"
+                        android:visibility="gone" />
+
+                    <!-- Toggle: HWID Spoofing -->
+                    <LinearLayout
+                        android:id="@+id/rowInterceptHwid"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="@dimen/spacing_tiny"
+                        android:layout_marginBottom="0dp"
+                        android:layout_marginEnd="88dp"
+                        android:background="@drawable/bg_row_ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:visibility="gone">
+                        <TextView
+                            android:id="@+id/labelInterceptHwid"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_intercept_hwid"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+                        <com.google.android.material.checkbox.MaterialCheckBox
+                            android:id="@+id/switchInterceptHwid"
+                            android:layout_width="@dimen/btn_icon_size"
+                            android:layout_height="@dimen/btn_icon_size"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:background="@null"
+                            android:gravity="center"
+                            android:padding="0dp"
+                            android:translationX="4dp"
+                            app:minHeight="0dp"
+                            app:minWidth="0dp"
+                            app:useMaterialThemeColors="false"
+                            app:buttonTint="@color/checkbox_tint" />
+                    </LinearLayout>
+
                     <!-- HWID Input Group -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -308,7 +291,7 @@
                         android:layout_marginBottom="2dp">
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/layoutHwid"
-                            style="@style/Widget.Happwner.TextInputLayout"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -318,6 +301,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:textColor="@color/text_input_color_selector"
+                                android:imeOptions="actionDone"
                                 android:inputType="text" />
                         </com.google.android.material.textfield.TextInputLayout>
                         <ImageButton
@@ -358,7 +342,8 @@
                         android:gravity="center_vertical"
                         android:layout_marginBottom="@dimen/spacing_normal">
                         <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Happwner.TextInputLayout"
+                            android:id="@+id/layoutUserAgent"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -423,12 +408,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="@color/island_stroke"
-                        android:layout_marginBottom="@dimen/island_padding" />
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="8dp" />
 
                     <LinearLayout
                         android:id="@+id/outputHeader"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/input_field_height"
+                        android:layout_height="42dp"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="@dimen/spacing_tiny"
@@ -452,6 +438,7 @@
                             android:layout_height="@dimen/btn_icon_size"
                             android:background="@drawable/bg_icon_ripple"
                             android:src="@drawable/ic_delete"
+                            android:translationX="4dp"
                             app:tint="@color/text_secondary" />
                         <ImageButton
                             android:id="@+id/btnCopyOutput"
@@ -459,6 +446,7 @@
                             android:layout_height="@dimen/btn_icon_size"
                             android:background="@drawable/bg_icon_ripple"
                             android:src="@drawable/ic_copy"
+                            android:translationX="4dp"
                             app:tint="@color/text_secondary" />
 
                         <ImageView
@@ -467,6 +455,7 @@
                             android:layout_height="@dimen/btn_icon_size"
                             android:padding="@dimen/spacing_small"
                             android:src="@drawable/ic_expand_more"
+                            android:translationX="4dp"
                             app:tint="@color/text_secondary" />
                     </LinearLayout>
 
@@ -477,7 +466,7 @@
                         android:paddingTop="@dimen/spacing_small"
                         android:text="@string/label_result_default"
                         android:textColor="@color/text_secondary"
-                        android:textIsSelectable="true"
+                        android:textIsSelectable="false"
                         android:visibility="gone" />
 
                 </LinearLayout>

@@ -5,7 +5,7 @@
 
 # Happwner
 
-Android app and Xposed module for decrypting and exporting subscriptions from the proxy utility [Happ](https://play.google.com/store/apps/details?id=com.happproxy&utm_source=chatgpt.com) to any VPN applications (NekoBox, v2rayNG, Hiddify, and other).
+Android app and Xposed module for decrypting and exporting subscriptions from the proxy utility [Happ](https://play.google.com/store/apps/details?id=com.happproxy) to any VPN applications (NekoBox, v2rayNG, Hiddify, and other).
 
 ## Why?
 

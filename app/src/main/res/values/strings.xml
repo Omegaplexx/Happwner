@@ -6,9 +6,11 @@
     <!-- UI Labels -->
     <string name="label_captured_urls">Captured links</string>
     <string name="label_result">Result</string>
-    <string name="label_xposed_inactive">Xposed is inactive. Some features are unavailable</string>
+    <string name="label_xposed_inactive">Xposed inactive</string>
+    <string name="label_xposed_active">Xposed</string>
+    <string name="label_lspatch_active">LSPatch</string>
     <string name="label_hwid_unknown">HWID is unknown. Enter manually or launch Happ</string>
-    <string name="label_history_empty">No captured links. Enable link interception, launch Happ, update encrypted subscriptions, then return here. Decrypted links will appear here.</string>
+    <string name="label_history_empty">No captured links. Enable link interception, launch Happ, update encrypted subscriptions, and return here. Decrypted links will appear here.</string>
     <string name="label_result_default">Fill in the three fields above and click the &lt;b&gt;Profiles&lt;/b&gt; button—your subscription configurations will appear here, and you\'ll be able to copy them into any proxy client. The &lt;b&gt;Subscription&lt;/b&gt; button allows you to update profiles in other apps via the bridge service.</string>
     <string name="label_lspatch_mode">LSPatch mode</string>
     <string name="label_intercept_links">Intercept links</string>
@@ -28,9 +30,9 @@
 
     <!-- Info Dialogs -->
     <string name="info_url_title">Subscription link</string>
-    <string name="info_url_msg">Paste the decrypted link to your subscription. Links like &lt;tt&gt;happ://crypt5&lt;/tt&gt; must first be decrypted using the built-in link interceptor or another method.&lt;br&gt;&lt;br&gt;&lt;b&gt;Link interception requires Xposed or LSPatch!&lt;/b&gt;</string>
+    <string name="info_url_msg">Enter a &lt;tt&gt;https://&lt;/tt&gt; or &lt;tt&gt;happ://crypt&lt;/tt&gt; link.</string>
     <string name="info_hwid_title" translatable="false">Hardware ID</string>
-    <string name="info_hwid_msg">Spoofs HWID to an arbitrary value when requesting subscriptions intended strictly for Happ.&lt;br&gt;&lt;br&gt;Android ID, often called Hardware ID (HWID), is a 16-character identifier unique to each device and each app installed on it. When requesting subscriptions, Happ always sends this ID to the VPN provider, linking the subscription to a specific device.</string>
+    <string name="info_hwid_msg">Every device has its own unique HWID—VPN providers use it to identify which device is connected to the subscription and may restrict access if the device limit is reached. By spoofing the identifier, you can bypass this restriction by entering the HWID of any device already connected to the subscription.</string>
     <string name="info_ua_title" translatable="false">User-Agent</string>
     <string name="info_ua_msg">When requesting subscriptions, Happ sends its app name and version to the VPN provider. Happwner mimics this behavior.</string>
 
@@ -39,12 +41,14 @@
     <string name="label_theme">Theme</string>
     <string name="setting_show_duplicates">Show all links</string>
     <string name="setting_show_duplicates_desc">Display all duplicate captured links</string>
-    <string name="setting_lspatch_mode">LSPatch mode</string>
-    <string name="setting_lspatch_mode_desc">Forcefully display the link interception section. If Xposed is not available, links will only be intercepted from apps patched using LSPatch</string>
+    <string name="setting_lspatch_mode">Link interception</string>
+    <string name="setting_lspatch_mode_desc">An alternative method for decoding links, which requires Happ and Xposed/LSPatch to be installed. This may be helpful if the built-in decoder becomes obsolete</string>
     <string name="setting_process_response">Parse response</string>
     <string name="setting_process_response_desc">Convert the JSON arrays received from the server into URI links. Disable if profile conversion is incorrect</string>
     <string name="setting_process_manual">During profile request</string>
-    <string name="setting_process_server">When using the bridge</string>
+    <string name="setting_process_server">When using the Bridge</string>
+    <string name="setting_header_general">General</string>
+    <string name="setting_header_legacy">Legacy</string>
     <string name="setting_bridge_header">Subscription Bridge</string>
     <string name="setting_enable_bridge">Bridge</string>
     <string name="setting_enable_bridge_desc">Run a local HTTP proxy server to update Happ subscriptions in other apps</string>
@@ -69,15 +73,23 @@
     <string name="msg_text_truncated">\n\n… [Text truncated to save resources. Press \"Copy\" to get the full result]</string>
     <string name="msg_bridge_service_enable">This feature allows updating Happ subscriptions in any proxy client through the Happwner service. After clicking \"OK\", Happwner will request permission to display notifications, start the service, and copy the link to the clipboard—import it into your app.&lt;br&gt;&lt;br&gt;&lt;b&gt;Important:&lt;/b&gt; enable \"Bypass LAN\" or add a &lt;tt&gt;geoip:private&lt;/tt&gt; rule to &lt;tt&gt;direct&lt;/tt&gt;, otherwise the update will not work when your proxy client\'s connection is active.</string>
 
-    <string name="error_unsupported_happ_link">Link is encrypted. Intercept the decrypted one (requires Xposed/LSPatch)</string>
+    <string name="error_unsupported_happ_link">Decrypt the link (requires Xposed/LSPatch)</string>
+    <string name="error_decrypt_first">Decrypt the link</string>
+    <string name="error_convert_first">Convert the link</string>
     <string name="error_invalid_format">Unsupported format</string>
     <string name="error_invalid_link">Enter a valid link</string>
+    <string name="msg_decrypted_success">Decrypted successfully</string>
+    <string name="title_decryption_error">Decryption Error</string>
+    <string name="error_url_not_found">URL not found in binary output</string>
+    <string name="label_exit_code">Exit code</string>
+    <string name="msg_error">Error</string>
 
     <string name="about_app">About app</string>
     <string name="about_app_text">
         A free and open-source tool for exporting encrypted Happ subscriptions to any app.
         &lt;br&gt;&lt;br&gt;
         &lt;b&gt;Version:&lt;/b&gt; %1$s&lt;br&gt;
+        &lt;b&gt;Status:&lt;/b&gt; %2$s&lt;br&gt;
         &lt;b&gt;Developer:&lt;/b&gt; Omegaplex&lt;br&gt;
         &lt;b&gt;Repository:&lt;/b&gt; &lt;a href=\"https://github.com/Omegaplexx/Happwner\"&gt;GitHub&lt;/a&gt;
     </string>

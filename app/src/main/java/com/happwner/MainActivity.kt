@@ -17,6 +17,8 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import java.io.File
+import java.io.FileOutputStream
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -25,7 +27,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,21 +44,25 @@ class MainActivity : AppCompatActivity() {
     private lateinit var inputHwid: EditText
     private lateinit var inputUserAgent: EditText
     private lateinit var hwidHint: TextView
-    private lateinit var emptyHistoryText: TextView
+    private lateinit var hwidOptionSpacer: View
     private lateinit var mainContainer: ViewGroup
-    private lateinit var statusText: TextView
+    private lateinit var islandIntercept: View
     private lateinit var historyHeader: View
     private lateinit var historyContent: View
     private lateinit var btnExpandHistory: ImageView
     private lateinit var btnExpandOutput: ImageView
-    private lateinit var islandIntercept: View
-    private lateinit var switchInterceptLinks: SwitchMaterial
-    private lateinit var switchInterceptHwid: SwitchMaterial
+    private lateinit var btnClearHistory: ImageButton
+    private lateinit var emptyHistoryText: TextView
     private lateinit var layoutHwid: TextInputLayout
     private lateinit var layoutUrl: TextInputLayout
+    private lateinit var layoutUserAgent: TextInputLayout
     private lateinit var urlErrorText: TextView
+    
     private lateinit var output: TextView
     private lateinit var btnGetSub: Button
+    private lateinit var btnPasteUrlManual: ImageButton
+    private lateinit var rowInterceptHwid: View
+    private lateinit var switchInterceptHwid: MaterialCheckBox
     
     private var fullResponseText: String = ""
     private val MAX_DISPLAY_CHARS by lazy { resources.getInteger(R.integer.max_display_chars) }
@@ -202,29 +208,31 @@ class MainActivity : AppCompatActivity() {
         inputUserAgent = findViewById(R.id.inputUserAgent)
         layoutHwid = findViewById(R.id.layoutHwid)
         layoutUrl = findViewById(R.id.layoutUrl)
+        layoutUserAgent = findViewById(R.id.layoutUserAgent)
         urlErrorText = findViewById(R.id.urlErrorText)
         output = findViewById(R.id.output)
         btnGetSub = findViewById(R.id.btnGetSub)
+        btnPasteUrlManual = findViewById(R.id.btnPasteUrlManual)
         val button = findViewById<Button>(R.id.btnGet)
-        statusText = findViewById(R.id.statusText)
-        btnExpandOutput = findViewById(R.id.btnExpandOutput)
-        capturedUrlsContainer = findViewById(R.id.capturedUrlsContainer)
-        btnExpandHistory = findViewById(R.id.btnExpandHistory)
+        hwidHint = findViewById(R.id.hwidHint)
+        hwidOptionSpacer = findViewById(R.id.hwidOptionSpacer)
+        rowInterceptHwid = findViewById(R.id.rowInterceptHwid)
+        switchInterceptHwid = findViewById(R.id.switchInterceptHwid)
+
+        islandIntercept = findViewById(R.id.islandIntercept)
         historyHeader = findViewById(R.id.historyHeader)
         historyContent = findViewById(R.id.historyContent)
+        btnExpandHistory = findViewById(R.id.btnExpandHistory)
+        btnExpandOutput = findViewById(R.id.btnExpandOutput)
+        btnClearHistory = findViewById(R.id.btnClearHistory)
         emptyHistoryText = findViewById(R.id.emptyHistoryText)
-        hwidHint = findViewById(R.id.hwidHint)
-        islandIntercept = findViewById(R.id.islandIntercept)
-        switchInterceptLinks = findViewById(R.id.switchInterceptLinks)
-        switchInterceptHwid = findViewById(R.id.switchInterceptHwid)
+        capturedUrlsContainer = findViewById(R.id.capturedUrlsContainer)
         
         val btnClearOutput = findViewById<ImageButton>(R.id.btnClearOutput)
         val btnCopyOutput = findViewById<ImageButton>(R.id.btnCopyOutput)
-        val btnClearHistory = findViewById<ImageButton>(R.id.btnClearHistory)
         val infoUrl = findViewById<ImageButton>(R.id.infoUrl)
         val infoHwid = findViewById<ImageButton>(R.id.infoHwid)
         val infoUserAgent = findViewById<ImageButton>(R.id.infoUserAgent)
-        val btnPasteUrlManual = findViewById<ImageButton>(R.id.btnPasteUrlManual)
         val btnEditHwidManual = findViewById<ImageButton>(R.id.btnEditHwidManual)
         val btnEditUaManual = findViewById<ImageButton>(R.id.btnEditUaManual)
         val outputHeader = findViewById<View>(R.id.outputHeader)
@@ -234,9 +242,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Set static HTML texts
-        setHtmlText(findViewById<TextView>(R.id.labelInterceptLinks), R.string.label_intercept_links)
-        setHtmlText(findViewById<TextView>(R.id.labelInterceptHwid), R.string.label_intercept_hwid)
-        setHtmlText(findViewById<TextView>(R.id.labelCapturedUrls), R.string.label_captured_urls)
         setHtmlText(findViewById<TextView>(R.id.labelResultHeader), R.string.label_result)
 
         btnPasteUrlManual.setOnClickListener { handlePasteUrl() }
@@ -250,29 +255,18 @@ class MainActivity : AppCompatActivity() {
         }
         btnEditUaManual.setOnClickListener { handleToggleUaEdit(!inputUserAgent.isEnabled) }
 
-        val rowInterceptLinks = findViewById<View>(R.id.rowInterceptLinks)
-        val rowInterceptHwid = findViewById<View>(R.id.rowInterceptHwid)
-
-        switchInterceptLinks.isChecked = prefs.getBoolean("intercept_enabled", false)
-        val updateInterceptLinks = { checked: Boolean ->
-            switchInterceptLinks.isChecked = checked
-            prefs.edit().putBoolean("intercept_enabled", checked).apply()
-            PrefsManager.broadcastSettings(this)
-        }
-        rowInterceptLinks.setOnClickListener { updateInterceptLinks(!switchInterceptLinks.isChecked) }
-
         switchInterceptHwid.isChecked = prefs.getBoolean("use_custom_hwid_substitution", false)
         val updateInterceptHwid = { checked: Boolean ->
             switchInterceptHwid.isChecked = checked
             prefs.edit().putBoolean("use_custom_hwid_substitution", checked).apply()
-            fixSharedPrefs() // Устанавливаем права доступа для Xposed и рассылаем настройки
+            fixSharedPrefs()
             if (checked && !inputHwid.isEnabled) {
                 handleToggleHwidEdit(true)
             }
         }
         rowInterceptHwid.setOnClickListener { 
             updateInterceptHwid(!switchInterceptHwid.isChecked)
-            fixSharedPrefs() // Принудительно обновляем права после каждого изменения
+            fixSharedPrefs()
         }
 
         val blockEnterFilter = InputFilter { source, _, _, _, _, _ ->
@@ -284,34 +278,75 @@ class MainActivity : AppCompatActivity() {
         val inputs = listOf(inputUrl, inputHwid, inputUserAgent)
         inputs.forEach { input ->
             input.setOnEditorActionListener { v, actionId, event ->
-                if (input == inputUrl) {
-                    val text = inputUrl.text.toString().trim()
-                    if (text.startsWith("http://127.0.0.1:8166")) {
-                        parseAndApplyBridgeUrl(text)
-                    }
-                }
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(v.windowToken, 0)
                 v.clearFocus()
                 true
             }
-        }
 
-        inputUrl.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                val text = inputUrl.text.toString().trim()
-                if (text.startsWith("http://127.0.0.1:8166")) {
-                    parseAndApplyBridgeUrl(text)
+            // Мгновенное обновление стилей при касании (фикс "фиолетовой вспышки")
+            input.setOnTouchListener { _, _ ->
+                val layout = when(input.id) {
+                    R.id.inputUrl -> layoutUrl
+                    R.id.inputHwid -> layoutHwid
+                    else -> layoutUserAgent
                 }
+                refreshFieldStyle(layout, input)
+                false
             }
         }
 
+        // Первичная инициализация
+        refreshAllFieldsStyle()
+
+        // Слушатели изменений и фокуса
+        inputUrl.addTextChangedListener(object : android.text.TextWatcher {
+            private var lastLineCount = 1
+            private var wasError = false
+            private var wasEncrypted = false
+
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val text = s.toString().trim()
+                prefs.edit().putString("last_url", text).apply()
+                updateUrlActionIcon(text)
+
+                val isEncrypted = text.startsWith("happ://crypt")
+                val hasError = !text.isEmpty() && !isEncrypted && !text.startsWith("http://") && !text.startsWith("https://")
+                val currentLineCount = inputUrl.lineCount
+                
+                if (hasError != wasError || isEncrypted != wasEncrypted || currentLineCount != lastLineCount) {
+                    TransitionManager.beginDelayedTransition(mainContainer, TransitionSet().apply {
+                        addTransition(ChangeBounds().excludeTarget(inputUrl, true))
+                        addTransition(Fade())
+                        duration = resources.getInteger(R.integer.duration_standard_transition).toLong()
+                    })
+                    
+                    if (hasError) {
+                        urlErrorText.text = getString(R.string.error_invalid_format)
+                        urlErrorText.visibility = View.VISIBLE
+                    } else {
+                        urlErrorText.visibility = View.GONE
+                    }
+                }
+
+                refreshFieldStyle(layoutUrl, inputUrl)
+
+                wasError = hasError
+                wasEncrypted = isEncrypted
+                lastLineCount = currentLineCount
+            }
+            override fun beforeTextChanged(s: CharSequence?, s1: Int, s2: Int, s3: Int) {}
+            override fun onTextChanged(s: CharSequence?, s1: Int, s2: Int, s3: Int) {}
+        })
+
         inputHwid.addTextChangedListener(object : android.text.TextWatcher {
             override fun afterTextChanged(s: android.text.Editable?) {
+                val text = s.toString()
                 if (inputHwid.isEnabled) {
-                    prefs.edit().putString("custom_hwid", s.toString()).apply()
+                    prefs.edit().putString("custom_hwid", text).apply()
                     fixSharedPrefs()
                 }
+                updateHwidHintVisibility(text)
             }
             override fun beforeTextChanged(s: CharSequence?, s1: Int, s2: Int, s3: Int) {}
             override fun onTextChanged(s: CharSequence?, s1: Int, s2: Int, s3: Int) {}
@@ -326,6 +361,10 @@ class MainActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, s1: Int, s2: Int, s3: Int) {}
             override fun onTextChanged(s: CharSequence?, s1: Int, s2: Int, s3: Int) {}
         })
+
+        inputUrl.onFocusChangeListener = View.OnFocusChangeListener { _, _ -> refreshFieldStyle(layoutUrl, inputUrl) }
+        inputHwid.onFocusChangeListener = View.OnFocusChangeListener { _, _ -> refreshFieldStyle(layoutHwid, inputHwid) }
+        inputUserAgent.onFocusChangeListener = View.OnFocusChangeListener { _, _ -> refreshFieldStyle(layoutUserAgent, inputUserAgent) }
 
         historyHeader.setOnClickListener {
             currentFocus?.clearFocus()
@@ -360,72 +399,8 @@ class MainActivity : AppCompatActivity() {
 
         val savedUrl = prefs.getString("last_url", "")
         inputUrl.setText(savedUrl)
-
-        inputUrl.addTextChangedListener(object : android.text.TextWatcher {
-            private var lastLineCount = 1
-            private var wasError = false
-
-            override fun afterTextChanged(s: android.text.Editable?) {
-                val rawText = s.toString().trim()
-                val text = rawText
-                prefs.edit().putString("last_url", text).apply()
-
-                val currentLineCount = inputUrl.lineCount
-                val errorMsg = when {
-                    text.isEmpty() -> null
-                    text.contains("happ://crypt") -> getString(R.string.error_unsupported_happ_link)
-                    !text.startsWith("https://") && !text.startsWith("http://") -> getString(R.string.error_invalid_format)
-                    else -> null
-                }
-
-                val hasError = errorMsg != null
-                
-                if (hasError != wasError || currentLineCount != lastLineCount) {
-                    // Используем Fade для текста ошибки, но ChangeBounds для плавного расширения карточки
-                    TransitionManager.beginDelayedTransition(findViewById(R.id.rootLayout), TransitionSet().apply {
-                        addTransition(ChangeBounds().excludeTarget(inputUrl, true))
-                        addTransition(Fade())
-                        duration = resources.getInteger(R.integer.duration_standard_transition).toLong()
-                    })
-                }
-
-                if (hasError) {
-                    urlErrorText.text = errorMsg
-                    urlErrorText.visibility = View.VISIBLE
-                    val redColor = ContextCompat.getColor(this@MainActivity, R.color.error_red)
-                    val redHighlight = ContextCompat.getColor(this@MainActivity, R.color.error_red_highlight)
-                    val colorList = android.content.res.ColorStateList.valueOf(redColor)
-                    layoutUrl.setBoxStrokeColor(redColor)
-                    layoutUrl.hintTextColor = colorList
-                    layoutUrl.defaultHintTextColor = colorList
-                    if (android.os.Build.VERSION.SDK_INT >= 29) {
-                        layoutUrl.setCursorColor(colorList)
-                    }
-                    inputUrl.highlightColor = redHighlight
-                    inputUrl.isActivated = true
-                } else {
-                    urlErrorText.visibility = View.GONE
-                    val purpleColor = ContextCompat.getColor(this@MainActivity, R.color.brand_purple_secondary)
-                    val purpleHighlight = ContextCompat.getColor(this@MainActivity, R.color.brand_purple_secondary_highlight)
-                    val purpleList = ContextCompat.getColorStateList(this@MainActivity, R.color.brand_purple_secondary_selector)
-                    val hintList = ContextCompat.getColorStateList(this@MainActivity, R.color.text_input_hint_selector)
-                    
-                    layoutUrl.setBoxStrokeColorStateList(purpleList!!)
-                    layoutUrl.hintTextColor = hintList
-                    layoutUrl.defaultHintTextColor = hintList
-                    if (android.os.Build.VERSION.SDK_INT >= 29) {
-                        layoutUrl.setCursorColor(android.content.res.ColorStateList.valueOf(purpleColor))
-                    }
-                    inputUrl.highlightColor = purpleHighlight
-                    inputUrl.isActivated = false
-                }
-
-                wasError = hasError
-                lastLineCount = currentLineCount
-            }
-            override fun beforeTextChanged(s: CharSequence?, s1: Int, s2: Int, s3: Int) {}
-            override fun onTextChanged(s: CharSequence?, s1: Int, s2: Int, s3: Int) {}
-        })
+        updateUrlActionIcon(savedUrl ?: "")
+        refreshAllFieldsStyle()
 
         btnCopyOutput.setOnClickListener {
             if (fullResponseText.isNotEmpty() && fullResponseText != getString(R.string.label_result_default) && fullResponseText != getString(R.string.msg_loading)) {
@@ -439,6 +414,7 @@ class MainActivity : AppCompatActivity() {
             TransitionManager.beginDelayedTransition(mainContainer, fastTransition)
             fullResponseText = ""
             setHtmlText(output, R.string.label_result_default)
+            output.setTextIsSelectable(false)
             if (output.visibility == View.VISIBLE) {
                 output.visibility = View.GONE
                 btnExpandOutput.setImageResource(R.drawable.ic_expand_more)
@@ -446,11 +422,23 @@ class MainActivity : AppCompatActivity() {
         }
         
         setHtmlText(output, R.string.label_result_default)
+        output.setTextIsSelectable(false)
+        updateTextViewHandlesColor(output, ContextCompat.getColor(this, R.color.brand_purple_secondary))
 
         btnGetSub.setOnClickListener {
             val urlString = inputUrl.text.toString().replace("\n", "").replace("\r", "").trim()
             val hwid = inputHwid.text.toString().trim()
             val userAgent = inputUserAgent.text.toString().replace("\n", "").replace("\r", "").trim()
+
+            if (urlString.startsWith("happ://crypt")) {
+                Toast.makeText(this, getString(R.string.error_decrypt_first), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (urlString.startsWith("http://127.0.0.1:8166")) {
+                Toast.makeText(this, getString(R.string.error_convert_first), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             if (urlString.isEmpty()) {
                 Toast.makeText(this, getString(R.string.msg_enter_url), Toast.LENGTH_SHORT).show()
@@ -523,6 +511,16 @@ class MainActivity : AppCompatActivity() {
             val hwid = inputHwid.text.toString()
             val userAgent = inputUserAgent.text.toString().replace("\n", "").replace("\r", "")
 
+            if (urlString.startsWith("happ://crypt")) {
+                Toast.makeText(this, getString(R.string.error_decrypt_first), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (urlString.startsWith("http://127.0.0.1:8166")) {
+                Toast.makeText(this, getString(R.string.error_convert_first), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             if (urlString.isEmpty()) {
                 Toast.makeText(this, getString(R.string.msg_enter_url), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -534,6 +532,7 @@ class MainActivity : AppCompatActivity() {
                 btnExpandOutput.setImageResource(R.drawable.ic_expand_less)
             }
             output.text = getString(R.string.msg_loading)
+            output.setTextIsSelectable(false)
             fullResponseText = ""
 
             lifecycleScope.launch {
@@ -541,6 +540,7 @@ class MainActivity : AppCompatActivity() {
                 val processManual = prefs.getBoolean("process_manual", true)
                 val converted = if (processManual) LinkConverter.convert(resp) else resp
                 fullResponseText = converted
+                output.setTextIsSelectable(true)
 
                 if (converted.length > MAX_DISPLAY_CHARS) {
                     output.text = converted.take(MAX_DISPLAY_CHARS) + getString(R.string.msg_text_truncated)
@@ -583,9 +583,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        updateUiState() // Обновляем UI, так как LSPatch мог включиться автоматически
+        updateUiState()
         
-        // Bug 1: Проверка смены языка
         val prefs = getSafePrefs(this)
         val savedLang = prefs.getString("app_lang", "system") ?: "system"
         if (System.getProperty("happwner_current_lang") != null && 
@@ -626,23 +625,83 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateUrlActionIcon(text: String) {
+        when {
+            text.startsWith("happ://crypt") -> {
+                btnPasteUrlManual.setImageResource(R.drawable.ic_key)
+                btnPasteUrlManual.setOnClickListener { handleDecryptUrl(text) }
+            }
+            text.startsWith("http://127.0.0.1:8166") -> {
+                btnPasteUrlManual.setImageResource(R.drawable.revert)
+                btnPasteUrlManual.setOnClickListener { parseAndApplyBridgeUrl(text) }
+            }
+            else -> {
+                btnPasteUrlManual.setImageResource(R.drawable.ic_paste)
+                btnPasteUrlManual.setOnClickListener { handlePasteUrl() }
+            }
+        }
+    }
+
     private fun handlePasteUrl() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = clipboard.primaryClip
         if (clip != null && clip.itemCount > 0) {
             val pasteText = clip.getItemAt(0).text.toString().trim()
-            if (pasteText.startsWith("http://127.0.0.1:8166")) {
-                parseAndApplyBridgeUrl(pasteText)
-            } else {
-                inputUrl.setText(pasteText.replace("\n", "").replace("\r", ""))
-            }
+            inputUrl.setText(pasteText.replace("\n", "").replace("\r", ""))
         } else {
             Toast.makeText(this, getString(R.string.msg_clipboard_empty), Toast.LENGTH_SHORT).show()
         }
     }
 
+    private fun handleDecryptUrl(cryptUrl: String) {
+        val binaryPath = File(applicationInfo.nativeLibraryDir, "libdecrypt.so").absolutePath
+
+        Thread {
+            try {
+                val process = ProcessBuilder(binaryPath, cryptUrl)
+                    .redirectErrorStream(true)
+                    .start()
+
+                val output = process.inputStream.bufferedReader().readText()
+                val exitCode = process.waitFor()
+
+                runOnUiThread {
+                    if (exitCode == 0) {
+                        val lines = output.lines()
+                        var decryptedUrl: String? = null
+                        var foundResult = false
+                        for (line in lines) {
+                            if (line.trim() == "Result") {
+                                foundResult = true
+                                continue
+                            }
+                            if (foundResult && line.trim().startsWith("http")) {
+                                decryptedUrl = line.trim()
+                                break
+                            }
+                        }
+
+                        if (decryptedUrl != null) {
+                            TransitionManager.beginDelayedTransition(mainContainer, fastTransition)
+                            inputUrl.setText(decryptedUrl)
+                        } else {
+                            showInfoDialog(getString(R.string.title_decryption_error), "${getString(R.string.error_url_not_found)}:\n\n$output")
+                        }
+                    } else {
+                        showInfoDialog(getString(R.string.title_decryption_error), "${getString(R.string.label_exit_code)}: $exitCode\n\n$output")
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "${getString(R.string.msg_error)}: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }.start()
+    }
+
     private fun parseAndApplyBridgeUrl(bridgeUrl: String) {
         try {
+            TransitionManager.beginDelayedTransition(mainContainer, fastTransition)
             val queryPart = if (bridgeUrl.contains("/url=")) {
                 bridgeUrl.substringAfter("/url=")
             } else return
@@ -707,18 +766,18 @@ class MainActivity : AppCompatActivity() {
             updateHwidHintVisibility(captured)
         } else {
             val custom = prefs.getString("custom_hwid", "")
-            if (custom != null && custom.isNotEmpty()) {
+            if (!custom.isNullOrEmpty()) {
                 inputHwid.setText(custom)
             }
             inputHwid.clearFocus()
         }
+        refreshFieldStyle(layoutHwid, inputHwid)
     }
 
     private fun handleToggleUaEdit(enabled: Boolean) {
         val prefs = getSafePrefs(this)
         inputUserAgent.isEnabled = enabled
-        val layoutUa = inputUserAgent.parent.parent as? TextInputLayout
-        layoutUa?.isEnabled = enabled
+        layoutUserAgent.isEnabled = enabled
         prefs.edit().putBoolean("use_custom_ua_input", enabled).apply()
 
         if (!enabled) {
@@ -730,13 +789,14 @@ class MainActivity : AppCompatActivity() {
             }
             inputUserAgent.clearFocus()
         }
+        refreshFieldStyle(layoutUserAgent, inputUserAgent)
     }
 
     override fun onStart() {
         super.onStart()
         checkLSPatchStatus()
-        updateUiState()
         loadUrlHistory()
+        updateUiState()
     }
 
     override fun onStop() {
@@ -824,30 +884,30 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSafePrefs(this)
         val lspatchMode = prefs.getBoolean("lspatch_mode", false)
         val moduleActive = ModuleStatus.isModuleActive()
-        
-        // В режиме LSPatch (без рута) модуль не видит сам себя, 
-        // поэтому мы доверяем сохраненному статусу lspatch_mode
         val isFullActive = moduleActive || lspatchMode
 
         TransitionManager.beginDelayedTransition(mainContainer, fastTransition)
 
+        val isInterceptionEnabled = prefs.getBoolean("intercept_enabled", false)
+        islandIntercept.visibility = if (isInterceptionEnabled) View.VISIBLE else View.GONE
+
         if (isFullActive) {
-            islandIntercept.visibility = View.VISIBLE
-            statusText.visibility = View.VISIBLE
-            if (lspatchMode && !moduleActive) {
-                statusText.text = getString(R.string.label_lspatch_mode)
-                statusText.setTextColor(ContextCompat.getColor(this, R.color.brand_purple_secondary))
-            } else {
-                statusText.visibility = View.GONE
+            rowInterceptHwid.visibility = View.VISIBLE
+            hwidOptionSpacer.visibility = View.VISIBLE
+            findViewById<View>(R.id.urlInputGroup).layoutParams.let {
+                if (it is LinearLayout.LayoutParams) {
+                    it.bottomMargin = 0
+                }
             }
-            
             findViewById<ImageButton>(R.id.btnEditHwidManual).setImageResource(R.drawable.ic_edit)
         } else {
-            islandIntercept.visibility = View.GONE
-            statusText.visibility = View.VISIBLE
-            statusText.text = getString(R.string.label_xposed_inactive)
-            statusText.setTextColor(ContextCompat.getColor(this, R.color.brand_purple_secondary))
-            
+            rowInterceptHwid.visibility = View.GONE
+            hwidOptionSpacer.visibility = View.GONE
+            findViewById<View>(R.id.urlInputGroup).layoutParams.let {
+                if (it is LinearLayout.LayoutParams) {
+                    it.bottomMargin = resources.getDimensionPixelSize(R.dimen.island_margin_bottom)
+                }
+            }
             findViewById<ImageButton>(R.id.btnEditHwidManual).setImageResource(R.drawable.ic_paste)
         }
 
@@ -864,34 +924,30 @@ class MainActivity : AppCompatActivity() {
             prefs.getString("custom_hwid", "") ?: ""
         }
 
-        val hwidSpacer = findViewById<View>(R.id.hwidSpacer)
         inputHwid.setText(displayId)
-        
-        if (displayId.isNotEmpty()) {
-            hwidHint.visibility = View.GONE
-            hwidSpacer.visibility = View.VISIBLE
-        } else {
-            updateHwidHintVisibility("")
-        }
+        updateHwidHintVisibility(displayId)
 
         val isUaInputEnabled = prefs.getBoolean("use_custom_ua_input", false)
-        val layoutUa = inputUserAgent.parent.parent as? TextInputLayout
         inputUserAgent.isEnabled = isUaInputEnabled
-        layoutUa?.isEnabled = isUaInputEnabled
+        layoutUserAgent.isEnabled = isUaInputEnabled
         
         if (isUaInputEnabled) {
             inputUserAgent.setText(prefs.getString("custom_user_agent", getHappDefaultUa()))
         } else {
             inputUserAgent.setText(getHappDefaultUa())
         }
+        
+        refreshAllFieldsStyle()
     }
 
     private fun updateHwidHintVisibility(id: String?) {
-        val prefs = getSharedPreferences("happ_prefs", Context.MODE_PRIVATE)
+        val hwidSpacer = findViewById<View>(R.id.hwidSpacer)
+        TransitionManager.beginDelayedTransition(mainContainer, fastTransition)
+
+        val prefs = getSafePrefs(this)
         val lspatchMode = prefs.getBoolean("lspatch_mode", false)
         val moduleActive = ModuleStatus.isModuleActive()
         val isFullActive = moduleActive || lspatchMode
-        val hwidSpacer = findViewById<View>(R.id.hwidSpacer)
 
         if (id.isNullOrEmpty() && isFullActive) {
             hwidHint.text = getString(R.string.label_hwid_unknown)
@@ -914,12 +970,13 @@ class MainActivity : AppCompatActivity() {
             if (!showDuplicates) {
                 items = items.distinct()
             }
-            items.reversed().forEach { addUrlToUi(it, false) }
+            items.reversed().forEach { addUrlToUi(it) }
         }
         updateEmptyHistoryVisibility()
+        updateUiState()
     }
 
-    private fun addUrlToUi(url: String, addToHistory: Boolean = true) {
+    private fun addUrlToUi(url: String) {
         val tv = TextView(this).apply {
             text = url
             val pV = resources.getDimensionPixelSize(R.dimen.padding_history_vertical)
@@ -945,12 +1002,7 @@ class MainActivity : AppCompatActivity() {
         if (capturedUrlsContainer.childCount == 0) {
             emptyHistoryText.visibility = View.VISIBLE
             val msg = getString(R.string.label_history_empty)
-            emptyHistoryText.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                Html.fromHtml(msg, Html.FROM_HTML_MODE_LEGACY)
-            } else {
-                @Suppress("DEPRECATION")
-                Html.fromHtml(msg)
-            }
+            emptyHistoryText.text = fromHtml(msg)
         } else {
             emptyHistoryText.visibility = View.GONE
         }
@@ -989,8 +1041,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateHwidDisplay(id: String) {
         if (!inputHwid.isEnabled) {
             inputHwid.setText(id)
-            hwidHint.visibility = View.GONE
-            findViewById<View>(R.id.hwidSpacer).visibility = View.VISIBLE
+            updateHwidHintVisibility(id)
         }
     }
 
@@ -1016,5 +1067,97 @@ class MainActivity : AppCompatActivity() {
             } else "Error: ${conn.responseCode}"
         } catch (e: Exception) { "Error: ${e.message}" }
         finally { conn?.disconnect() }
+    }
+
+    // --- Dynamic Styling Logic ---
+
+    private fun getUrlCurrentColor(): Int {
+        val text = inputUrl.text.toString().trim()
+        val isEncrypted = text.startsWith("happ://crypt")
+        val hasError = !text.isEmpty() && !isEncrypted && !text.startsWith("http://") && !text.startsWith("https://")
+
+        return when {
+            hasError -> ContextCompat.getColor(this, R.color.error_red)
+            isEncrypted -> {
+                val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                if (isNight) Color.WHITE else Color.BLACK
+            }
+            else -> ContextCompat.getColor(this, R.color.brand_purple_secondary)
+        }
+    }
+
+    private fun refreshAllFieldsStyle() {
+        refreshFieldStyle(layoutUrl, inputUrl)
+        refreshFieldStyle(layoutHwid, inputHwid)
+        refreshFieldStyle(layoutUserAgent, inputUserAgent)
+    }
+
+    private fun refreshFieldStyle(layout: TextInputLayout, editText: EditText) {
+        val isEnabled = editText.isEnabled
+        val purple = ContextCompat.getColor(this, R.color.brand_purple_secondary)
+        val gray = ContextCompat.getColor(this, R.color.text_secondary)
+        val disabledColor = ContextCompat.getColor(this, R.color.text_disabled)
+
+        val focusedColor: Int
+        val unfocusedColor: Int
+
+        if (!isEnabled) {
+            focusedColor = disabledColor
+            unfocusedColor = disabledColor
+        } else if (editText.id == R.id.inputUrl) {
+            focusedColor = getUrlCurrentColor()
+            unfocusedColor = if (focusedColor == purple) gray else focusedColor
+        } else {
+            focusedColor = purple
+            unfocusedColor = gray
+        }
+
+        // Принудительно обновляем состояние самого Layout
+        layout.isEnabled = isEnabled
+        
+        val colorList = android.content.res.ColorStateList(
+            arrayOf(
+                intArrayOf(-android.R.attr.state_enabled),
+                intArrayOf(android.R.attr.state_focused),
+                intArrayOf()
+            ),
+            intArrayOf(disabledColor, focusedColor, unfocusedColor)
+        )
+        
+        layout.setBoxStrokeColorStateList(colorList)
+        layout.hintTextColor = colorList
+        layout.defaultHintTextColor = colorList
+        
+        if (Build.VERSION.SDK_INT >= 29) {
+            layout.setCursorColor(android.content.res.ColorStateList.valueOf(focusedColor))
+        }
+        
+        updateTextViewHandlesColor(editText, if (isEnabled) focusedColor else disabledColor)
+    }
+
+    private fun updateTextViewHandlesColor(view: TextView, color: Int) {
+        if (color == 0) return
+        
+        val alpha = 115 // ~45% прозрачности
+        val highlightColor = Color.argb(
+            alpha,
+            Color.red(color),
+            Color.green(color),
+            Color.blue(color)
+        )
+        
+        view.highlightColor = highlightColor
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val colorStateList = android.content.res.ColorStateList.valueOf(color)
+            try {
+                if (view is EditText) {
+                    view.textCursorDrawable?.mutate()?.setTintList(colorStateList)
+                }
+                view.textSelectHandle?.mutate()?.setTintList(colorStateList)
+                view.textSelectHandleLeft?.mutate()?.setTintList(colorStateList)
+                view.textSelectHandleRight?.mutate()?.setTintList(colorStateList)
+            } catch (e: Exception) {}
+        }
     }
 }
