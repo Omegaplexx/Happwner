@@ -105,5 +105,6 @@
         <item name="colorControlNormal">@color/toolbar_text</item>
         <item name="android:textColorPrimary">@color/toolbar_text</item>
         <item name="android:textColorSecondary">@color/toolbar_text</item>
+        <item name="colorControlHighlight">@color/toolbar_ripple</item>
     </style>
 </resources>

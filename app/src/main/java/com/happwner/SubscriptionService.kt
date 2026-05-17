@@ -109,6 +109,11 @@ class SubscriptionService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
         
+        val contentIntent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        val contentPendingIntent = PendingIntent.getActivity(this, 0, contentIntent, flags)
+
         val hidePendingIntent = PendingIntent.getActivity(this, 200, hideIntent, flags)
 
         val disconnectIntent = Intent(this, SubscriptionService::class.java).apply {
@@ -126,6 +131,8 @@ class SubscriptionService : Service() {
             .setSmallIcon(R.drawable.ic_dns)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setContentIntent(contentPendingIntent)
             .addAction(R.drawable.ic_delete, getString(R.string.notif_action_hide), hidePendingIntent)
             .addAction(R.drawable.ic_settings, getString(R.string.notif_action_disconnect), disconnectPendingIntent)
             .build()
@@ -136,11 +143,11 @@ class SubscriptionService : Service() {
             0
         }
 
-        // Уведомление всегда показывается при активном сервисе
+        // Notification is always shown when the service is active
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(1, notification, fgsType)
+            startForeground(resources.getInteger(R.integer.id_fgs_notif), notification, fgsType)
         } else {
-            startForeground(1, notification)
+            startForeground(resources.getInteger(R.integer.id_fgs_notif), notification)
         }
     }
 
@@ -207,7 +214,7 @@ class SubscriptionService : Service() {
                         val response = fetchSubscription(targetUrl, hwid, ua)
 
                         val prefs = PrefsManager.getSafePrefs(this@SubscriptionService)
-                        val processServer = prefs.getBoolean("process_server", true)
+                        val processServer = prefs.getBoolean("process_server", false)
                         val finalBody = if (processServer) LinkConverter.convert(response.body) else response.body
                         
                         Log.d("Happwner:Server", "Sending response back. Final length: ${finalBody.length}")

@@ -16,10 +16,10 @@ object PrefsManager {
     }
 
     /**
-     * Отправляет сигнал обновления и САМИ ДАННЫЕ.
-     * На Android 11+ (без root) приложения часто не могут достучаться до ContentProvider 
-     * из-за ограничений видимости пакетов (Package Visibility). 
-     * Поэтому Broadcast становится единственным надежным способом доставки данных в RAM-кеш хука.
+     * Sends an update signal along with the DATA itself.
+     * On Android 11+ (rootless), apps often cannot reach ContentProvider 
+     * due to Package Visibility restrictions. 
+     * Thus, Broadcast becomes the only reliable way to deliver data to the hook's RAM cache.
      */
     fun broadcastSettings(context: Context) {
         val prefs = getSafePrefs(context)

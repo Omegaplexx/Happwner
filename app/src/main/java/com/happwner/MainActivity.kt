@@ -57,7 +57,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var layoutUrl: TextInputLayout
     private lateinit var layoutUserAgent: TextInputLayout
     private lateinit var urlErrorText: TextView
-    
+
+    private val fieldColorMap = mutableMapOf<Int, Int>()
+    private val fieldUnfocusedColorMap = mutableMapOf<Int, Int>()
+    private val fieldAnimatorMap = mutableMapOf<Int, android.animation.ValueAnimator>()
+
     private lateinit var output: TextView
     private lateinit var btnGetSub: Button
     private lateinit var btnPasteUrlManual: ImageButton
@@ -189,7 +193,8 @@ class MainActivity : AppCompatActivity() {
                             val rect = android.graphics.Rect()
                             focused.getDrawingRect(rect)
                             scrollView.offsetDescendantRectToMyCoords(focused, rect)
-                            val offset = resources.getDimensionPixelSize(R.dimen.scroll_offset_ime)
+                            val density = resources.displayMetrics.density
+                            val offset = (resources.getInteger(R.integer.scroll_offset_ime_dp) * density).toInt()
                             
                             val targetScrollY = rect.bottom - (scrollView.height - bottomPadding) + offset
                             if (targetScrollY > scrollView.scrollY) {
@@ -284,22 +289,22 @@ class MainActivity : AppCompatActivity() {
                 true
             }
 
-            // Мгновенное обновление стилей при касании (фикс "фиолетовой вспышки")
+                            // Instant style update on touch (fix for "purple flash")
             input.setOnTouchListener { _, _ ->
                 val layout = when(input.id) {
                     R.id.inputUrl -> layoutUrl
                     R.id.inputHwid -> layoutHwid
                     else -> layoutUserAgent
                 }
-                refreshFieldStyle(layout, input)
+                refreshFieldStyle(layout, input, animate = false)
                 false
             }
         }
 
-        // Первичная инициализация
-        refreshAllFieldsStyle()
+        // Initial style refresh
+        refreshAllFieldsStyle(false)
 
-        // Слушатели изменений и фокуса
+        // Text change and focus listeners
         inputUrl.addTextChangedListener(object : android.text.TextWatcher {
             private var lastLineCount = 1
             private var wasError = false
@@ -400,7 +405,7 @@ class MainActivity : AppCompatActivity() {
         val savedUrl = prefs.getString("last_url", "")
         inputUrl.setText(savedUrl)
         updateUrlActionIcon(savedUrl ?: "")
-        refreshAllFieldsStyle()
+        refreshAllFieldsStyle(false)
 
         btnCopyOutput.setOnClickListener {
             if (fullResponseText.isNotEmpty() && fullResponseText != getString(R.string.label_result_default) && fullResponseText != getString(R.string.msg_loading)) {
@@ -751,7 +756,6 @@ class MainActivity : AppCompatActivity() {
     private fun handleToggleHwidEdit(enabled: Boolean) {
         val prefs = getSafePrefs(this)
         inputHwid.isEnabled = enabled
-        layoutHwid.isEnabled = enabled
         prefs.edit().putBoolean("use_custom_hwid_input", enabled).apply()
         
         if (!enabled) {
@@ -916,7 +920,6 @@ class MainActivity : AppCompatActivity() {
 
         val isInputEnabled = prefs.getBoolean("use_custom_hwid_input", false)
         inputHwid.isEnabled = if (isFullActive) isInputEnabled else true
-        layoutHwid.isEnabled = inputHwid.isEnabled
 
         val displayId = if (isFullActive && !isInputEnabled) {
             prefs.getString("captured_id", "") ?: ""
@@ -929,7 +932,6 @@ class MainActivity : AppCompatActivity() {
 
         val isUaInputEnabled = prefs.getBoolean("use_custom_ua_input", false)
         inputUserAgent.isEnabled = isUaInputEnabled
-        layoutUserAgent.isEnabled = isUaInputEnabled
         
         if (isUaInputEnabled) {
             inputUserAgent.setText(prefs.getString("custom_user_agent", getHappDefaultUa()))
@@ -937,7 +939,7 @@ class MainActivity : AppCompatActivity() {
             inputUserAgent.setText(getHappDefaultUa())
         }
         
-        refreshAllFieldsStyle()
+        refreshAllFieldsStyle(false)
     }
 
     private fun updateHwidHintVisibility(id: String?) {
@@ -1086,13 +1088,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshAllFieldsStyle() {
-        refreshFieldStyle(layoutUrl, inputUrl)
-        refreshFieldStyle(layoutHwid, inputHwid)
-        refreshFieldStyle(layoutUserAgent, inputUserAgent)
+    private fun refreshAllFieldsStyle(animate: Boolean = true) {
+        refreshFieldStyle(layoutUrl, inputUrl, animate)
+        refreshFieldStyle(layoutHwid, inputHwid, animate)
+        refreshFieldStyle(layoutUserAgent, inputUserAgent, animate)
     }
 
-    private fun refreshFieldStyle(layout: TextInputLayout, editText: EditText) {
+    private fun refreshFieldStyle(layout: TextInputLayout, editText: EditText, animate: Boolean = true) {
         val isEnabled = editText.isEnabled
         val purple = ContextCompat.getColor(this, R.color.brand_purple_secondary)
         val gray = ContextCompat.getColor(this, R.color.text_secondary)
@@ -1112,16 +1114,25 @@ class MainActivity : AppCompatActivity() {
             unfocusedColor = gray
         }
 
-        // Принудительно обновляем состояние самого Layout
-        layout.isEnabled = isEnabled
-        
+        if (animate) {
+            // Если включаем - активируем layout сразу, чтобы цвета отрисовались корректно
+            if (isEnabled) layout.isEnabled = true
+            animateFieldColor(layout, editText, focusedColor, unfocusedColor)
+        } else {
+            layout.isEnabled = isEnabled
+            syncFieldColorDirect(layout, editText, focusedColor, unfocusedColor)
+        }
+    }
+
+    private fun syncFieldColorDirect(layout: TextInputLayout, editText: EditText, color: Int, unfocusedColor: Int) {
+        val disabledColor = ContextCompat.getColor(this, R.color.text_disabled)
         val colorList = android.content.res.ColorStateList(
             arrayOf(
                 intArrayOf(-android.R.attr.state_enabled),
                 intArrayOf(android.R.attr.state_focused),
                 intArrayOf()
             ),
-            intArrayOf(disabledColor, focusedColor, unfocusedColor)
+            intArrayOf(disabledColor, color, unfocusedColor)
         )
         
         layout.setBoxStrokeColorStateList(colorList)
@@ -1129,10 +1140,64 @@ class MainActivity : AppCompatActivity() {
         layout.defaultHintTextColor = colorList
         
         if (Build.VERSION.SDK_INT >= 29) {
-            layout.setCursorColor(android.content.res.ColorStateList.valueOf(focusedColor))
+            layout.setCursorColor(android.content.res.ColorStateList.valueOf(color))
         }
         
-        updateTextViewHandlesColor(editText, if (isEnabled) focusedColor else disabledColor)
+        updateTextViewHandlesColor(editText, if (editText.isEnabled) color else disabledColor)
+        
+        fieldColorMap[layout.id] = color
+        fieldUnfocusedColorMap[layout.id] = unfocusedColor
+    }
+
+    private fun animateFieldColor(layout: TextInputLayout, editText: EditText, targetColor: Int, targetUnfocusedColor: Int) {
+        val layoutId = layout.id
+        val startColor = fieldColorMap[layoutId] ?: layout.boxStrokeColor
+        val startUnfocusedColor = fieldUnfocusedColorMap[layoutId] ?: ContextCompat.getColor(this, R.color.text_secondary)
+        
+        if (startColor == targetColor && startUnfocusedColor == targetUnfocusedColor) {
+            if (!editText.isEnabled) layout.isEnabled = false
+            updateTextViewHandlesColor(editText, if (editText.isEnabled) targetColor else ContextCompat.getColor(this, R.color.text_disabled))
+            return
+        }
+
+        fieldAnimatorMap[layoutId]?.cancel()
+        val argb = android.animation.ArgbEvaluator()
+        val animator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = resources.getInteger(R.integer.duration_standard_transition).toLong()
+            addUpdateListener { anim ->
+                val fraction = anim.animatedFraction
+                val color = argb.evaluate(fraction, startColor, targetColor) as Int
+                val unfocused = argb.evaluate(fraction, startUnfocusedColor, targetUnfocusedColor) as Int
+                
+                val disabledColor = ContextCompat.getColor(this@MainActivity, R.color.text_disabled)
+                val colorList = android.content.res.ColorStateList(
+                    arrayOf(
+                        intArrayOf(-android.R.attr.state_enabled),
+                        intArrayOf(android.R.attr.state_focused),
+                        intArrayOf()
+                    ),
+                    intArrayOf(disabledColor, color, unfocused)
+                )
+                layout.setBoxStrokeColorStateList(colorList)
+                layout.hintTextColor = colorList
+                layout.defaultHintTextColor = colorList
+                
+                if (Build.VERSION.SDK_INT >= 29) {
+                    layout.setCursorColor(android.content.res.ColorStateList.valueOf(color))
+                }
+                updateTextViewHandlesColor(editText, if (editText.isEnabled) color else disabledColor)
+                fieldColorMap[layoutId] = color
+                fieldUnfocusedColorMap[layoutId] = unfocused
+            }
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    // Если поле должно быть выключено - выключаем layout только в конце анимации
+                    if (!editText.isEnabled) layout.isEnabled = false
+                }
+            })
+        }
+        fieldAnimatorMap[layoutId] = animator
+        animator.start()
     }
 
     private fun updateTextViewHandlesColor(view: TextView, color: Int) {

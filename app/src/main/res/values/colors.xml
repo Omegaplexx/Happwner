@@ -4,6 +4,7 @@
     <color name="brand_purple">#7063FF</color>
     <color name="brand_purple_secondary">#7063FF</color>
     <color name="brand_purple_secondary_highlight">#667063FF</color>
+    <color name="toolbar_ripple">#8E85FF</color>
     <color name="ripple_gray">#33808080</color>
 
      <!-- UI State Colors -->
@@ -22,7 +23,6 @@
     <color name="toolbar_text">#FFFFFF</color>
     <color name="btn_get_text">#FFFFFF</color>
     <color name="error_red">#FF5A4D</color>
-    <color name="error_red_highlight">#66FF5A4D</color>
 
     <!-- Standard -->
     <color name="black">#000000</color>

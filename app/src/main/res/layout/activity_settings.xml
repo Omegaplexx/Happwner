@@ -39,7 +39,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_icon_ripple"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="?attr/homeAsUpIndicator"
                     android:contentDescription="@string/btn_back"
                     app:tint="@color/toolbar_text" />
@@ -58,7 +58,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_marginEnd="8dp"
-                    android:background="@drawable/bg_icon_ripple"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_info_filled"
                     android:contentDescription="@string/about_app"
                     app:tint="@color/toolbar_text" />
@@ -81,7 +81,7 @@
             android:orientation="vertical"
             android:padding="@dimen/island_padding">
 
-            <!-- Заголовок: Основное -->
+            <!-- Header: General -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -93,7 +93,7 @@
                 android:layout_marginBottom="@dimen/island_margin_bottom"
                 android:layout_marginStart="@dimen/spacing_tiny" />
 
-            <!-- Настройка: Язык -->
+            <!-- Setting: Language -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemLanguage"
                 android:layout_width="match_parent"
@@ -150,7 +150,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Настройка: Тема -->
+            <!-- Setting: Theme -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemTheme"
                 android:layout_width="match_parent"
@@ -207,7 +207,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Настройка: Обрабатывать ответ -->
+            <!-- Setting: Parse response -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemProcessResponse"
                 android:layout_width="match_parent"
@@ -265,7 +265,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Заголовок: Мост подписок -->
+            <!-- Header: Subscription Bridge -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -278,7 +278,7 @@
                 android:layout_marginBottom="@dimen/island_margin_bottom"
                 android:layout_marginStart="@dimen/spacing_tiny" />
 
-            <!-- Настройка: Включить мост -->
+            <!-- Setting: Enable Bridge -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemEnableBridge"
                 android:layout_width="match_parent"
@@ -337,7 +337,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Настройка: Оптимизация батареи -->
+            <!-- Setting: Battery Optimization -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemBatteryOpt"
                 android:layout_width="match_parent"
@@ -403,7 +403,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Настройка: Watchdog -->
+            <!-- Setting: Watchdog -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemWatchdog"
                 android:layout_width="match_parent"
@@ -462,7 +462,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Заголовок: Устаревшее -->
+            <!-- Header: Legacy -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -475,7 +475,7 @@
                 android:layout_marginBottom="@dimen/island_margin_bottom"
                 android:layout_marginStart="@dimen/spacing_tiny" />
 
-            <!-- Настройка: Перехват ссылок -->
+            <!-- Setting: Link Interception -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemInterceptLinks"
                 android:layout_width="match_parent"
@@ -535,7 +535,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Настройка: Дубликаты -->
+            <!-- Setting: Duplicates -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemShowDuplicates"
                 android:layout_width="match_parent"

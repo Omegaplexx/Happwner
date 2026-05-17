@@ -48,7 +48,7 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
         debug {
-            // Отключаем сжатие для быстрой разработки
+            // Disable shrinking for faster development
             isMinifyEnabled = false
             isShrinkResources = false
         }

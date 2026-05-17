@@ -46,7 +46,7 @@ class MainHook : IXposedHookLoadPackage {
             return
         }
 
-        // 1. Ранняя инициализация через ContextWrapper
+        // 1. Early initialization via ContextWrapper
         XposedHelpers.findAndHookMethod("android.content.ContextWrapper", lpparam.classLoader, "attachBaseContext", Context::class.java, object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val context = param.args[0] as Context
@@ -55,7 +55,7 @@ class MainHook : IXposedHookLoadPackage {
                         registerSignalReceiver(context)
                         initCache(context)
                         
-                        // Сообщаем основному приложению, что мы загрузились (для авто-включения режима)
+                        // Notify the main app that we are loaded (for auto-enabling the mode)
                         val loadedIntent = Intent("${MODULE_PACKAGE}.MODULE_LOADED").apply {
                             setPackage(MODULE_PACKAGE)
                             putExtra("pkg", context.packageName)
@@ -64,8 +64,8 @@ class MainHook : IXposedHookLoadPackage {
                         context.sendBroadcast(loadedIntent)
                         Log.d(TAG, "Sent MODULE_LOADED for ${context.packageName}")
 
-                        // Если инициализация через Provider не удалась (cachedId всё еще null), 
-                        // отправляем запрос на получение данных через Broadcast (Pull)
+                        // If initialization via Provider failed (cachedId is still null), 
+                        // send a request to get data via Broadcast (Pull)
                         if (cachedId == null) {
                             val requestIntent = Intent("${MODULE_PACKAGE}.SETTINGS_REQUEST").apply {
                                 setPackage(MODULE_PACKAGE)
@@ -80,7 +80,7 @@ class MainHook : IXposedHookLoadPackage {
             }
         })
 
-        // 2. Хуки на Settings.Secure/Global
+        // 2. Hooks on Settings.Secure/Global
         val settingsHook = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val name = param.args[1] as? String
@@ -113,7 +113,7 @@ class MainHook : IXposedHookLoadPackage {
             } catch (e: Throwable) {}
         }
 
-        // 3. Хук на NameValueCache (внутренний кэш Android)
+        // 3. Hook on NameValueCache (internal Android cache)
         try {
             XposedHelpers.findAndHookMethod("android.provider.Settings\$NameValueCache", lpparam.classLoader, "getStringForUser",
                 ContentResolver::class.java, String::class.java, Int::class.java, object : XC_MethodHook() {
@@ -136,10 +136,10 @@ class MainHook : IXposedHookLoadPackage {
                 })
         } catch (e: Throwable) {}
 
-        // 4. Глубокий перехват через IContentProvider.query (самый низкий уровень в Java)
+        // 4. Deep interception via IContentProvider.query (lowest level in Java)
         hookIContentProvider(lpparam.classLoader, lpparam.packageName)
 
-        // Перехват URL для истории
+        // Intercept URL for history
         XposedHelpers.findAndHookConstructor(URL::class.java, String::class.java, object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
                 val url = param.args[0] as? String ?: return
@@ -149,7 +149,7 @@ class MainHook : IXposedHookLoadPackage {
             }
         })
 
-        // 5. Жест тремя пальцами для вызова Happwner
+        // 5. Three-finger gesture to call Happwner
         try {
             XposedHelpers.findAndHookMethod("android.app.Activity", lpparam.classLoader, "dispatchTouchEvent",
                 "android.view.MotionEvent", object : XC_MethodHook() {

@@ -9,8 +9,8 @@
     <string name="label_xposed_active">Xposed</string>
     <string name="label_lspatch_active">LSPatch</string>
     <string name="label_hwid_unknown">HWID неизвестен. Введите вручную или запустите Happ</string>
-    <string name="label_history_empty">Здесь ничего нет. Включите перехват ссылок, запустите Happ, обновите зашифрованные подписки, а затем вернитесь сюда. Расшифрованные ссылки появятся здесь.</string>
-    <string name="label_result_default">Заполните три поля выше и нажмите на кнопку &lt;b&gt;Профили&lt;/b&gt; — конфигурации вашей подписки появятся здесь, и вы сможете скопировать их в любой прокси-клиент. Кнопка &lt;b&gt;Подписка&lt;/b&gt; позволяет обновлять профили в других приложениях через службу-мост.</string>
+    <string name="label_history_empty">Здесь ничего нет. Запустите Happ и импортируйте/обновите зашифрованные подписки. Расшифрованные ссылки появятся здесь.</string>
+    <string name="label_result_default">Заполните три поля выше и нажмите на кнопку &lt;b&gt;Профили&lt;/b&gt; — конфигурации вашей подписки появятся здесь, и вы сможете скопировать их в любой прокси-клиент. Кнопка &lt;b&gt;Подписка&lt;/b&gt; позволяет обновлять профили в других приложениях через службу Моста.</string>
     <string name="label_lspatch_mode">Режим LSPatch</string>
     <string name="label_intercept_links">Перехватывать ссылки</string>
     <string name="label_intercept_hwid">Подменять HWID внутри Happ</string>
@@ -24,8 +24,15 @@
 
     <!-- Info Dialogs -->
     <string name="info_url_title">Ссылка на подписку</string>
-    <string name="info_url_msg">Вставьте ссылку формата &lt;tt&gt;https://&lt;/tt&gt; или &lt;tt&gt;happ://crypt&lt;/tt&gt;.</string>
-    <string name="info_hwid_msg">У каждого устройства есть свой уникальный HWID — по нему VPN-провайдер определяет, какое устройство подключено к подписке, и может ограничить доступ, если достигнут лимит по количеству подключений. Подменив идентификатор, вы сможете обойти это ограничение, если укажете HWID любого уже подключённого к подписке устройства.</string>
+    <string name="info_url_msg">Вставьте ссылку на вашу VPN-подписку, привязанную к Happ.
+        &lt;br&gt;&lt;br&gt;
+        Поддерживаются форматы:&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;https://&lt;/tt&gt;&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;http://&lt;/tt&gt;&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;happ://crypt&lt;/tt&gt; (включая &lt;tt&gt;crypt5&lt;/tt&gt;)&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;http://127.0.0.1:8166&lt;/tt&gt; (ссылка Моста Happwner)
+    </string>
+    <string name="info_hwid_msg">У каждого устройства есть свой уникальный HWID — по нему VPN-провайдер определяет, какое устройство подключено к подписке, и может ограничить доступ, если достигнут лимит по количеству подключений. Подменив идентификатор, вы сможете обойти это ограничение, если укажете HWID любого устройства, уже подключённого к подписке.</string>
     <string name="info_ua_msg">При запросе подписок Happ отправляет VPN-провайдеру название и версию приложения. Happwner имитирует это поведение.</string>
 
     <!-- Settings -->
@@ -34,7 +41,7 @@
     <string name="setting_show_duplicates">Показывать все ссылки</string>
     <string name="setting_show_duplicates_desc">Отображать все дублирующиеся перехваченные ссылки</string>
     <string name="setting_lspatch_mode">Перехват ссылок</string>
-    <string name="setting_lspatch_mode_desc">Альтернативный способ расшифровки ссылок, требующий установленного Happ и Xposed/LSPatch. Может помочь, если встроенный расшифровщик потеряет актуальность</string>
+    <string name="setting_lspatch_mode_desc">Альтернативный способ расшифровки ссылок, требующий установленных Happ и Xposed/LSPatch. Может помочь, если встроенный расшифровщик потеряет актуальность</string>
     <string name="setting_process_response">Обрабатывать ответ</string>
     <string name="setting_process_response_desc">Конвертировать полученные от сервера JSON-массивы в URI-ссылки. Отключите при неправильной обработке профилей</string>
     <string name="setting_process_manual">При запросе профилей</string>
@@ -77,10 +84,13 @@
 
     <string name="about_app">О приложении</string>
     <string name="about_app_text">
-        Бесплатный и открытый инструмент для экспорта зашифрованных Happ-подписок в любое приложение.
+        Бесплатный и открытый инструмент для экспорта зашифрованных Happ-подписок в любые приложения.
+        &lt;br&gt;&lt;br&gt;
+        Happwner использует &lt;a href=\"https://github.com/amurcanov/happ-decrypt-universal\"&gt;Happ Decrypt RS&lt;/a&gt; от &lt;a href=\"https://github.com/amurcanov\"&gt;amurcanov&lt;/a&gt; в качестве встроенного дешифратора &lt;tt&gt;crypt&lt;/tt&gt;-ссылок.
+        &lt;br&gt;&lt;br&gt;
+        &lt;b&gt;Состояние:&lt;/b&gt; %2$s
         &lt;br&gt;&lt;br&gt;
         &lt;b&gt;Версия:&lt;/b&gt; %1$s&lt;br&gt;
-        &lt;b&gt;Состояние:&lt;/b&gt; %2$s&lt;br&gt;
         &lt;b&gt;Разработчик:&lt;/b&gt; Omegaplex&lt;br&gt;
         &lt;b&gt;Репозиторий:&lt;/b&gt; &lt;a href=\"https://github.com/Omegaplexx/Happwner\"&gt;GitHub&lt;/a&gt;
     </string>

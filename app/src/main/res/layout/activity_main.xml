@@ -34,7 +34,7 @@
                 android:layout_height="40dp"
                 android:layout_gravity="end"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_icon_ripple"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_settings"
                 android:contentDescription="@string/title_settings"
                 app:tint="@color/toolbar_text" />
@@ -60,7 +60,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true">
 
-            <!-- ОСТРОВ 1: ИСТОРИЯ (СКРЫТО ПО УМОЛЧАНИЮ) -->
+            <!-- ISLAND 1: HISTORY (HIDDEN BY DEFAULT) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/islandIntercept"
                 android:layout_width="match_parent"
@@ -146,7 +146,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ОСТРОВ 2: ЗАПРОС И ОТВЕТ -->
+            <!-- ISLAND 2: REQUEST AND RESPONSE -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

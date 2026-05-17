@@ -5,4 +5,8 @@
     <integer name="duration_standard_transition">250</integer>
     <integer name="request_code_notifications">101</integer>
     <integer name="network_timeout_ms">5000</integer>
+    <integer name="id_captured_req_code">200</integer>
+    <integer name="id_disconnect_req_code">201</integer>
+    <integer name="id_fgs_notif">1</integer>
+    <integer name="scroll_offset_ime_dp">100</integer>
 </resources>

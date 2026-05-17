@@ -10,8 +10,8 @@
     <string name="label_xposed_active">Xposed</string>
     <string name="label_lspatch_active">LSPatch</string>
     <string name="label_hwid_unknown">HWID is unknown. Enter manually or launch Happ</string>
-    <string name="label_history_empty">No captured links. Enable link interception, launch Happ, update encrypted subscriptions, and return here. Decrypted links will appear here.</string>
-    <string name="label_result_default">Fill in the three fields above and click the &lt;b&gt;Profiles&lt;/b&gt; button—your subscription configurations will appear here, and you\'ll be able to copy them into any proxy client. The &lt;b&gt;Subscription&lt;/b&gt; button allows you to update profiles in other apps via the bridge service.</string>
+    <string name="label_history_empty">Nothing to show. Launch Happ and import/update encrypted subscriptions. Decrypted links will appear here.</string>
+    <string name="label_result_default">Fill in the three fields above and click the &lt;b&gt;Profiles&lt;/b&gt; button—your subscription configurations will appear here, and you\'ll be able to copy them into any proxy client. The &lt;b&gt;Subscription&lt;/b&gt; button allows you to update profiles in other apps via the Bridge service.</string>
     <string name="label_lspatch_mode">LSPatch mode</string>
     <string name="label_intercept_links">Intercept links</string>
     <string name="label_intercept_hwid">Spoof HWID inside Happ</string>
@@ -30,9 +30,15 @@
 
     <!-- Info Dialogs -->
     <string name="info_url_title">Subscription link</string>
-    <string name="info_url_msg">Enter a &lt;tt&gt;https://&lt;/tt&gt; or &lt;tt&gt;happ://crypt&lt;/tt&gt; link.</string>
+    <string name="info_url_msg">Paste the link to your Happ VPN subscription.
+        &lt;br&gt;&lt;br&gt;
+        Supported formats:&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;https://&lt;/tt&gt;&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;http://&lt;/tt&gt;&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;happ://crypt&lt;/tt&gt; (including &lt;tt&gt;crypt5&lt;/tt&gt;)&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;http://127.0.0.1:8166&lt;/tt&gt; (Happwner Bridge link)</string>
     <string name="info_hwid_title" translatable="false">Hardware ID</string>
-    <string name="info_hwid_msg">Every device has its own unique HWID—VPN providers use it to identify which device is connected to the subscription and may restrict access if the device limit is reached. By spoofing the identifier, you can bypass this restriction by entering the HWID of any device already connected to the subscription.</string>
+    <string name="info_hwid_msg">Every device has its own unique HWID. VPN providers use it to identify which device is connected to the subscription and may restrict access if the device limit is reached. By spoofing the identifier, you can bypass this restriction by entering the HWID of any device already connected to the subscription.</string>
     <string name="info_ua_title" translatable="false">User-Agent</string>
     <string name="info_ua_msg">When requesting subscriptions, Happ sends its app name and version to the VPN provider. Happwner mimics this behavior.</string>
 
@@ -42,7 +48,7 @@
     <string name="setting_show_duplicates">Show all links</string>
     <string name="setting_show_duplicates_desc">Display all duplicate captured links</string>
     <string name="setting_lspatch_mode">Link interception</string>
-    <string name="setting_lspatch_mode_desc">An alternative method for decoding links, which requires Happ and Xposed/LSPatch to be installed. This may be helpful if the built-in decoder becomes obsolete</string>
+    <string name="setting_lspatch_mode_desc">An alternative method for decrypting links, which requires Happ and Xposed/LSPatch to be installed. This may be helpful if the built-in decryptor becomes obsolete</string>
     <string name="setting_process_response">Parse response</string>
     <string name="setting_process_response_desc">Convert the JSON arrays received from the server into URI links. Disable if profile conversion is incorrect</string>
     <string name="setting_process_manual">During profile request</string>
@@ -86,10 +92,13 @@
 
     <string name="about_app">About app</string>
     <string name="about_app_text">
-        A free and open-source tool for exporting encrypted Happ subscriptions to any app.
+        A free and open-source tool for exporting encrypted Happ subscriptions to any apps.
+        &lt;br&gt;&lt;br&gt;
+        Happwner uses &lt;a href=\"https://github.com/amurcanov/happ-decrypt-universal\"&gt;Happ Decrypt RS&lt;/a&gt; by &lt;a href=\"https://github.com/amurcanov\"&gt;amurcanov&lt;/a&gt; as a built-in decryptor for &lt;tt&gt;crypt&lt;/tt&gt; links.
+        &lt;br&gt;&lt;br&gt;
+        &lt;b&gt;Status:&lt;/b&gt; %2$s
         &lt;br&gt;&lt;br&gt;
         &lt;b&gt;Version:&lt;/b&gt; %1$s&lt;br&gt;
-        &lt;b&gt;Status:&lt;/b&gt; %2$s&lt;br&gt;
         &lt;b&gt;Developer:&lt;/b&gt; Omegaplex&lt;br&gt;
         &lt;b&gt;Repository:&lt;/b&gt; &lt;a href=\"https://github.com/Omegaplexx/Happwner\"&gt;GitHub&lt;/a&gt;
     </string>

@@ -80,7 +80,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val toolbar = findViewById<Toolbar>(R.id.settingsToolbar)
         setSupportActionBar(toolbar)
-        // supportActionBar?.setDisplayHomeAsUpEnabled(true) // Удаляем системную кнопку
+        // supportActionBar?.setDisplayHomeAsUpEnabled(true) // Remove the system back button
 
         findViewById<View>(R.id.action_back).setOnClickListener {
             finish()
@@ -105,7 +105,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val prefs = getSafePrefs(this)
 
-        // Настройка: Язык
+        // Setting: Language
         val itemLanguage = findViewById<MaterialCardView>(R.id.itemLanguage)
         val textLanguageStatus = findViewById<TextView>(R.id.textLanguageStatus)
         val langOptionsRaw = resources.getStringArray(R.array.language_options)
@@ -149,7 +149,7 @@ class SettingsActivity : AppCompatActivity() {
                 prefs.edit().putString("app_lang", newLang).apply()
                 dialog.dismiss()
                 
-                // Перезапуск сервиса для обновления языка уведомления
+                // Restart the service to update the notification language
                 if (prefs.getBoolean("bridge_enabled", false)) {
                     stopService(Intent(this, SubscriptionService::class.java))
                     val serviceIntent = Intent(this, SubscriptionService::class.java)
@@ -164,7 +164,7 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
         
-        // Настройка: Тема оформления
+        // Setting: Theme
         val itemTheme = findViewById<MaterialCardView>(R.id.itemTheme)
         val textThemeStatus = findViewById<TextView>(R.id.textThemeStatus)
         val themeOptionsRaw = resources.getStringArray(R.array.theme_options)
@@ -214,7 +214,7 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // Настройка: Отображать дубликаты
+        // Setting: Show duplicates
         val itemShowDuplicates = findViewById<MaterialCardView>(R.id.itemShowDuplicates)
         val switchShowDuplicates = findViewById<SwitchMaterial>(R.id.switchShowDuplicates)
         
@@ -231,7 +231,7 @@ class SettingsActivity : AppCompatActivity() {
             PrefsManager.fixSharedPrefs(this)
         }
 
-        // Настройка: Перехват ссылок
+        // Setting: Link interception
         val itemInterceptLinks = findViewById<MaterialCardView>(R.id.itemInterceptLinks)
         val switchInterceptLinks = findViewById<SwitchMaterial>(R.id.switchInterceptLinks)
         switchInterceptLinks.isChecked = prefs.getBoolean("intercept_enabled", false)
@@ -245,7 +245,7 @@ class SettingsActivity : AppCompatActivity() {
         itemInterceptLinks.setOnClickListener { updateInterceptLinks(!switchInterceptLinks.isChecked) }
         switchInterceptLinks.setOnClickListener { updateInterceptLinks(switchInterceptLinks.isChecked) }
 
-        // Настройка: Обрабатывать ответ
+        // Setting: Parse response
         val itemProcessResponse = findViewById<MaterialCardView>(R.id.itemProcessResponse)
         setHtmlText(findViewById(R.id.textProcessResponseDesc), R.string.setting_process_response_desc)
         itemProcessResponse.setOnClickListener {
@@ -254,7 +254,7 @@ class SettingsActivity : AppCompatActivity() {
             val checkServer = dialogView.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.checkProcessServer)
 
             checkManual.isChecked = prefs.getBoolean("process_manual", true)
-            checkServer.isChecked = prefs.getBoolean("process_server", true)
+            checkServer.isChecked = prefs.getBoolean("process_server", false)
 
             MaterialAlertDialogBuilder(this)
                 .setTitle(fromHtml(getString(R.string.setting_process_response)))
@@ -269,7 +269,7 @@ class SettingsActivity : AppCompatActivity() {
                 .show()
         }
 
-        // Мост подписок: Включить
+        // Subscription Bridge: Enable
         val itemEnableBridge = findViewById<MaterialCardView>(R.id.itemEnableBridge)
         val switchEnableBridge = findViewById<SwitchMaterial>(R.id.switchEnableBridge)
         switchEnableBridge.isChecked = prefs.getBoolean("bridge_enabled", false)
@@ -296,7 +296,7 @@ class SettingsActivity : AppCompatActivity() {
         itemEnableBridge.setOnClickListener { updateBridge(!switchEnableBridge.isChecked) }
         switchEnableBridge.setOnClickListener { updateBridge(switchEnableBridge.isChecked) }
 
-        // Мост подписок: Оптимизация батареи
+        // Subscription Bridge: Battery optimization
         val itemBatteryOpt = findViewById<MaterialCardView>(R.id.itemBatteryOpt)
         itemBatteryOpt.setOnClickListener {
             try {
@@ -310,7 +310,7 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // Мост подписок: Watchdog
+        // Subscription Bridge: Watchdog
         val itemWatchdog = findViewById<MaterialCardView>(R.id.itemWatchdog)
         val switchWatchdog = findViewById<SwitchMaterial>(R.id.switchWatchdog)
         switchWatchdog.isChecked = prefs.getBoolean("bridge_watchdog", false)
