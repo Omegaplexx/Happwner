@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="max_display_chars">30000</integer>
+    <integer name="max_display_chars">15000</integer>
     <integer name="duration_fast_transition">200</integer>
     <integer name="duration_standard_transition">250</integer>
     <integer name="request_code_notifications">101</integer>

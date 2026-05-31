@@ -2,52 +2,91 @@
     <string name="title_settings">Настройки</string>
     <string name="xposed_desc">Универсальное решение для расшифровки и экспорта прокси-подписок, предназначенных только для Happ</string>
 
-    <!-- UI Labels -->
     <string name="label_captured_urls">Перехваченные ссылки</string>
     <string name="label_result">Результат</string>
     <string name="label_xposed_inactive">Xposed неактивен</string>
     <string name="label_xposed_active">Xposed</string>
     <string name="label_lspatch_active">LSPatch</string>
-    <string name="label_hwid_unknown">HWID неизвестен. Введите вручную или запустите Happ</string>
+    <string name="label_hwid_unknown">HWID неизвестен. Введите вручную\nили запустите Happ</string>
     <string name="label_history_empty">Здесь ничего нет. Запустите Happ и импортируйте/обновите зашифрованные подписки. Расшифрованные ссылки появятся здесь.</string>
     <string name="label_result_default">Заполните три поля выше и нажмите на кнопку &lt;b&gt;Профили&lt;/b&gt; — конфигурации вашей подписки появятся здесь, и вы сможете скопировать их в любой прокси-клиент. Кнопка &lt;b&gt;Подписка&lt;/b&gt; позволяет обновлять профили в других приложениях через службу Моста.</string>
     <string name="label_lspatch_mode">Режим LSPatch</string>
     <string name="label_intercept_links">Перехватывать ссылки</string>
-    <string name="label_intercept_hwid">Подменять HWID внутри Happ</string>
+    <string name="label_intercept_hwid">Подмена HWID</string>
+    <string name="label_intercept_hwid_desc">Принудительно заменять идентификатор оборудования в целевых приложениях на значение из Happwner</string>
+    <string name="label_hwid_spoof_enable_field">Включите поле HWID</string>
+    <string name="label_hwid_spoof_off">Не подменяется</string>
+    <string name="label_hwid_spoof_current">Текущий: %1$s</string>
 
-    <!-- Buttons -->
     <string name="btn_get_proxy">Профили</string>
     <string name="btn_get_sub">Подписка</string>
     <string name="btn_copied">Скопировано</string>
     <string name="btn_ok">ОК</string>
+    <string name="btn_yes">Да</string>
+    <string name="btn_no">Нет</string>
     <string name="btn_back">Назад</string>
 
-    <!-- Info Dialogs -->
     <string name="info_url_title">Ссылка на подписку</string>
     <string name="info_url_msg">Вставьте ссылку на вашу VPN-подписку, привязанную к Happ.
         &lt;br&gt;&lt;br&gt;
         Поддерживаются форматы:&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;https://&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;http://&lt;/tt&gt;&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;happ://add&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;happ://crypt&lt;/tt&gt; (включая &lt;tt&gt;crypt5&lt;/tt&gt;)&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;http://127.0.0.1:8166&lt;/tt&gt; (ссылка Моста Happwner)
     </string>
     <string name="info_hwid_msg">У каждого устройства есть свой уникальный HWID — по нему VPN-провайдер определяет, какое устройство подключено к подписке, и может ограничить доступ, если достигнут лимит по количеству подключений. Подменив идентификатор, вы сможете обойти это ограничение, если укажете HWID любого устройства, уже подключённого к подписке.</string>
     <string name="info_ua_msg">При запросе подписок Happ отправляет VPN-провайдеру название и версию приложения. Happwner имитирует это поведение.</string>
 
-    <!-- Settings -->
     <string name="label_language">Язык</string>
     <string name="label_theme">Тема</string>
+    <string name="label_animations">Анимации</string>
     <string name="setting_show_duplicates">Показывать все ссылки</string>
     <string name="setting_show_duplicates_desc">Отображать все дублирующиеся перехваченные ссылки</string>
     <string name="setting_lspatch_mode">Перехват ссылок</string>
-    <string name="setting_lspatch_mode_desc">Альтернативный способ расшифровки ссылок, требующий установленных Happ и Xposed/LSPatch. Может помочь, если встроенный расшифровщик потеряет актуальность</string>
-    <string name="setting_process_response">Обрабатывать ответ</string>
-    <string name="setting_process_response_desc">Конвертировать полученные от сервера JSON-массивы в URI-ссылки. Отключите при неправильной обработке профилей</string>
+    <string name="setting_lspatch_mode_desc">Альтернативный способ расшифровки ссылок с помощью Xposed/LSPatch. Может помочь, если встроенный расшифровщик потеряет актуальность</string>
+    <string name="setting_process_json">JSON в URI</string>
+    <string name="setting_process_json_desc">Конвертировать полученные JSON-массивы в диплинки. URI-ссылки менее функциональны по сравнению с JSON, но совместимы практически с любым клиентом</string>
+    <string name="setting_process_b64">Base64 в текст</string>
+    <string name="setting_process_b64_desc">Декодировать Base64-данные, полученные от сервера</string>
+    <string name="setting_process_xray">Xray в sing-box</string>
+    <string name="setting_process_xray_desc">Конвертировать полученные конфиги для Happ (формат Xray) в конфиги для NekoBox, husi, Hiddify и подобных (формат sing-box)</string>
+    <string name="setting_header_response_info"><![CDATA[
+При запросе VPN-профилей Happwner будет преобразовывать полученные Base64/JSON-данные в совместимые форматы с другими приложениями.<br/><br/>
+Отключите эти функции, если профили обрабатываются неправильно.
+    ]]></string>
+    <string name="setting_process_xray_info_title">Ограничения конвертации</string>
+    <string name="setting_process_xray_info_text"><![CDATA[
+Некоторые возможности Xray не имеют аналогов в sing-box, поэтому не каждый профиль может быть конвертирован. Неподдерживаемые профили будут пропущены.<br/><br/><br/>
+<b>Транспорты:</b><br/>
+• <tt>xhttp</tt>, <tt>splithttp</tt>, <tt>mekya</tt>, <tt>mkcp</tt>, <tt>meek</tt> — нет аналогов в sing-box;<br/>
+• <tt>tcp</tt>/<tt>raw</tt> с обфускацией — поддерживаются только <tt>none</tt> и <tt>http</tt>;<br/>
+• <tt>quic</tt> с обфускацией или заголовками — sing-box поддерживает только raw QUIC.<br/><br/>
+<b>Протоколы:</b><br/>
+• VLESS с flow <tt>xtls-rprx-direct/splice/origin</tt> — несовместимы с Vision;<br/>
+• VLESS с <tt>encryption ≠ none</tt> (например, post-quantum);<br/>
+• VMess с нестандартным <tt>security</tt> (поддерживаются <tt>auto/none/zero/aes-128-gcm/chacha20-poly1305/aes-128-ctr</tt>);<br/>
+• <tt>security: xtls</tt> — устаревший режим, заменён в актуальном Xray на <tt>tls</tt> + flow <tt>xtls-rprx-vision</tt>;<br/>
+• Shadowsocks с нестандартным методом — поддерживаются <tt>aes-*-gcm</tt>, <tt>(x)chacha20-ietf-poly1305</tt>, <tt>2022-blake3-aes-128/256-gcm</tt>, <tt>2022-blake3-chacha20-poly1305</tt>, <tt>aes-*-ctr/cfb</tt>, <tt>chacha20-ietf</tt>, <tt>xchacha20</tt>, <tt>rc4-md5</tt>, <tt>none</tt>;<br/>
+• Shadowsocks с плагинами кроме <tt>obfs-local</tt> и <tt>v2ray-plugin</tt>.<br/><br/>
+<b>Маршрутизация:</b><br/>
+• <tt>Mux.Cool</tt> — несовместим с sing-mux;<br/>
+• <tt>source_geoip</tt> — sing-box не сопоставляет geo по исходному IP;<br/>
+• <tt>balancer.fallbackTag</tt> — urltest повторяет попытки вместо переключения;<br/>
+• <tt>balancer.strategy: leastLoad</tt> — заменяется на urltest (≈ leastPing).<br/><br/>
+<b>DNS:</b><br/>
+• <tt>expectIPs/unexpectedIPs</tt> — DNS-правила работают с запросом, а не ответом.<br/><br/>
+<b>Правила маршрутизации:</b><br/>
+Правила <tt>geosite:</tt> и <tt>geoip:</tt> ядра Xray преобразуются в rule-set\'ы sing-box для совместимости с приложением sing-box for Android и CLI-версией ядра. Эти клиенты автоматически скачают нужные списки доменов и IP из репозиториев SagerNet.<br/><br/>
+<u>Обратите внимание</u>, что другие sing-box-клиенты (Hiddify, husi, NekoBox, Karing и прочие) обычно игнорируют маршрутизацию (rule-set) из добавленных профилей и используют правила, настроенные пользователем через UI.
+    ]]></string>
     <string name="setting_process_manual">При запросе профилей</string>
     <string name="setting_process_server">При использовании Моста</string>
-    <string name="setting_header_general">Основное</string>
-    <string name="setting_header_legacy">Устаревшее</string>
+    <string name="setting_hook_unlock">Разблокировать профили в Happ</string>
+    <string name="setting_hook_unlock_desc">Разблокировать функции экспорта и редактирования профилей зашифрованных подписок</string>
+    <string name="setting_header_appearance">Внешний вид</string>
+    <string name="setting_header_response">Обработка профилей</string>
     <string name="setting_bridge_header">Мост подписок</string>
     <string name="setting_enable_bridge">Мост</string>
     <string name="setting_enable_bridge_desc">Запустить локальный HTTP-прокси-сервер для обновления Happ-подписок в других приложениях</string>
@@ -56,29 +95,32 @@
     <string name="setting_battery_opt_unrestricted">Ограничение снято</string>
     <string name="setting_watchdog_desc">Принудительное пробуждение процесса сервера каждые 10 секунд через системные таймеры. Вспомогательная служба</string>
 
-    <!-- Notification -->
     <string name="notif_action_hide">Скрыть</string>
     <string name="notif_action_disconnect">Отключить</string>
     <string name="notif_channel_name">Мост подписок</string>
     <string name="notif_channel_desc">Канал локального HTTP-сервера</string>
     <string name="notif_title">Мост подписок</string>
+    <string name="tile_bridge_label">Мост</string>
     <string name="notif_content">Позволяет обновлять подписки для Happ в других приложениях</string>
 
-    <!-- Toasts / Messages -->
     <string name="msg_clipboard_empty">Буфер обмена пуст</string>
     <string name="msg_enter_url">Введите URL</string>
     <string name="msg_loading">Загрузка…</string>
     <string name="msg_text_truncated">\n\n… [Текст обрезан для экономии ресурсов. Нажмите «Копировать», чтобы получить полный результат]</string>
+    <string name="msg_decrypted">Расшифровано</string>
     <string name="msg_bridge_service_enable">Эта функция позволяет обновлять подписки для Happ в любых прокси-клиентах через службу Happwner. По нажатии «ОК» Happwner запросит разрешение на показ уведомлений, запустит службу и скопирует ссылку в буфер обмена — импортируйте её в ваше приложение.&lt;br&gt;&lt;br&gt;&lt;b&gt;Важно:&lt;/b&gt; включите «Обход LAN» или добавьте правило &lt;tt&gt;geoip:private&lt;/tt&gt; в &lt;tt&gt;direct&lt;/tt&gt;, иначе обновление не будет работать при активном соединении в вашем прокси-клиенте.</string>
+    <string name="msg_bridge_service_info">Эта функция позволяет обновлять подписки для Happ в любых прокси-клиентах через службу Happwner.&lt;br&gt;&lt;br&gt;&lt;b&gt;Важно:&lt;/b&gt; включите «Обход LAN» или добавьте правило &lt;tt&gt;geoip:private&lt;/tt&gt; в &lt;tt&gt;direct&lt;/tt&gt;, иначе обновление не будет работать при активном соединении в вашем прокси-клиенте.</string>
 
     <string name="error_unsupported_happ_link">Расшифруйте ссылку (требуется Xposed/LSPatch)</string>
     <string name="error_decrypt_first">Расшифруйте ссылку</string>
     <string name="error_convert_first">Преобразуйте ссылку</string>
+    <string name="import_confirm_title">Вставить эту ссылку?</string>
+    <string name="import_confirm_msg">%1$s</string>
     <string name="error_invalid_format">Неподдерживаемый формат</string>
     <string name="error_invalid_link">Введите корректную ссылку</string>
     <string name="msg_decrypted_success">Успешно расшифровано</string>
     <string name="title_decryption_error">Ошибка расшифровки</string>
-    <string name="error_url_not_found">URL не найден в выводе программы</string>
+    <string name="error_url_not_found">Не удалось расшифровать ссылку</string>
     <string name="label_exit_code">Код выхода</string>
     <string name="msg_error">Ошибка</string>
 
@@ -86,12 +128,15 @@
     <string name="about_app_text">
         Бесплатный и открытый инструмент для экспорта зашифрованных Happ-подписок в любые приложения.
         &lt;br&gt;&lt;br&gt;
-        Happwner использует &lt;a href=\"https://github.com/amurcanov/happ-decrypt-universal\"&gt;Happ Decrypt RS&lt;/a&gt; от &lt;a href=\"https://github.com/amurcanov\"&gt;amurcanov&lt;/a&gt; в качестве встроенного дешифратора &lt;tt&gt;crypt&lt;/tt&gt;-ссылок.
-        &lt;br&gt;&lt;br&gt;
         &lt;b&gt;Состояние:&lt;/b&gt; %2$s
         &lt;br&gt;&lt;br&gt;
         &lt;b&gt;Версия:&lt;/b&gt; %1$s&lt;br&gt;
-        &lt;b&gt;Разработчик:&lt;/b&gt; Omegaplex&lt;br&gt;
+        &lt;b&gt;Разработчики:&lt;/b&gt; Omegaplex, slavrom21&lt;br&gt;
         &lt;b&gt;Репозиторий:&lt;/b&gt; &lt;a href=\"https://github.com/Omegaplexx/Happwner\"&gt;GitHub&lt;/a&gt;
     </string>
+
+    <string name="toast_decrypt_failed">Ошибка расшифровки (%1$s): %2$s</string>
+
+    <string name="setting_monet_accent">Monet</string>
+    <string name="setting_monet_accent_desc">Динамический цвет на основе обоев главного экрана</string>
 </resources>

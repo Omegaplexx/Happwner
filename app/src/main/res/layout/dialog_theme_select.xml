@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/dialog_content_padding_top"
+    android:paddingBottom="@dimen/spacing_small">
+
+    <LinearLayout
+        android:id="@+id/monetContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/dialog_message_padding"
+        android:paddingEnd="@dimen/spacing_normal"
+        android:paddingTop="@dimen/spacing_small"
+        android:paddingBottom="@dimen/spacing_small"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingEnd="@dimen/spacing_small">
+
+            <TextView
+                android:id="@+id/monetTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/setting_monet_accent"
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_size_body" />
+
+            <TextView
+                android:id="@+id/monetDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/setting_monet_accent_desc"
+                android:textColor="@color/text_secondary"
+                android:textSize="@dimen/text_size_secondary" />
+
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchMonetAccent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/monetDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="@dimen/dialog_message_padding"
+        android:layout_marginEnd="@dimen/dialog_message_padding"
+        android:layout_marginTop="@dimen/spacing_tiny"
+        android:layout_marginBottom="@dimen/spacing_tiny"
+        android:background="?attr/happCardStroke"
+        android:visibility="gone" />
+
+    <RadioGroup
+        android:id="@+id/dialogRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radioOption1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+            android:layout_marginEnd="@dimen/spacing_normal"
+            android:paddingStart="12dp"
+            android:paddingEnd="@dimen/spacing_normal"
+            android:text=""
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_body"
+            app:buttonTint="@color/dialog_control_selector" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radioOption2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+            android:layout_marginEnd="@dimen/spacing_normal"
+            android:paddingStart="12dp"
+            android:paddingEnd="@dimen/spacing_normal"
+            android:text=""
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_body"
+            app:buttonTint="@color/dialog_control_selector" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radioOption3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+            android:layout_marginEnd="@dimen/spacing_normal"
+            android:paddingStart="12dp"
+            android:paddingEnd="@dimen/spacing_normal"
+            android:text=""
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_body"
+            app:buttonTint="@color/dialog_control_selector" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radioOption4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+            android:layout_marginEnd="@dimen/spacing_normal"
+            android:paddingStart="12dp"
+            android:paddingEnd="@dimen/spacing_normal"
+            android:text=""
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_body"
+            app:buttonTint="@color/dialog_control_selector" />
+
+    </RadioGroup>
+</LinearLayout>

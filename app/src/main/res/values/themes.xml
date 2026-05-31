@@ -1,43 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.Happwner" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
+
         <item name="colorPrimary">@color/brand_purple</item>
         <item name="colorPrimaryVariant">@color/brand_purple</item>
         <item name="colorOnPrimary">@color/white</item>
 
-        <!-- Secondary brand color -->
-        <item name="colorSecondary">@color/brand_purple_secondary</item>
+        <item name="colorSecondary">?attr/happAccent</item>
         <item name="colorSecondaryVariant">@color/brand_purple</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorError">@color/error_red</item>
 
-        <!-- Background configuration -->
         <item name="android:windowBackground">@color/app_background</item>
         <item name="colorSurface">@color/island_surface</item>
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
 
-        <!-- Status bar configuration -->
         <item name="android:statusBarColor">@color/status_bar</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
 
-        <!-- Highlight color for EditText focus and text selection -->
-        <item name="colorControlActivated">@color/brand_purple_secondary</item>
+        <item name="colorControlActivated">?attr/happAccent</item>
         <item name="colorControlNormal">@color/text_secondary</item>
 
-        <!-- Link color -->
-        <item name="android:textColorLink">@color/brand_purple_secondary</item>
+        <item name="android:textColorLink">?attr/happAccent</item>
 
-        <!-- Force TextInputLayout style to use secondary purple for stroke -->
         <item name="textInputStyle">@style/Widget_Happwner_TextInputLayout</item>
 
-        <!-- Highlight color for EditText focus and text selection (Gray as requested for buttons and default flash) -->
         <item name="android:textColorHighlight">@color/ripple_gray</item>
         <item name="colorControlHighlight">@color/ripple_gray</item>
 
-        <!-- Dialog appearance -->
         <item name="materialAlertDialogTheme">@style/Theme_Happwner_Dialog</item>
+
+        <item name="dialogCornerRadius">@dimen/dialog_corner_radius</item>
+        <item name="android:dialogCornerRadius">@dimen/dialog_corner_radius</item>
+
+        <item name="happScreenBg">@color/app_background</item>
+        <item name="happCardBg">@color/island_surface</item>
+        <item name="happCardStroke">@color/island_stroke</item>
+        <item name="happDialogBg">@color/dialog_background</item>
+        <item name="happStatusBarBg">@color/status_bar</item>
+        <item name="happToolbarBg">@color/brand_purple</item>
+        <item name="happDialogStroke">@android:color/transparent</item>
+        <item name="happAccent">@color/brand_purple_secondary</item>
     </style>
 
     <style name="Widget_Happwner_TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
@@ -57,21 +61,21 @@
     </style>
 
     <style name="Theme_Happwner_Dialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
-        <item name="android:windowAnimationStyle">@style/Animation_Happwner_Dialog</item>
         <item name="colorSurface">@color/dialog_background</item>
         <item name="android:colorBackground">@color/dialog_background</item>
 
-        <!-- Standard Material colors for the dialog -->
-        <item name="colorPrimary">@color/brand_purple_secondary</item>
-        <item name="colorAccent">@color/brand_purple_secondary</item>
+        <item name="colorPrimary">?attr/happAccent</item>
+        <item name="colorAccent">?attr/happAccent</item>
 
         <item name="materialAlertDialogTitleTextStyle">@style/Widget_Happwner_Dialog_Title</item>
         <item name="buttonBarPositiveButtonStyle">@style/Widget_Happwner_Button_DialogPositive</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget_Happwner_Button_TextButton</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget_Happwner_Button_TextButton</item>
 
-        <!-- Shape -->
         <item name="shapeAppearance">@style/ShapeAppearance_Happwner_Dialog</item>
+        <item name="dialogCornerRadius">@dimen/dialog_corner_radius</item>
+        <item name="android:dialogCornerRadius">@dimen/dialog_corner_radius</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
     </style>
 
     <style name="Widget_Happwner_Dialog_Title" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
@@ -84,27 +88,73 @@
         <item name="cornerSize">@dimen/dialog_corner_radius</item>
     </style>
 
-    <style name="Animation_Happwner_Dialog" parent="android:Animation">
-        <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
-        <item name="android:windowExitAnimation">@anim/dialog_exit</item>
-    </style>
-
     <style name="Widget_Happwner_Button_DialogPositive" parent="Widget.MaterialComponents.Button.TextButton">
-        <item name="android:textColor">@color/brand_purple_secondary</item>
-        <item name="rippleColor">@color/brand_purple_secondary_highlight</item>
+        <item name="android:textColor">?attr/happAccent</item>
+        <item name="rippleColor">@color/happ_accent_ripple</item>
         <item name="android:minWidth">@dimen/dialog_btn_min_width</item>
         <item name="android:paddingLeft">@dimen/dialog_btn_hitbox_horizontal</item>
         <item name="android:paddingRight">@dimen/dialog_btn_hitbox_horizontal</item>
     </style>
 
     <style name="Widget_Happwner_Button_TextButton" parent="Widget.MaterialComponents.Button.TextButton">
-        <item name="android:textColor">@color/brand_purple_secondary</item>
+        <item name="android:textColor">?attr/happAccent</item>
     </style>
 
     <style name="ThemeOverlay_Happwner_Toolbar" parent="ThemeOverlay.MaterialComponents.ActionBar">
         <item name="colorControlNormal">@color/toolbar_text</item>
         <item name="android:textColorPrimary">@color/toolbar_text</item>
         <item name="android:textColorSecondary">@color/toolbar_text</item>
-        <item name="colorControlHighlight">@color/toolbar_ripple</item>
+        <item name="colorControlHighlight">@color/toolbar_ripple_contrast</item>
+    </style>
+
+    <style name="Theme.Happwner.Translucent" parent="Theme.Happwner">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="Theme.Happwner.Amoled" parent="Theme.Happwner">
+        <item name="android:windowBackground">@color/amoled_bg</item>
+
+        <item name="happScreenBg">@color/amoled_bg</item>
+        <item name="happCardBg">@color/amoled_bg</item>
+        <item name="happDialogBg">@color/amoled_bg</item>
+        <item name="happDialogStroke">@color/amoled_dialog_stroke</item>
+
+        <item name="materialAlertDialogTheme">@style/Theme_Happwner_Dialog_Amoled</item>
+        <item name="switchStyle">@style/Widget_Happwner_Switch_Amoled</item>
+    </style>
+
+    <style name="Widget_Happwner_Switch_Amoled" parent="Widget.MaterialComponents.CompoundButton.Switch">
+        <item name="thumbTint">@color/amoled_switch_thumb</item>
+        <item name="trackTint">@color/amoled_switch_track</item>
+        <item name="useMaterialThemeColors">false</item>
+    </style>
+
+    <style name="Theme_Happwner_Dialog_Amoled" parent="Theme_Happwner_Dialog">
+        <item name="colorSurface">@color/amoled_bg</item>
+        <item name="android:colorBackground">@color/amoled_bg</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="elevationOverlayColor">@color/amoled_bg</item>
+    </style>
+
+    <style name="ThemeOverlay.Happwner.Monet" parent="">
+        <item name="colorPrimary">@android:color/system_accent1_600</item>
+        <item name="colorPrimaryVariant">@android:color/system_accent1_700</item>
+        <item name="colorSecondary">@android:color/system_accent1_600</item>
+        <item name="colorSecondaryVariant">@android:color/system_accent1_700</item>
+        <item name="colorAccent">@android:color/system_accent1_600</item>
+        <item name="colorControlActivated">@android:color/system_accent1_600</item>
+        <item name="android:textColorLink">@android:color/system_accent1_600</item>
+
+        <item name="happAccent">@android:color/system_accent1_600</item>
+        <item name="happToolbarBg">@android:color/system_accent1_600</item>
+        <item name="happStatusBarBg">@android:color/system_accent1_700</item>
+    </style>
+
+    <style name="Theme.Happwner.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/app_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Happwner</item>
     </style>
 </resources>

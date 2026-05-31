@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand & Accent (Night) - Muted -->
+
      <color name="brand_purple">#473A92</color>
      <color name="brand_purple_secondary">#817AE6</color>
      <color name="brand_purple_secondary_highlight">#668E85FF</color>
      <color name="toolbar_ripple">#5F50B5</color>
 
-     <!-- UI State Colors (Night) -->
     <color name="status_bar">#32286B</color>
 
-    <!-- Background & Surface (Night) -->
     <color name="app_background">#161616</color>
     <color name="island_surface">#222222</color>
     <color name="island_stroke">#383838</color>
     <color name="dialog_background">#050505</color>
 
-    <!-- Text (Night) -->
     <color name="text_primary">#C1C1C1</color>
     <color name="text_secondary">#828282</color>
     <color name="text_disabled">#48484A</color>
@@ -23,7 +20,6 @@
     <color name="btn_get_text">@color/text_primary</color>
     <color name="error_red">#C84139</color>
 
-    <!-- Standard -->
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 </resources>

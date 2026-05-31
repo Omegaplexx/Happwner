@@ -10,6 +10,13 @@
         <item>Системная</item>
         <item>Светлая</item>
         <item>Тёмная</item>
+        <item>Чёрная</item>
+    </string-array>
+
+    <string-array name="animation_options">
+        <item>Выкл</item>
+        <item>Системные</item>
+        <item>Программные</item>
     </string-array>
 
     <string-array name="language_options">

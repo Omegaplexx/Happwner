@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="happScreenBg" format="color" />
+    <attr name="happCardBg" format="color" />
+    <attr name="happCardStroke" format="color" />
+    <attr name="happDialogBg" format="color" />
+    <attr name="happStatusBarBg" format="color" />
+    <attr name="happToolbarBg" format="color" />
+    <attr name="happDialogStroke" format="color" />
+    <attr name="happAccent" format="color" />
+</resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ThemeOverlay.Happwner.Monet" parent="">
+        <item name="colorPrimary">@android:color/system_accent1_700</item>
+        <item name="colorPrimaryVariant">@android:color/system_accent1_800</item>
+        <item name="colorSecondary">@android:color/system_accent1_400</item>
+        <item name="colorSecondaryVariant">@android:color/system_accent1_500</item>
+        <item name="colorAccent">@android:color/system_accent1_400</item>
+        <item name="colorControlActivated">@android:color/system_accent1_400</item>
+        <item name="android:textColorLink">@android:color/system_accent1_400</item>
+
+        <item name="happAccent">@android:color/system_accent1_400</item>
+        <item name="happToolbarBg">@android:color/system_accent1_700</item>
+        <item name="happStatusBarBg">@android:color/system_accent1_800</item>
+    </style>
+</resources>

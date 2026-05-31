@@ -51,5 +51,19 @@
             android:textSize="@dimen/text_size_body"
             app:buttonTint="@color/dialog_control_selector" />
 
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radioOption4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+            android:layout_marginEnd="@dimen/spacing_normal"
+            android:paddingStart="12dp"
+            android:paddingEnd="@dimen/spacing_normal"
+            android:text=""
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_body"
+            android:visibility="gone"
+            app:buttonTint="@color/dialog_control_selector" />
+
     </RadioGroup>
 </LinearLayout>

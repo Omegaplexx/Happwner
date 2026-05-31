@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="msg_xray_skipped">
+        <item quantity="one">%d config skipped during Xray to sing-box conversion</item>
+        <item quantity="other">%d configs skipped during Xray to sing-box conversion</item>
+    </plurals>
+</resources>

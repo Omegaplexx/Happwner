@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/bridge_off"/>
+    <foreground android:drawable="@drawable/ic_bridge_fg_off"/>
+    <monochrome android:drawable="@drawable/ic_bridge_fg_off"/>
+</adaptive-icon>

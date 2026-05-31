@@ -9,6 +9,7 @@ import android.os.Build
 import android.util.Log
 
 class WatchdogReceiver : BroadcastReceiver() {
+    // Watchdog tick: if the bridge should be up, (re)start the service and re-arm
     override fun onReceive(context: Context, intent: Intent) {
         val prefs = PrefsManager.getSafePrefs(context)
         val bridgeEnabled = prefs.getBoolean("bridge_enabled", false)
@@ -32,34 +33,36 @@ class WatchdogReceiver : BroadcastReceiver() {
     }
 
     companion object {
+        // Re-arm the watchdog alarm (exact when permitted, otherwise best-effort)
         fun scheduleNextWatchdog(context: Context) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, WatchdogReceiver::class.java)
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
-        
-        val pendingIntent = PendingIntent.getBroadcast(context, 1001, intent, flags)
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
 
-        val triggerAt = System.currentTimeMillis() + 10000 // 10 секунд
+            val pendingIntent = PendingIntent.getBroadcast(context, 1001, intent, flags)
 
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (alarmManager.canScheduleExactAlarms()) {
+            val triggerAt = System.currentTimeMillis() + 10000 // +10 seconds
+
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (alarmManager.canScheduleExactAlarms()) {
+                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+                    } else {
+                        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+                    }
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
                 } else {
-                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
                 }
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
-            } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
-            }
             } catch (e: Exception) {
                 Log.e("Happwner:Watchdog", "Failed to schedule alarm: ${e.message}")
-                // Fallback to non-exact
+
+                // Fallback: inexact alarm
                 alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             }
         }

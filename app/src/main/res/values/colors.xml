@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand & Accent -->
+
     <color name="brand_purple">#7063FF</color>
     <color name="brand_purple_secondary">#7063FF</color>
     <color name="brand_purple_secondary_highlight">#667063FF</color>
     <color name="toolbar_ripple">#8E85FF</color>
     <color name="ripple_gray">#33808080</color>
 
-     <!-- UI State Colors -->
     <color name="status_bar">#554DC3</color>
 
-    <!-- Background & Surface -->
     <color name="app_background">#F2F2F7</color>
     <color name="island_surface">#FFFFFF</color>
     <color name="island_stroke">#E5E5EA</color>
     <color name="dialog_background">#FFFFFF</color>
 
-    <!-- Text -->
     <color name="text_primary">#404040</color>
     <color name="text_secondary">#808080</color>
     <color name="text_disabled">#C7C7CC</color>
@@ -24,7 +21,12 @@
     <color name="btn_get_text">#FFFFFF</color>
     <color name="error_red">#FF5A4D</color>
 
-    <!-- Standard -->
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
+
+    <color name="amoled_bg">#000000</color>
+    <color name="amoled_dialog_stroke">#2A2A2A</color>
+
+    <color name="bridge_on">#7063FF</color>
+    <color name="bridge_off">#8E8E93</color>
 </resources>

@@ -10,6 +10,7 @@ class IdReceiver : BroadcastReceiver() {
         if (originalId != null) {
             val prefs = PrefsManager.getSafePrefs(context)
             prefs.edit().putString("captured_id", originalId).apply()
+            PrefsManager.broadcastSettings(context)
         }
     }
 }

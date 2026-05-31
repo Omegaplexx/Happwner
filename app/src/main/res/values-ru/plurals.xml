@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="msg_xray_skipped">
+        <item quantity="one">%d конфиг пропущен при конвертации Xray в sing-box</item>
+        <item quantity="few">%d конфига пропущено при конвертации Xray в sing-box</item>
+        <item quantity="many">%d конфигов пропущено при конвертации Xray в sing-box</item>
+        <item quantity="other">%d конфигов пропущено при конвертации Xray в sing-box</item>
+    </plurals>
+</resources>
