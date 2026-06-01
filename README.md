@@ -5,13 +5,26 @@
 
 # Happwner
 
+<div align="center">
+<img width="100" height="100" alt="Happwner icon" src="https://github.com/user-attachments/assets/93bc69a7-82b3-44b3-a577-52d6b56edc51" />
+
 An Android app and Xposed module for exporting subscriptions from the proxy utility [Happ](https://play.google.com/store/apps/details?id=com.happproxy) into any VPN apps (NekoBox, v2rayNG, Hiddify, and similar clients).
 
 **Android 5.0+** is supported.
+</div>
 
 ## Screenshots
 
-Coming soon.
+<div align="center">
+<img width="150" height="325" alt="1" src="https://github.com/user-attachments/assets/11e8ce9d-02d6-4c9f-943d-d94277290ab8" />
+<img width="150" height="325" alt="2" src="https://github.com/user-attachments/assets/b91e0269-4175-4111-b439-9972d13a0529" />
+<img width="150" height="325" alt="3" src="https://github.com/user-attachments/assets/8c71d7e2-112b-445f-b1e5-53c30eaa7a74" />
+<img width="150" height="325" alt="4" src="https://github.com/user-attachments/assets/f339409c-5505-49a3-9a2c-b7aa8a2837fe" />
+<br>
+<img width="150" height="325" alt="5" src="https://github.com/user-attachments/assets/c37acc91-86d3-401b-abd4-eba543a424a3" />
+<img width="150" height="325" alt="6" src="https://github.com/user-attachments/assets/4d943fcf-a480-4396-9eb6-81b1235ae779" />
+<img width="150" height="325" alt="7" src="https://github.com/user-attachments/assets/3293a5a3-aa3e-4d57-a719-ce6cdb1ce4f8" />
+</div>
 
 ## Features
 
