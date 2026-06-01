@@ -15,15 +15,14 @@ Android-приложение и Xposed-модуль для экспорта по
 
 ## Скриншоты
 
-<div align="center">
-<img width="150" height="325" alt="1" src="https://github.com/user-attachments/assets/11e8ce9d-02d6-4c9f-943d-d94277290ab8" />
-<img width="150" height="325" alt="2" src="https://github.com/user-attachments/assets/b91e0269-4175-4111-b439-9972d13a0529" />
-<img width="150" height="325" alt="3" src="https://github.com/user-attachments/assets/8c71d7e2-112b-445f-b1e5-53c30eaa7a74" />
-<img width="150" height="325" alt="4" src="https://github.com/user-attachments/assets/f339409c-5505-49a3-9a2c-b7aa8a2837fe" />
-<br>
-<img width="150" height="325" alt="5" src="https://github.com/user-attachments/assets/c37acc91-86d3-401b-abd4-eba543a424a3" />
-<img width="150" height="325" alt="6" src="https://github.com/user-attachments/assets/4d943fcf-a480-4396-9eb6-81b1235ae779" />
-<img width="150" height="325" alt="7" src="https://github.com/user-attachments/assets/3293a5a3-aa3e-4d57-a719-ce6cdb1ce4f8" />
+<div>
+<img src="https://github.com/user-attachments/assets/11e8ce9d-02d6-4c9f-943d-d94277290ab8" width="30%" />
+<img src="https://github.com/user-attachments/assets/b91e0269-4175-4111-b439-9972d13a0529" width="30%" />
+<img src="https://github.com/user-attachments/assets/8c71d7e2-112b-445f-b1e5-53c30eaa7a74" width="30%" />
+<img src="https://github.com/user-attachments/assets/f339409c-5505-49a3-9a2c-b7aa8a2837fe" width="30%" />
+<img src="https://github.com/user-attachments/assets/c37acc91-86d3-401b-abd4-eba543a424a3" width="30%" />
+<img src="https://github.com/user-attachments/assets/4d943fcf-a480-4396-9eb6-81b1235ae779" width="30%" />
+<img src="https://github.com/user-attachments/assets/3293a5a3-aa3e-4d57-a719-ce6cdb1ce4f8" width="30%" />
 </div>
 
 ## Возможности
