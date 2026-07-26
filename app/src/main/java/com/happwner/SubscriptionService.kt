@@ -246,17 +246,18 @@ class SubscriptionService : Service() {
                             val jsonToUri = prefs.getBoolean("process_server", false)
                             val tryB64 = prefs.getBoolean("process_b64_server", false)
                             val xrayToSb = prefs.getBoolean("process_xray_server", false)
+                            val xrayToMihomo = prefs.getBoolean("process_mihomo_server", false)
 
                             // Decrypt if the body is encrypted, then run the link conversion
                             val finalBody = when (val r = HappCrypto.process(targetUrl, response.body, response.headers)) {
                                 is HappCrypto.Result.Success ->
-                                    LinkConverter.convert(r.plaintext, jsonToUri, tryB64, xrayToSb)
+                                    LinkConverter.convert(r.plaintext, jsonToUri, tryB64, xrayToSb, xrayToMihomo)
                                 is HappCrypto.Result.Failed -> {
                                     showDecryptErrorToast(r.keyName, r.reason)
-                                    LinkConverter.convert(r.originalBody, jsonToUri, tryB64, xrayToSb)
+                                    LinkConverter.convert(r.originalBody, jsonToUri, tryB64, xrayToSb, xrayToMihomo)
                                 }
                                 HappCrypto.Result.NotEncrypted ->
-                                    LinkConverter.convert(response.body, jsonToUri, tryB64, xrayToSb)
+                                    LinkConverter.convert(response.body, jsonToUri, tryB64, xrayToSb, xrayToMihomo)
                             }
 
                             Log.d("Happwner:Server", "Sending response back. Final length: ${finalBody.length}")

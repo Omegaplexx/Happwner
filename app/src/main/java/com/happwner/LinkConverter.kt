@@ -6,24 +6,40 @@ import org.json.JSONTokener
 import java.net.URLEncoder
 
 object LinkConverter {
-    data class ConversionStats(val text: String, val xraySkipped: Int)
+    data class ConversionStats(
+        val text: String,
+        val xraySkipped: Int,
+        // True when the mihomo pass produced the text, so the caller can
+        // word the skipped-count label for the right target format.
+        val mihomo: Boolean = false
+    )
 
     fun convert(
         input: String,
         jsonToUri: Boolean = true,
         tryBase64: Boolean = true,
-        xrayToSb: Boolean = false
+        xrayToSb: Boolean = false,
+        xrayToMihomo: Boolean = false
     ): String {
-        return convertWithStats(input, jsonToUri, tryBase64, xrayToSb).text
+        return convertWithStats(input, jsonToUri, tryBase64, xrayToSb, xrayToMihomo).text
     }
 
-    // Main converter. Pass order: base64 -> xray-to-sing-box -> JSON-to-URI
+    // Main converter. Pass order: xray-to-mihomo -> base64 -> xray-to-sing-box -> JSON-to-URI
     fun convertWithStats(
         input: String,
         jsonToUri: Boolean = true,
         tryBase64: Boolean = true,
-        xrayToSb: Boolean = false
+        xrayToSb: Boolean = false,
+        xrayToMihomo: Boolean = false
     ): ConversionStats {
+        // Mihomo output is a whole YAML document, so it replaces the other
+        // passes instead of chaining with them. When the body turns out not to
+        // be Xray, the passes below still get their turn.
+        if (xrayToMihomo) {
+            val mihomo = convertXrayToMihomo(input)
+            if (mihomo != null) return mihomo
+        }
+
         if (!jsonToUri && !tryBase64 && !xrayToSb) return ConversionStats(input.trim(), 0)
 
         val trimmed = input.trim()
@@ -309,6 +325,42 @@ object LinkConverter {
         }
         return ArrayConvResult(formatJsonArray(outArr, compact), skipped)
     }
+
+    // Convert every xray config in the body into one mihomo YAML document.
+    // Returns null when the body holds no xray config, so the caller can fall
+    // back to the other conversion passes.
+    private fun convertXrayToMihomo(input: String): ConversionStats? {
+        var body = input.trim()
+        if (body.isEmpty()) return null
+        if (!body.startsWith("{") && !body.startsWith("[")) {
+            // Subscription panels commonly base64-wrap the body. The YAML is
+            // always emitted plain, which is what a mihomo client reads.
+            body = tryDecodeBase64WithFlag(input)?.decoded?.trim() ?: return null
+        }
+
+        runMihomo(body)?.let { return it }
+
+        // Some panels put one configuration per line instead of in an array.
+        val arr = JSONArray()
+        for (line in body.lines()) {
+            val t = line.trim()
+            if (!t.startsWith("{") || !isWholeJsonValue(t)) continue
+            val obj = try { JSONObject(t) } catch (_: Throwable) { continue }
+            arr.put(obj)
+        }
+        if (arr.length() == 0) return null
+        return runMihomo(arr.toString())
+    }
+
+    private fun runMihomo(text: String): ConversionStats? =
+        when (val r = MihomoConverter.convert(text)) {
+            is MihomoConverter.Result.Ok ->
+                ConversionStats(r.yaml.trimEnd('\n'), r.skipped, mihomo = true)
+            // Xray, but nothing in it could be converted: leave the body to the
+            // other passes rather than handing back an empty configuration.
+            MihomoConverter.Result.Unsupported -> null
+            MihomoConverter.Result.NotXray -> null
+        }
 
     // Merge xray configs into one sing-box; pass any other lines through unchanged
     private fun convertXrayToSingbox(input: String, trimmed: String, compact: Boolean): ConversionStats? {

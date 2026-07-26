@@ -33,6 +33,7 @@ Features:
 
 * **Link decryption**. Supported formats: `happ://crypt`, `crypt2`, `crypt3`, `crypt4`, `crypt5`. Decryption does <u>not require</u> Happ, Xposed, LSPatch/NPatch, or an internet connection.
 * **Subscription profile decryption**. If a provider encrypted their servers using one of the ten keys built into Happ, the app will automatically decrypt them and display the corresponding message.
+* **Profile conversion**. Turns the Xray JSON that Happ serves into URI links (`proto://params`), sing-box configs for NekoBox, husi and Hiddify, or Mihomo (Clash Meta) YAML for FlClash, Clash Meta, Prizrak-Box and similar clients;
 * **HWID spoofing** when requesting subscriptions <u>through the Happwner interface</u>. Allows bypassing device limits and restoring access to subscriptions after changing devices;
 * **"Bridge"** — a built-in service for updating Happ subscriptions inside any apps (NekoBox, Hiddify, v2rayNG, husi, Exclave, Karing, and others);
 * **Intent link handling** for `happ://add` and `happ://crypt`, instead of Happ itself.

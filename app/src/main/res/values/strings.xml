@@ -91,6 +91,26 @@ Some Xray features have no equivalents in sing-box, so not every profile can be 
 The Xray core\'s <tt>geosite:</tt> and <tt>geoip:</tt> rules are converted into sing-box rule-sets compatible with the sing-box for Android app and the CLI core. These clients will automatically download the required domain and IP lists from SagerNet repositories.<br/><br/>
 <u>Note</u> that other sing-box clients (Hiddify, husi, NekoBox, Karing, etc.) usually ignore the routing (rule-set) shipped with imported profiles and use rules configured by the user through the UI.
     ]]></string>
+    <string name="setting_process_mihomo">Xray to Mihomo</string>
+    <string name="setting_process_mihomo_desc">Convert received Xray configs into Mihomo (Clash Meta) YAML for FlClash, Clash Meta, Prizrak-Box and similar clients</string>
+    <string name="setting_process_mihomo_info_title">Conversion limitations</string>
+    <string name="setting_process_mihomo_info_text"><![CDATA[
+Every Xray config in the response becomes one Mihomo YAML configuration: proxies, proxy groups and rules. The output is always plain YAML, never Base64.<br/><br/>
+This setting takes priority over <b>Xray to sing-box</b> and <b>JSON to URI</b>: when the body holds Xray configs, YAML is returned instead. If it holds no Xray config, the other conversions run as usual.<br/><br/><br/>
+<b>Protocols:</b><br/>
+VLESS (including <tt>xtls-rprx-vision</tt>, REALITY and post-quantum <tt>mlkem768x25519plus</tt> encryption), VMess, Trojan, Shadowsocks, SOCKS, HTTP, WireGuard, Hysteria, Hysteria2 and TUIC are converted.<br/><br/>
+<b>Transports:</b><br/>
+<tt>raw</tt>/<tt>tcp</tt> (including the HTTP masquerade), <tt>ws</tt>, <tt>httpupgrade</tt>, <tt>http</tt>/<tt>h2</tt>, <tt>grpc</tt>, <tt>xhttp</tt>/<tt>splithttp</tt> (with <tt>extra</tt>, <tt>xmux</tt> and <tt>downloadSettings</tt>) and <tt>mkcp</tt> for VMess. TLS, REALITY, ECH, uTLS fingerprints and certificate pinning are carried over.<br/><br/>
+<b>Load balancers:</b><br/>
+An Xray balancer becomes a single proxy group named after the config\'s <tt>remarks</tt>, so the balanced servers are offered as one entry rather than separately.<br/><br/><br/>
+Some Xray features have no equivalents in Mihomo, and those profiles are skipped:<br/>
+• <tt>Mux.Cool</tt> — not implemented; only the XUDP packet encoding is kept;<br/>
+• <tt>quic</tt> transport for VLESS/VMess/Trojan;<br/>
+• <tt>h2</tt> and <tt>xhttp</tt> for Trojan, <tt>mkcp</tt> for anything but VMess;<br/>
+• gRPC <tt>multiMode</tt>, REALITY <tt>mldsa65Verify</tt>;<br/>
+• the <tt>vlite</tt> and <tt>mtproto</tt> protocols.<br/><br/>
+Xray routing rules are not converted — only the balancers they point at. The generated config ships a <tt>PROXY</tt> selector, an <tt>AUTO</tt> url-test group and rules that route private address ranges directly.
+    ]]></string>
     <string name="setting_process_manual">During profile request</string>
     <string name="setting_process_server">When using the Bridge</string>
     <string name="setting_hook_unlock">Unlock profiles</string>

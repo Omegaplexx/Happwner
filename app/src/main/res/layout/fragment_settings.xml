@@ -637,6 +637,71 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/itemProcessMihomo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                app:cardCornerRadius="@dimen/ui_corner_radius"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/happCardStroke"
+                app:cardBackgroundColor="?attr/happCardBg">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/card_content_padding"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_standard"
+                        android:layout_height="@dimen/icon_size_standard"
+                        android:src="@drawable/ic_compare_arrows"
+                        app:tint="?attr/happAccent" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="@dimen/card_content_padding"
+                        android:layout_marginEnd="@dimen/card_content_padding"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_process_mihomo"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_size_label" />
+
+                        <TextView
+                            android:id="@+id/textProcessMihomoDesc"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_process_mihomo_desc"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="@dimen/text_size_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/btnProcessMihomoInfo"
+                        android:layout_width="28dp"
+                        android:layout_height="@dimen/icon_size_small"
+                        android:layout_marginEnd="-4dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp"
+                        android:src="@drawable/ic_info"
+                        android:contentDescription="@string/setting_process_mihomo_info_title"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        app:tint="?attr/happAccent" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/itemProcessResponse"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

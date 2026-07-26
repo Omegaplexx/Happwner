@@ -33,6 +33,8 @@ class SettingsFragment : Fragment() {
         private const val DIALOG_PROCESS_B64 = "process_b64"
         private const val DIALOG_PROCESS_XRAY = "process_xray"
         private const val DIALOG_PROCESS_XRAY_INFO = "process_xray_info"
+        private const val DIALOG_PROCESS_MIHOMO = "process_mihomo"
+        private const val DIALOG_PROCESS_MIHOMO_INFO = "process_mihomo_info"
         private const val DIALOG_RESPONSE_HEADER_INFO = "response_header_info"
         private const val DIALOG_BRIDGE_INFO = "bridge_info"
         private const val DIALOG_INFO = "info"
@@ -98,6 +100,7 @@ class SettingsFragment : Fragment() {
         bindProcessResponseItem(view)
         bindProcessB64Item(view)
         bindProcessXrayItem(view)
+        bindProcessMihomoItem(view)
         bindResponseHeaderInfoIcon(view)
         bindEnableBridgeItem(view)
         bindBridgeInstructionIcon(view)
@@ -216,6 +219,8 @@ class SettingsFragment : Fragment() {
             DIALOG_PROCESS_B64 -> showProcessB64Dialog()
             DIALOG_PROCESS_XRAY -> showProcessXrayDialog()
             DIALOG_PROCESS_XRAY_INFO -> showProcessXrayInfoDialog()
+            DIALOG_PROCESS_MIHOMO -> showProcessMihomoDialog()
+            DIALOG_PROCESS_MIHOMO_INFO -> showProcessMihomoInfoDialog()
             DIALOG_RESPONSE_HEADER_INFO -> showResponseHeaderInfoDialog()
             DIALOG_BRIDGE_INFO -> showBridgeInfoDialog()
             DIALOG_INFO -> showInfoDialog()
@@ -781,6 +786,59 @@ class SettingsFragment : Fragment() {
             .setPositiveButton(fromHtml(getString(R.string.btn_ok)), null)
             .showAnimated()
         trackDialog(DIALOG_PROCESS_XRAY_INFO, dialog)
+    }
+
+    // Setting: Xray to Mihomo
+    private fun bindProcessMihomoItem(view: View) {
+        setHtmlText(view.findViewById(R.id.textProcessMihomoDesc), R.string.setting_process_mihomo_desc)
+        view.findViewById<MaterialCardView>(R.id.itemProcessMihomo).setOnClickListener {
+            showProcessMihomoDialog()
+        }
+        view.findViewById<ImageView>(R.id.btnProcessMihomoInfo).setOnClickListener {
+            showProcessMihomoInfoDialog()
+        }
+    }
+
+    // Xray -> Mihomo settings: apply to manual fetch and/or the bridge
+    private fun showProcessMihomoDialog() {
+        val act = activity ?: return
+        val ctx = context ?: return
+        val prefs = getSafePrefs(ctx)
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_process_xray, null)
+        val checkManual = dialogView.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.checkProcessManual)
+        val checkServer = dialogView.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.checkProcessServer)
+
+        checkManual.isChecked = prefs.getBoolean("process_mihomo_manual", false)
+        checkServer.isChecked = prefs.getBoolean("process_mihomo_server", false)
+
+        val dialog = AnimatedDialogBuilder(act)
+            .setTitle(fromHtml(getString(R.string.setting_process_mihomo)))
+            .setView(dialogView)
+            .setPositiveButton(fromHtml(getString(R.string.btn_ok))) { _, _ ->
+                prefs.edit()
+                    .putBoolean("process_mihomo_manual", checkManual.isChecked)
+                    .putBoolean("process_mihomo_server", checkServer.isChecked)
+                    .apply()
+                PrefsManager.fixSharedPrefs(ctx)
+            }
+            .showAnimated()
+        trackDialog(DIALOG_PROCESS_MIHOMO, dialog)
+    }
+
+    // Info dialog explaining the Xray -> Mihomo conversion
+    private fun showProcessMihomoInfoDialog() {
+        val act = activity ?: return
+        val dialogView = layoutInflater.inflate(R.layout.dialog_info, null)
+        val textMsg = dialogView.findViewById<TextView>(R.id.dialogMessage)
+        textMsg.text = fromHtml(getString(R.string.setting_process_mihomo_info_text))
+
+        val dialog = AnimatedDialogBuilder(act)
+            .setTitle(fromHtml(getString(R.string.setting_process_mihomo_info_title)))
+            .setView(dialogView)
+            .setPositiveButton(fromHtml(getString(R.string.btn_ok)), null)
+            .showAnimated()
+        trackDialog(DIALOG_PROCESS_MIHOMO_INFO, dialog)
     }
 
     // Setting: Subscription Bridge

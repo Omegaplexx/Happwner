@@ -6,4 +6,10 @@
         <item quantity="many">%d конфигов пропущено при конвертации Xray в sing-box</item>
         <item quantity="other">%d конфигов пропущено при конвертации Xray в sing-box</item>
     </plurals>
+    <plurals name="msg_mihomo_skipped">
+        <item quantity="one">%d конфиг пропущен при конвертации Xray в Mihomo</item>
+        <item quantity="few">%d конфига пропущено при конвертации Xray в Mihomo</item>
+        <item quantity="many">%d конфигов пропущено при конвертации Xray в Mihomo</item>
+        <item quantity="other">%d конфигов пропущено при конвертации Xray в Mihomo</item>
+    </plurals>
 </resources>

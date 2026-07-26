@@ -784,12 +784,13 @@ class MainActivity : AppCompatActivity() {
                 val jsonToUri = prefs.getBoolean("process_manual", true)
                 val tryB64 = prefs.getBoolean("process_b64_manual", true)
                 val xrayToSb = prefs.getBoolean("process_xray_manual", false)
+                val xrayToMihomo = prefs.getBoolean("process_mihomo_manual", false)
 
                 var wasDecrypted = false
                 val stats = when (val r = HappCrypto.process(urlString, resp.body, resp.headers)) {
                     is HappCrypto.Result.Success -> {
                         wasDecrypted = true
-                        LinkConverter.convertWithStats(r.plaintext, jsonToUri, tryB64, xrayToSb)
+                        LinkConverter.convertWithStats(r.plaintext, jsonToUri, tryB64, xrayToSb, xrayToMihomo)
                     }
                     is HappCrypto.Result.Failed -> {
                         Toast.makeText(
@@ -797,10 +798,10 @@ class MainActivity : AppCompatActivity() {
                             getString(R.string.toast_decrypt_failed, r.keyName, r.reason),
                             Toast.LENGTH_LONG
                         ).show()
-                        LinkConverter.convertWithStats(r.originalBody, jsonToUri, tryB64, xrayToSb)
+                        LinkConverter.convertWithStats(r.originalBody, jsonToUri, tryB64, xrayToSb, xrayToMihomo)
                     }
                     HappCrypto.Result.NotEncrypted ->
-                        LinkConverter.convertWithStats(resp.body, jsonToUri, tryB64, xrayToSb)
+                        LinkConverter.convertWithStats(resp.body, jsonToUri, tryB64, xrayToSb, xrayToMihomo)
                 }
                 val converted = stats.text
                 val xraySkipped = stats.xraySkipped
@@ -821,7 +822,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (xraySkipped > 0) {
                     if (prefix.isNotEmpty()) prefix.append("\n")
-                    val label = resources.getQuantityString(R.plurals.msg_xray_skipped, xraySkipped, xraySkipped)
+                    val plural =
+                        if (stats.mihomo) R.plurals.msg_mihomo_skipped else R.plurals.msg_xray_skipped
+                    val label = resources.getQuantityString(plural, xraySkipped, xraySkipped)
                     val start = prefix.length
                     prefix.append(label)
                     prefix.setSpan(ForegroundColorSpan(accent), start, prefix.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

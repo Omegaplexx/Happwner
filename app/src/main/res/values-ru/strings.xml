@@ -85,6 +85,26 @@
 Правила <tt>geosite:</tt> и <tt>geoip:</tt> ядра Xray преобразуются в rule-set\'ы sing-box для совместимости с приложением sing-box for Android и CLI-версией ядра. Эти клиенты автоматически скачают нужные списки доменов и IP из репозиториев SagerNet.<br/><br/>
 <u>Обратите внимание</u>, что другие sing-box-клиенты (Hiddify, husi, NekoBox, Karing и прочие) обычно игнорируют маршрутизацию (rule-set) из добавленных профилей и используют правила, настроенные пользователем через UI.
     ]]></string>
+    <string name="setting_process_mihomo">Xray в Mihomo</string>
+    <string name="setting_process_mihomo_desc">Конвертировать полученные Xray-конфиги в YAML Mihomo (Clash Meta) для FlClash, Clash Meta, Prizrak-Box и подобных</string>
+    <string name="setting_process_mihomo_info_title">Ограничения конвертации</string>
+    <string name="setting_process_mihomo_info_text"><![CDATA[
+Все Xray-конфиги из ответа объединяются в одну конфигурацию Mihomo: прокси, группы прокси и правила. Результат всегда выдаётся обычным YAML, без Base64.<br/><br/>
+Эта настройка имеет приоритет над <b>Xray в sing-box</b> и <b>JSON в URI</b>: если в ответе есть Xray-конфиги, возвращается YAML. Если Xray-конфигов нет, остальные преобразования работают как обычно.<br/><br/><br/>
+<b>Протоколы:</b><br/>
+Конвертируются VLESS (включая <tt>xtls-rprx-vision</tt>, REALITY и постквантовое шифрование <tt>mlkem768x25519plus</tt>), VMess, Trojan, Shadowsocks, SOCKS, HTTP, WireGuard, Hysteria, Hysteria2 и TUIC.<br/><br/>
+<b>Транспорты:</b><br/>
+<tt>raw</tt>/<tt>tcp</tt> (включая HTTP-маскировку), <tt>ws</tt>, <tt>httpupgrade</tt>, <tt>http</tt>/<tt>h2</tt>, <tt>grpc</tt>, <tt>xhttp</tt>/<tt>splithttp</tt> (вместе с <tt>extra</tt>, <tt>xmux</tt> и <tt>downloadSettings</tt>), а также <tt>mkcp</tt> для VMess. Переносятся TLS, REALITY, ECH, отпечатки uTLS и закрепление сертификатов.<br/><br/>
+<b>Балансировщики:</b><br/>
+Балансировщик Xray превращается в одну группу прокси с именем из <tt>remarks</tt> конфига, поэтому балансируемые серверы предлагаются одним пунктом, а не по отдельности.<br/><br/><br/>
+Некоторые возможности Xray не имеют аналогов в Mihomo — такие профили пропускаются:<br/>
+• <tt>Mux.Cool</tt> — не реализован; сохраняется только кодирование пакетов XUDP;<br/>
+• транспорт <tt>quic</tt> для VLESS/VMess/Trojan;<br/>
+• <tt>h2</tt> и <tt>xhttp</tt> для Trojan, <tt>mkcp</tt> для всего кроме VMess;<br/>
+• gRPC <tt>multiMode</tt>, REALITY <tt>mldsa65Verify</tt>;<br/>
+• протоколы <tt>vlite</tt> и <tt>mtproto</tt>.<br/><br/>
+Правила маршрутизации Xray не конвертируются — только балансировщики, на которые они ссылаются. В готовый конфиг добавляются селектор <tt>PROXY</tt>, url-test группа <tt>AUTO</tt> и правила, направляющие приватные диапазоны адресов напрямую.
+    ]]></string>
     <string name="setting_process_manual">При запросе профилей</string>
     <string name="setting_process_server">При использовании Моста</string>
     <string name="setting_hook_unlock">Разблокировать профили</string>
