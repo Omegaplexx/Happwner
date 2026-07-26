@@ -1,0 +1,154 @@
+name: Release APK
+
+# Builds the app and attaches the APK to a GitHub release.
+#
+# Push a tag to publish:
+#
+#     git tag v1.4 && git push origin v1.4
+#
+# or run the workflow by hand and give it a tag name.
+#
+# Signing needs four repository secrets. Without them the build still runs and
+# publishes an unsigned APK, which has to be signed before it will install:
+#
+#     KEYSTORE_BASE64     base64 of the .jks file: base64 -w0 release.jks
+#     KEYSTORE_PASSWORD   the keystore password
+#     KEY_ALIAS           the key alias inside the keystore
+#     KEY_PASSWORD        the key password
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish, e.g. v1.4. Created from the current ref if it does not exist.'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish the APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # gradlew is stored without the executable bit, so grant it here rather
+      # than depending on the checkout to carry the mode.
+      - name: Make the Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Work out the release tag
+        id: release
+        run: |
+          if [ "${{ github.event_name }}" = 'workflow_dispatch' ]; then
+            tag='${{ inputs.tag }}'
+          else
+            tag='${{ github.ref_name }}'
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          # A leading "v" is a tag convention, not part of the version.
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      # The signing config in app/build.gradle.kts reads its keystore out of
+      # local.properties, so the secrets are written there instead of being
+      # passed on the command line. local.properties is gitignored, and the
+      # runner is thrown away afterwards.
+      - name: Set up signing
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo 'signed=false' >> "$GITHUB_OUTPUT"
+            echo '> [!WARNING]' >> "$GITHUB_STEP_SUMMARY"
+            echo '> No `KEYSTORE_BASE64` secret is set, so the APK is **unsigned**' \
+                 'and will not install until it is signed.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          # An absolute path, because file() in the android block resolves a
+          # relative one against the app module rather than the repository root.
+          {
+            echo "RELEASE_STORE_FILE=$RUNNER_TEMP/release.jks"
+            echo "RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "RELEASE_KEY_ALIAS=$KEY_ALIAS"
+            echo "RELEASE_KEY_PASSWORD=$KEY_PASSWORD"
+          } > local.properties
+          echo 'signed=true' >> "$GITHUB_OUTPUT"
+
+      - name: Run the unit tests
+        run: ./gradlew --no-daemon testDebugUnitTest
+
+      - name: Build the release APK
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Name the APK after the release
+        id: apk
+        run: |
+          apk=$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)
+          if [ -z "$apk" ]; then
+            echo 'No APK was produced by assembleRelease.' >&2
+            exit 1
+          fi
+          suffix=''
+          [ '${{ steps.signing.outputs.signed }}' = 'true' ] || suffix='-unsigned'
+          name="Happwner-${{ steps.release.outputs.version }}${suffix}.apk"
+          mv "$apk" "$RUNNER_TEMP/$name"
+          echo "path=$RUNNER_TEMP/$name" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          {
+            echo "### \`$name\`"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| size | $(du -h "$RUNNER_TEMP/$name" | cut -f1) |"
+            echo "| sha256 | \`$(sha256sum "$RUNNER_TEMP/$name" | cut -d' ' -f1)\` |"
+            echo "| signed | ${{ steps.signing.outputs.signed }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the APK as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.name }}
+          path: ${{ steps.apk.outputs.path }}
+          if-no-files-found: error
+
+      # gh is preinstalled on the runner, so no third-party action is needed to
+      # publish. An existing release is updated rather than treated as an error,
+      # which makes a re-run of a failed publish safe.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          APK: ${{ steps.apk.outputs.path }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+          else
+            gh release create "$TAG" "$APK" \
+              --title "$TAG" \
+              --generate-notes \
+              --target "$GITHUB_SHA"
+          fi
