@@ -1,6 +1,6 @@
 name: Release APK
 
-# Builds the app and attaches the APK to a GitHub release.
+# Builds the app and attaches a signed APK to a GitHub release.
 #
 # Push a tag to publish:
 #
@@ -8,13 +8,19 @@ name: Release APK
 #
 # or run the workflow by hand and give it a tag name.
 #
-# Signing needs four repository secrets. Without them the build still runs and
-# publishes an unsigned APK, which has to be signed before it will install:
+# Signing is required, because Android refuses to install an unsigned APK --
+# it reports one as corrupt. Set these four repository secrets once:
 #
-#     KEYSTORE_BASE64     base64 of the .jks file: base64 -w0 release.jks
-#     KEYSTORE_PASSWORD   the keystore password
-#     KEY_ALIAS           the key alias inside the keystore
-#     KEY_PASSWORD        the key password
+#     keytool -genkey -v -keystore release.jks -alias happwner \
+#         -keyalg RSA -keysize 2048 -validity 10000
+#
+#     gh secret set KEYSTORE_BASE64 < <(base64 -w0 release.jks)
+#     gh secret set KEYSTORE_PASSWORD
+#     gh secret set KEY_ALIAS
+#     gh secret set KEY_PASSWORD
+#
+# Keep release.jks safe and never rotate it: Android only upgrades an app in
+# place when the new APK carries the same signature.
 
 on:
   push:
@@ -41,6 +47,46 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+
+      # Checked before anything is built, so a missing secret costs a few
+      # seconds rather than a full build that ends in an APK nobody can install.
+      - name: Check that the signing secrets are present
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          missing=''
+          [ -n "$KEYSTORE_BASE64" ]   || missing="$missing KEYSTORE_BASE64"
+          [ -n "$KEYSTORE_PASSWORD" ] || missing="$missing KEYSTORE_PASSWORD"
+          [ -n "$KEY_ALIAS" ]         || missing="$missing KEY_ALIAS"
+          [ -n "$KEY_PASSWORD" ]      || missing="$missing KEY_PASSWORD"
+          [ -z "$missing" ] && exit 0
+          {
+            echo '## Signing is not configured'
+            echo
+            echo "Missing repository secrets:$missing"
+            echo
+            echo 'Android will not install an unsigned APK -- it reports one as'
+            echo 'corrupt -- so nothing was built. Create a keystore and add the'
+            echo 'secrets, then re-run:'
+            echo
+            echo '```console'
+            echo 'keytool -genkey -v -keystore release.jks -alias happwner \'
+            echo '    -keyalg RSA -keysize 2048 -validity 10000'
+            echo
+            echo 'gh secret set KEYSTORE_BASE64 < <(base64 -w0 release.jks)'
+            echo 'gh secret set KEYSTORE_PASSWORD'
+            echo 'gh secret set KEY_ALIAS'
+            echo 'gh secret set KEY_PASSWORD'
+            echo '```'
+            echo
+            echo 'Keep `release.jks` -- Android only upgrades an app in place when'
+            echo 'the new APK carries the same signature.'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::Signing secrets are missing:$missing -- see the job summary."
+          exit 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -73,30 +119,28 @@ jobs:
       # passed on the command line. local.properties is gitignored, and the
       # runner is thrown away afterwards.
       - name: Set up signing
-        id: signing
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo 'signed=false' >> "$GITHUB_OUTPUT"
-            echo '> [!WARNING]' >> "$GITHUB_STEP_SUMMARY"
-            echo '> No `KEYSTORE_BASE64` secret is set, so the APK is **unsigned**' \
-                 'and will not install until it is signed.' >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          if [ ! -s "$RUNNER_TEMP/release.jks" ]; then
+            echo '::error::KEYSTORE_BASE64 did not decode to a keystore. Regenerate it with base64 -w0 release.jks'
+            exit 1
+          fi
+          # A backslash is an escape character in a .properties file, so any in a
+          # password has to be doubled or the value silently changes.
+          escape() { printf '%s' "$1" | sed 's/\\/\\\\/g'; }
           # An absolute path, because file() in the android block resolves a
           # relative one against the app module rather than the repository root.
           {
             echo "RELEASE_STORE_FILE=$RUNNER_TEMP/release.jks"
-            echo "RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD"
-            echo "RELEASE_KEY_ALIAS=$KEY_ALIAS"
-            echo "RELEASE_KEY_PASSWORD=$KEY_PASSWORD"
+            echo "RELEASE_STORE_PASSWORD=$(escape "$KEYSTORE_PASSWORD")"
+            echo "RELEASE_KEY_ALIAS=$(escape "$KEY_ALIAS")"
+            echo "RELEASE_KEY_PASSWORD=$(escape "$KEY_PASSWORD")"
           } > local.properties
-          echo 'signed=true' >> "$GITHUB_OUTPUT"
 
       - name: Run the unit tests
         run: ./gradlew --no-daemon testDebugUnitTest
@@ -104,30 +148,60 @@ jobs:
       - name: Build the release APK
         run: ./gradlew --no-daemon assembleRelease
 
-      - name: Name the APK after the release
+      # The build stays green when the signing config does not apply -- it just
+      # emits app-release-unsigned.apk -- so the signature is checked here with
+      # Android's own tool rather than assumed. This is what stops an APK that
+      # a phone would reject as corrupt from reaching a release.
+      - name: Verify the APK is signed
         id: apk
         run: |
           apk=$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)
           if [ -z "$apk" ]; then
-            echo 'No APK was produced by assembleRelease.' >&2
+            echo '::error::assembleRelease produced no APK.'
             exit 1
           fi
-          suffix=''
-          [ '${{ steps.signing.outputs.signed }}' = 'true' ] || suffix='-unsigned'
-          name="Happwner-${{ steps.release.outputs.version }}${suffix}.apk"
+          case "$apk" in
+            *unsigned*)
+              echo "::error::The build produced $apk. The signing config did not apply;" \
+                   'check that the secrets match the keystore.'
+              exit 1
+              ;;
+          esac
+
+          apksigner=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          if [ -z "$apksigner" ]; then
+            echo '::error::apksigner was not found in the Android SDK build-tools.'
+            exit 1
+          fi
+          # minSdk 21 is what the app targets, and it is what decides which
+          # signature schemes have to be present.
+          "$apksigner" verify --min-sdk-version 21 --print-certs --verbose "$apk" | tee verify.txt
+
+          name="Happwner-${{ steps.release.outputs.version }}.apk"
           mv "$apk" "$RUNNER_TEMP/$name"
           echo "path=$RUNNER_TEMP/$name" >> "$GITHUB_OUTPUT"
           echo "name=$name" >> "$GITHUB_OUTPUT"
           {
             echo "### \`$name\`"
             echo
-            echo "| | |"
-            echo "|---|---|"
+            echo '| | |'
+            echo '|---|---|'
             echo "| size | $(du -h "$RUNNER_TEMP/$name" | cut -f1) |"
             echo "| sha256 | \`$(sha256sum "$RUNNER_TEMP/$name" | cut -d' ' -f1)\` |"
-            echo "| signed | ${{ steps.signing.outputs.signed }} |"
+            echo "| signer | \`$(grep -m1 'certificate DN' verify.txt | cut -d: -f2- | sed 's/^ //')\` |"
+            echo
+            echo '<details><summary>apksigner verify</summary>'
+            echo
+            echo '```'
+            cat verify.txt
+            echo '```'
+            echo
+            echo '</details>'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # Download this from the Releases page, not from the run's artifacts:
+      # GitHub wraps every artifact in a zip, and a zip renamed to .apk is
+      # exactly what a phone calls corrupt.
       - name: Keep the APK as a build artifact
         uses: actions/upload-artifact@v4
         with:
