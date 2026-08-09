@@ -72,6 +72,12 @@ object LinkConverter {
             if (arr != null) return ConversionStats(arr.text, arr.skipped)
         }
 
+        // Pretty-printed JSON must be handled as one document instead of separate lines.
+        if (jsonToUri && (trimmed.startsWith("{") || trimmed.startsWith("[")) && isWholeJsonValue(trimmed)) {
+            val converted = convertJsonValueToLinks(trimmed)
+            if (converted != null) return ConversionStats(converted, 0)
+        }
+
         val res = StringBuilder()
         var skipped = 0
         // Otherwise walk line by line
@@ -120,33 +126,40 @@ object LinkConverter {
 
             // A JSON outbound on this line -> proxy link
             if (jsonToUri && (t.startsWith("{") || t.startsWith("[")) && isWholeJsonValue(t)) {
-                try {
-                    if (t.startsWith("[")) {
-                        val arr = JSONArray(t)
-                        for (i in 0 until arr.length()) {
-                            val obj = arr.optJSONObject(i)
-                            val piece: String? = if (obj != null) {
-                                processJson(obj) ?: obj.toString()
-                            } else {
-                                val raw = arr.opt(i)
-                                if (raw == null || raw === JSONObject.NULL) null
-                                else raw.toString().trim().takeIf { it.isNotEmpty() }
-                            }
-                            if (piece != null) res.append(piece).append("\n")
-                        }
-                    } else {
-                        val obj = JSONObject(t)
-                        val converted = processJson(obj)
-                        if (converted != null) res.append(converted).append("\n")
-                        else res.append(t).append("\n")
-                    }
+                val converted = convertJsonValueToLinks(t)
+                if (converted != null) {
+                    res.append(converted).append("\n")
                     return@forEach
-                } catch (_: Throwable) {}
+                }
             }
 
             res.append(t).append("\n")
         }
         return ConversionStats(res.toString().trim(), skipped)
+    }
+
+    private fun convertJsonValueToLinks(text: String): String? = try {
+        if (text.startsWith("[")) {
+            val array = JSONArray(text)
+            buildList {
+                for (index in 0 until array.length()) {
+                    val obj = array.optJSONObject(index)
+                    if (obj != null) {
+                        add(processJson(obj) ?: obj.toString())
+                    } else {
+                        val raw = array.opt(index)
+                        if (raw != null && raw !== JSONObject.NULL && raw.toString().isNotBlank()) {
+                            add(raw.toString())
+                        }
+                    }
+                }
+            }.joinToString("\n").takeIf(String::isNotBlank)
+        } else {
+            val obj = JSONObject(text)
+            processJson(obj) ?: text
+        }
+    } catch (_: Exception) {
+        null
     }
 
     // Single-line JSON? (no newline within the first 1KB)
@@ -494,42 +507,28 @@ object LinkConverter {
         val obs = root.optJSONArray("outbounds")
         if (obs != null) {
             val rem = root.optString("remarks", "")
+            val links = mutableListOf<String>()
             for (i in 0 until obs.length()) {
-                val ob = obs.getJSONObject(i)
+                val ob = obs.optJSONObject(i) ?: return null
                 val p = ob.optString("protocol", ob.optString("type"))
-                when (p) {
-                    "vless" -> {
-                        val c = buildVless(ob, rem)
-                        if (c != null) return c
-                    }
-                    "vmess" -> {
-                        val c = buildVmess(ob, rem)
-                        if (c != null) return c
-                    }
-                    "shadowsocks" -> {
-                        val c = buildShadowsocks(ob, rem)
-                        if (c != null) return c
-                    }
-                    "trojan" -> {
-                        val c = buildTrojan(ob, rem)
-                        if (c != null) return c
-                    }
-                    "hysteria2" -> {
-                        val c = buildHysteria2(ob, rem)
-                        if (c != null) return c
-                    }
-                    "tuic" -> {
-                        val c = buildTuic(ob, rem)
-                        if (c != null) return c
-                    }
-                    else -> {
-                       if (isShadowsocks(ob)) return buildShadowsocks(ob, rem)
-                    }
+                val converted = when (p) {
+                    "vless" -> buildVless(ob, rem)
+                    "vmess" -> buildVmess(ob, rem)
+                    "shadowsocks" -> buildShadowsocks(ob, rem)
+                    "trojan" -> buildTrojan(ob, rem)
+                    "hysteria2" -> buildHysteria2(ob, rem)
+                    "tuic" -> buildTuic(ob, rem)
+                    in AUXILIARY_PROTOCOLS -> continue
+                    else -> if (isShadowsocks(ob)) buildShadowsocks(ob, rem) else return null
                 }
+                links.add(converted ?: return null)
             }
+            return links.joinToString("\n").takeIf(String::isNotEmpty)
         }
         return null
     }
+
+    private val AUXILIARY_PROTOCOLS = setOf("freedom", "blackhole", "dns", "loopback")
 
     private fun isShadowsocks(obj: JSONObject): Boolean {
         if (obj.has("server") && obj.has("server_port") && obj.has("password") && obj.has("method")) return true
