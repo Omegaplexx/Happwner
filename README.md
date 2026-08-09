@@ -44,7 +44,7 @@ Features:
 * **Unlocking encrypted subscription profiles inside Happ**. Forces profile arrows to appear and allows exporting configurations even when the subscription is encrypted;
 * **Quick access to the Happwner interface** via a three-finger tap gesture while Happ or another target app is open.
 
-**Xposed functionality requires Xposed / EdXposed / LSPosed / Vector, OR a patched version of Happ created using Xpatch / LSPatch / NPatch / FunBox.**
+**Xposed functionality requires Xposed / EdXposed / LSPosed / Vector, OR a patched version of Happ created using Xpatch / LSPatch / NPatch / FPA.**
 
 ## Installation
 
@@ -100,7 +100,7 @@ To give users control over their subscriptions again, improve service transparen
 
 ## Acknowledgements
 
-* **[slavrom21](https://github.com/slavrom21)** for his invaluable contribution to the project (and most of the hard work): reverse-engineering Happ to decrypt profiles, the Xray-to-sing-box converter, profile unlocking via Xposed, new animations, Monet support, and many other improvements.
+* **[slavrom21](https://github.com/21slavrom)** for his invaluable contribution to the project (and most of the hard work): reverse-engineering Happ to decrypt profiles, the Xray-to-sing-box converter, profile unlocking via Xposed, new animations, Monet support, and many other improvements.
 
 ## Terms of Use
 
