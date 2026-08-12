@@ -4,4 +4,8 @@
         <item quantity="one">%d config skipped during Xray to sing-box conversion</item>
         <item quantity="other">%d configs skipped during Xray to sing-box conversion</item>
     </plurals>
+    <plurals name="msg_mihomo_skipped">
+        <item quantity="one">%d config skipped during Xray to Mihomo conversion</item>
+        <item quantity="other">%d configs skipped during Xray to Mihomo conversion</item>
+    </plurals>
 </resources>

@@ -86,6 +86,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     compileOnly("de.robv.android.xposed:api:82")
     testImplementation(libs.junit)
+    // android.jar stubs org.json for unit tests, so the tests need a real one
+    testImplementation(libs.org.json)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

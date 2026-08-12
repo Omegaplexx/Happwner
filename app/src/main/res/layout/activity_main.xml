@@ -54,7 +54,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <com.happwner.NoAutoScrollView
+    <com.happwner.ui.NoAutoScrollView
         android:id="@+id/mainScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -191,7 +191,7 @@
                             android:hint="@string/hint_url"
                             app:errorEnabled="false">
 
-                            <com.happwner.LockableScrollEditText
+                            <com.happwner.ui.LockableScrollEditText
                                 android:id="@+id/inputUrl"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -314,7 +314,7 @@
                             android:hint="@string/hint_ua"
                             app:errorEnabled="false"
                             app:helperTextEnabled="false">
-                            <com.happwner.LockableScrollEditText
+                            <com.happwner.ui.LockableScrollEditText
                                 android:id="@+id/inputUserAgent"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -441,7 +441,7 @@
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-    </com.happwner.NoAutoScrollView>
+    </com.happwner.ui.NoAutoScrollView>
 
         <TextView
             android:id="@+id/outputWaitLabel"
@@ -454,7 +454,7 @@
             android:alpha="0"
             android:visibility="gone" />
 
-        <com.happwner.FastScrollThumb
+        <com.happwner.ui.FastScrollThumb
             android:id="@+id/fastScrollThumb"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

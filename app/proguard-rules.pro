@@ -1,8 +1,8 @@
 # Сохраняем класс входа для Xposed
--keep class com.happwner.MainHook { *; }
+-keep class com.happwner.hook.MainHook { *; }
 
 # Сохраняем метод проверки статуса модуля, чтобы Xposed мог его найти по имени
--keep class com.happwner.ModuleStatus {
+-keep class com.happwner.hook.ModuleStatus {
     public boolean isModuleActive();
 }
 

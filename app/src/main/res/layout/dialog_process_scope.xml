@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:overScrollMode="never"
+    android:fillViewport="false">
+
+    <LinearLayout
+        android:id="@+id/processScopeDialogRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/dialog_content_padding_top"
+        android:paddingBottom="@dimen/spacing_small">
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkDecodeBase64"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+            android:layout_marginEnd="@dimen/spacing_normal"
+            android:paddingStart="12dp"
+            android:paddingEnd="@dimen/spacing_normal"
+            android:text="@string/setting_process_decode_b64"
+            android:textColor="@color/dialog_label_selector"
+            android:textSize="@dimen/text_size_body"
+            app:buttonTint="@color/dialog_control_selector"
+            app:buttonIconTint="@color/dialog_control_selector" />
+
+        <View
+            android:id="@+id/processScopeDivider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+            android:layout_marginEnd="@dimen/dialog_checkbox_margin_start"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:layout_marginBottom="@dimen/spacing_small"
+            android:background="?attr/happCardStroke" />
+
+        <LinearLayout
+            android:id="@+id/xrayModeGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/radioModeOff"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+                    android:paddingStart="12dp"
+                    android:checked="true"
+                    android:text="@string/setting_process_mode_off"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="@dimen/text_size_body"
+                    app:buttonTint="@color/dialog_control_selector" />
+
+                <Space
+                    android:layout_width="28dp"
+                    android:layout_height="1dp"
+                    android:layout_marginEnd="@dimen/spacing_normal" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/radioModeSingBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+                    android:paddingStart="12dp"
+                    android:text="@string/setting_process_mode_singbox"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="@dimen/text_size_body"
+                    app:buttonTint="@color/dialog_control_selector" />
+
+                <ImageView
+                    android:id="@+id/btnModeSingBoxInfo"
+                    android:layout_width="28dp"
+                    android:layout_height="@dimen/icon_size_small"
+                    android:layout_marginEnd="@dimen/spacing_normal"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="1dp"
+                    android:src="@drawable/ic_info"
+                    android:contentDescription="@string/setting_process_xray_info_title"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="?attr/happAccent" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/radioModeMihomo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+                    android:paddingStart="12dp"
+                    android:text="@string/setting_process_mode_mihomo"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="@dimen/text_size_body"
+                    app:buttonTint="@color/dialog_control_selector" />
+
+                <ImageView
+                    android:id="@+id/btnModeMihomoInfo"
+                    android:layout_width="28dp"
+                    android:layout_height="@dimen/icon_size_small"
+                    android:layout_marginEnd="@dimen/spacing_normal"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="1dp"
+                    android:src="@drawable/ic_info"
+                    android:contentDescription="@string/setting_process_mihomo_info_title"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="?attr/happAccent" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/radioModeUri"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+                    android:paddingStart="12dp"
+                    android:text="@string/setting_process_mode_uri"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="@dimen/text_size_body"
+                    app:buttonTint="@color/dialog_control_selector" />
+
+                <ImageView
+                    android:id="@+id/btnModeUriSettings"
+                    android:layout_width="28dp"
+                    android:layout_height="@dimen/icon_size_small"
+                    android:layout_marginEnd="@dimen/spacing_normal"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="1dp"
+                    android:src="@drawable/ic_settings"
+                    android:contentDescription="@string/setting_process_uri_options_title"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="?attr/happAccent" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

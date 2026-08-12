@@ -1,4 +1,5 @@
 <resources>
+    <string name="error_happanion_unreachable">Happanion недоступен или не ответил (принудительный тестовый режим)</string>
     <string name="title_settings">Настройки</string>
     <string name="xposed_desc">Универсальное решение для расшифровки и экспорта прокси-подписок в любые приложения</string>
 
@@ -10,10 +11,8 @@
     <string name="label_hwid_unknown">HWID неизвестен. Введите вручную\nили запустите целевое приложение</string>
     <string name="label_history_empty">Здесь пока пусто. Импортируйте или обновите подписку в вашем приложении — расшифрованные ссылки появятся тут.</string>
     <string name="label_result_default">Заполните три поля выше и нажмите на кнопку &lt;b&gt;Профили&lt;/b&gt; — конфигурации вашей подписки появятся здесь, и вы сможете скопировать их в любой прокси-клиент. Кнопка &lt;b&gt;Подписка&lt;/b&gt; позволяет обновлять профили в других приложениях через службу Моста.</string>
-    <string name="label_lspatch_mode">Режим LSPatch</string>
-    <string name="label_intercept_links">Перехватывать ссылки</string>
     <string name="label_intercept_hwid">Подмена HWID</string>
-    <string name="label_intercept_hwid_desc">Принудительно заменять идентификатор оборудования в целевых приложениях на значение из Happwner</string>
+    <string name="label_intercept_hwid_desc">Заменять идентификатор оборудования в целевых приложениях на значение из Happwner</string>
     <string name="label_hwid_spoof_enable_field">Включите поле HWID</string>
     <string name="label_hwid_spoof_off">Не подменяется</string>
     <string name="label_hwid_spoof_current">Текущий: %1$s</string>
@@ -32,10 +31,11 @@
         Поддерживаются форматы:&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;https://&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;http://&lt;/tt&gt;&lt;br&gt;
+		&#8226;&amp;nbsp;&lt;tt&gt;happ://crypt&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;happ://add&lt;/tt&gt;&lt;br&gt;
-        &#8226;&amp;nbsp;&lt;tt&gt;happ://crypt&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;v2raytun://crypt&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;v2raytun://import&lt;/tt&gt;&lt;br&gt;
+        &#8226;&amp;nbsp;&lt;tt&gt;incy://crypt&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;incy://add&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;incy://import&lt;/tt&gt;&lt;br&gt;
         &#8226;&amp;nbsp;&lt;tt&gt;http://127.0.0.1:8166&lt;/tt&gt; (ссылка Моста Happwner)
@@ -48,25 +48,74 @@
     <string name="label_animations">Анимации</string>
     <string name="setting_show_duplicates">Показывать все ссылки</string>
     <string name="setting_show_duplicates_desc">Отображать все дублирующиеся перехваченные ссылки</string>
+    <string name="setting_force_happlib">Принудительно Happanion</string>
+    <string name="setting_force_happlib_desc">Только для тестирования: отдавать все happ://-ссылки в Happanion вместо встроенных ключей дешифровки</string>
     <string name="setting_lspatch_mode">Перехват ссылок</string>
-    <string name="setting_lspatch_mode_desc">Альтернативный способ расшифровки ссылок с помощью Xposed/LSPatch. Может помочь, если встроенный расшифровщик потеряет актуальность</string>
-    <string name="setting_process_json">JSON в URI</string>
-    <string name="setting_process_json_desc">Конвертировать полученные JSON-массивы в диплинки. URI-ссылки менее функциональны по сравнению с JSON, но совместимы практически с любым клиентом</string>
-    <string name="setting_process_b64">Base64 в текст</string>
-    <string name="setting_process_b64_desc">Декодировать Base64-данные, полученные от сервера</string>
-    <string name="setting_process_xray">Xray в sing-box</string>
-    <string name="setting_process_xray_desc">Конвертировать полученные Xray-конфиги в формат sing-box для NekoBox, husi, Hiddify и подобных</string>
+    <string name="setting_lspatch_mode_desc">Перехватывать исходящие ссылки из целевого приложения. Альтернативный способ расшифровки</string>
+
+    <string name="setting_process_scope_manual">Профили</string>
+    <string name="setting_process_scope_manual_desc">Конвертация Xray-конфигов при запросе профилей из приложения</string>
+    <string name="setting_process_scope_server">Подписка</string>
+    <string name="setting_process_scope_server_desc">Конвертация Xray-конфигов при запросе профилей из других приложений через Мост</string>
+
+    <string name="setting_process_decode_b64">Результат в Base64</string>
+    <string name="setting_process_mode_off">Без конвертации</string>
+    <string name="setting_process_mode_singbox">Xray в sing-box</string>
+    <string name="setting_process_mode_mihomo">Xray в Mihomo</string>
+    <string name="setting_process_mode_uri">Xray в URI</string>
+    <string name="setting_process_mihomo_info_title">Ограничения конвертации в Mihomo</string>
+    <string name="setting_process_mihomo_info_text"><![CDATA[
+Все Xray-конфиги из ответа объединяются в одну YAML-конфигурацию Mihomo: прокси, группы прокси, маршрутизация и DNS.<br/><br/><br/>
+<b>Протоколы:</b><br/>
+Конвертируются VLESS (включая <tt>xtls-rprx-vision</tt>, REALITY и постквантовое шифрование <tt>mlkem768x25519plus</tt>), VMess, Trojan, Shadowsocks, SOCKS, HTTP, WireGuard, Hysteria, Hysteria2 и TUIC.<br/><br/>
+<b>Транспорты:</b><br/>
+<tt>raw</tt>/<tt>tcp</tt> (включая HTTP-маскировку), <tt>ws</tt>, <tt>httpupgrade</tt>, <tt>http</tt>/<tt>h2</tt>, <tt>grpc</tt>, <tt>xhttp</tt>/<tt>splithttp</tt> (вместе с <tt>extra</tt>, <tt>xmux</tt> и <tt>downloadSettings</tt>), а также <tt>mkcp</tt> для VMess. Переносятся TLS, REALITY, ECH, отпечатки uTLS и закрепление сертификатов (<tt>pinnedPeerCertSha256</tt>, <tt>pinnedPeerCertificateChainSha256</tt>); если отпечатков несколько, Mihomo принимает один — берётся первый.<br/><br/>
+<b>Также переносится:</b><br/>
+• <tt>verifyPeerCertInNames</tt> становится <tt>name-cert-verify</tt>, а буферы чтения/записи mKCP пересчитываются из мегабайт в байты, которыми считает Mihomo.<br/><br/>
+<b>Маршрутизация:</b><br/>
+Правила переносятся, а не заменяются: домены (<tt>full:</tt>, <tt>domain:</tt>, <tt>regexp:</tt>, <tt>geosite:</tt> и подстроки), адреса (CIDR, <tt>geoip:</tt>, отрицание <tt>geoip:!</tt>, приватные диапазоны), порты, исходный адрес и порт, сеть, пользователи и теги входящих. Условия, которые должны выполняться вместе, становятся <tt>AND</tt>, альтернативы — <tt>OR</tt>. <tt>freedom</tt> становится <tt>DIRECT</tt>, <tt>blackhole</tt> — <tt>REJECT</tt>, балансировщик — своей группой. При <tt>domainStrategy: AsIs</tt> добавляется <tt>no-resolve</tt>, и правила по адресу не резолвят имя.<br/><br/>
+<tt>geosite:</tt> и <tt>geoip:</tt> остаются как есть — Mihomo скачивает свои базы самостоятельно, поэтому в конфиг не попадают ни списки, ни ссылки.<br/><br/>
+<b>DNS:</b><br/>
+Серверы становятся <tt>nameserver</tt>; сервер, ограниченный доменами, — <tt>nameserver-policy</tt>; <tt>hosts</tt> и <tt>fakedns</tt> (с указанным пулом) переносятся; <tt>queryStrategy</tt> задаёт <tt>ipv6</tt>.<br/><br/>
+<b>Балансировщики:</b><br/>
+Балансировщик Xray превращается в одну группу прокси с именем из <tt>remarks</tt> конфига, поэтому балансируемые серверы предлагаются одним пунктом, а не по отдельности.<br/><br/>
+<b>Профили пропускаются:</b><br/>
+• транспорт <tt>quic</tt> для VLESS/VMess/Trojan;<br/>
+• <tt>h2</tt> и <tt>xhttp</tt> для Trojan, <tt>mkcp</tt> для всего кроме VMess;<br/>
+• gRPC <tt>multiMode</tt>, REALITY <tt>mldsa65Verify</tt>;<br/>
+• протоколы <tt>vlite</tt> и <tt>mtproto</tt>;<br/>
+• Shadowsocks с методом, которого нет в Mihomo.<br/><br/>
+<b>Что не переносится:</b><br/>
+• <tt>grpc</tt> переносится, но <tt>authority</tt> и <tt>multiMode</tt> не имеют аналогов — узел работает в одиночном режиме.<br/>
+• <tt>Mux.Cool</tt> — у Mihomo другой мультиплексор, поэтому узел подключается без мультиплексирования; сохраняется только кодирование пакетов XUDP;<br/>
+• маршрутизация по <tt>protocol</tt> (bittorrent и подобное) и по <tt>attrs</tt> — таких правил в Mihomo нет, и правило продолжает работать без этого условия;<br/>
+• категории <tt>ext:</tt> — они указывают на файл данных Xray, который это ядро не читает;<br/>
+• DNS <tt>expectIPs</tt> и <tt>regexp:</tt> в качестве ключа nameserver-policy;<br/>
+• <tt>httpSettings.method</tt> и <tt>httpSettings.headers</tt> у транспорта <tt>h2</tt> — в <tt>h2-opts</tt> у Mihomo есть только хост и путь (маскировка <tt>http</tt> поверх raw TCP их переносит);<br/>
+• <tt>cipherSuites</tt>, <tt>curvePreferences</tt>, <tt>minVersion</tt>, <tt>disableSystemRoot</tt>, <tt>masterKeyLog</tt> — TLS в Mihomo не настраивается для отдельного прокси;<br/>
+• в <tt>sockopt</tt>: <tt>tcpNoDelay</tt>, <tt>tcpUserTimeout</tt>, <tt>tcpWindowClamp</tt>, <tt>tcpMaxSeg</tt>, <tt>V6Only</tt>, <tt>penetrate</tt>, <tt>addressPortStrategy</tt>, <tt>happyEyeballs</tt>, <tt>customSockopt</tt>, таймеры keep-alive (<tt>tcpKeepAliveIdle</tt>, <tt>tcpKeepAliveInterval</tt>) и <tt>tcpcongestion</tt>; <tt>sendThrough</tt>, привязывающий outbound к локальному адресу;<br/>
+• <tt>pinnedPeerCertificatePublicKeySha256</tt> — закрепляет публичный ключ, а <tt>fingerprint</tt> у Mihomo — сам сертификат, поэтому один хеш не заменяет другой;<br/>
+• <tt>wsSettings.useBrowserForwarding</tt>, <tt>hysteriaSettings.udpIdleTimeout</tt>, <tt>sockopt.tproxy</tt>, путь к файлу в <tt>tlsSettings.certificates</tt> (встроенные сертификаты переносятся), <tt>tlsSettings.echConfigList</tt> в виде ссылки — Mihomo ищет конфиг ECH в DNS — и <tt>sockopt.dialerProxy</tt>, который срабатывает только при наличии прокси с точно таким именем;<br/>
+• <tt>wsSettings.heartbeatPeriod</tt>, <tt>grpcSettings.initial_windows_size</tt>, <tt>realitySettings.spiderX</tt>;<br/>
+• резолвер <tt>h3://</tt> записывается как <tt>https://</tt> — Mihomo не принимает DNS поверх HTTP/3.<br/><br/>
+Если конфигов приходит несколько, берутся маршрутизация и DNS первого. Конфиг без собственной маршрутизации получает набор по умолчанию: селектор <tt>PROXY</tt>, url-test группу <tt>AUTO</tt> и правила, направляющие приватные диапазоны адресов напрямую.
+     ]]></string>
+    <string name="setting_process_uri_options_title">Настройки конвертации в URI</string>
+
+    <string name="setting_drop_incompatible_singbox">Отбрасывать несовместимые с sing-box профили</string>
+
     <string name="setting_header_response_info"><![CDATA[
-При запросе VPN-профилей Happwner будет преобразовывать полученные Base64/JSON-данные в совместимые форматы с другими приложениями.<br/><br/>
-Отключите эти функции, если профили обрабатываются неправильно.
+Преобразовывать JSON-конфигурации, полученные от VPN-провайдера, в совместимые форматы с другими приложениями. Конвертация настраивается отдельно для кнопок «Профили» и «Подписка».<br/><br/>
+Обратите внимание, что не каждая конфигурация может быть конвертирована. Прочтите «Ограничения конвертации» соответствующего режима для более подробной информации.
     ]]></string>
-    <string name="setting_process_xray_info_title">Ограничения конвертации</string>
+    <string name="setting_process_xray_info_title">Ограничения конвертации в sing-box</string>
     <string name="setting_process_xray_info_text"><![CDATA[
 Некоторые возможности Xray не имеют аналогов в sing-box, поэтому не каждый профиль может быть конвертирован. Неподдерживаемые профили будут пропущены.<br/><br/><br/>
 <b>Транспорты:</b><br/>
 • <tt>xhttp</tt>, <tt>splithttp</tt>, <tt>mekya</tt>, <tt>mkcp</tt>, <tt>meek</tt> — нет аналогов в sing-box;<br/>
 • <tt>tcp</tt>/<tt>raw</tt> с обфускацией — поддерживаются только <tt>none</tt> и <tt>http</tt>;<br/>
-• <tt>quic</tt> с обфускацией или заголовками — sing-box поддерживает только raw QUIC.<br/><br/>
+• <tt>quic</tt> с обфускацией или заголовками — sing-box поддерживает только raw QUIC;<br/>
+• <tt>grpc</tt> переносится, но <tt>authority</tt> и <tt>multiMode</tt> не имеют аналогов — узел работает в одиночном режиме.<br/><br/>
 <b>Протоколы:</b><br/>
 • VLESS с flow <tt>xtls-rprx-direct/splice/origin</tt> — несовместимы с Vision;<br/>
 • VLESS с <tt>encryption ≠ none</tt> (например, post-quantum);<br/>
@@ -78,26 +127,65 @@
 • <tt>Mux.Cool</tt> — несовместим с sing-mux;<br/>
 • <tt>source_geoip</tt> — sing-box не сопоставляет geo по исходному IP;<br/>
 • <tt>balancer.fallbackTag</tt> — urltest повторяет попытки вместо переключения;<br/>
-• <tt>balancer.strategy: leastLoad</tt> — заменяется на urltest (≈ leastPing).<br/><br/>
+• <tt>balancer.strategy: leastLoad</tt> — заменяется на urltest (≈ leastPing);<br/>
+• категории <tt>ext:</tt> — они указывают на файл данных Xray, который это ядро не читает;<br/>
+• <tt>attrs</tt> — сопоставления по атрибутам HTTP нет, поэтому правило продолжает работать без этого условия.<br/><br/>
+<b>Что не переносится:</b><br/>
+• путь к файлу сертификата — он указывает на файл машины, где написан конфиг, а не этой; встроенные сертификаты переносятся;<br/>
+• <tt>tlsSettings.minVersion</tt> или <tt>maxVersion</tt> вне диапазона <tt>1.0</tt>–<tt>1.3</tt> — сами версии переносятся;<br/>
+• <tt>sockopt</tt> <tt>tproxy</tt>, <tt>tcpNoDelay</tt>, <tt>tcpUserTimeout</tt>, <tt>tcpWindowClamp</tt>, <tt>tcpMaxSeg</tt>, <tt>tcpcongestion</tt>, <tt>V6Only</tt>, <tt>penetrate</tt>, <tt>addressPortStrategy</tt>, <tt>happyEyeballs</tt>, <tt>customSockopt</tt>, <tt>domainStrategy</tt> (стратегию задаёт резолвер маршрута);<br/>
+• <tt>pinnedPeerCertSha256</tt> — sing-box закрепляет публичный ключ внутри сертификата, а Xray сам сертификат, поэтому один хеш не заменяет другой;<br/>
+• <tt>disableSystemRoot</tt>, <tt>masterKeyLog</tt>, <tt>wsSettings.heartbeatPeriod</tt>, <tt>grpcSettings.authority</tt> и <tt>initial_windows_size</tt>, <tt>realitySettings.spiderX</tt>;<br/>
+• таймеры keep-alive в <tt>sockopt</tt> (<tt>tcpKeepAliveIdle</tt>, <tt>tcpKeepAliveInterval</tt>) и <tt>tlsSettings.curvePreferences</tt> — эти поля появились в sing-box 1.13, и запись их не дала бы ядру 1.12 загрузить конфиг;<br/>
+• <tt>wsSettings.useBrowserForwarding</tt>, <tt>hysteriaSettings.udpIdleTimeout</tt>, <tt>tlsSettings.echConfigList</tt> в виде ссылки и <tt>sockopt.dialerProxy</tt>, который срабатывает только при наличии прокси с точно таким именем;<br/>
+• <tt>verifyPeerCertInNames</tt> — sing-box проверяет по <tt>server_name</tt>, отдельного имени для проверки у него нет;<br/>
+• <tt>fragment</tt>, <tt>redirect</tt> и <tt>noises</tt> у <tt>freedom</tt>; HTTP-ответ <tt>blackhole</tt> — соединение просто закрывается.<br/><br/>
 <b>DNS:</b><br/>
-• <tt>expectIPs/unexpectedIPs</tt> — DNS-правила работают с запросом, а не ответом.<br/><br/>
+• <tt>expectIPs/unexpectedIPs</tt> — DNS-правила работают с запросом, а не ответом;<br/>
+• <tt>queryStrategy</tt> у отдельного сервера — у сервера sing-box нет такого поля, переносится только общий для документа.<br/><br/>
+<b>Также переносится:</b><br/>
+• <tt>sendThrough</tt> становится <tt>inet4_bind_address</tt> или <tt>inet6_bind_address</tt> — outbound, привязанный к локальному адресу, остаётся привязанным.<br/><br/>
 <b>Правила маршрутизации:</b><br/>
 Правила <tt>geosite:</tt> и <tt>geoip:</tt> ядра Xray преобразуются в rule-set\'ы sing-box для совместимости с приложением sing-box for Android и CLI-версией ядра. Эти клиенты автоматически скачают нужные списки доменов и IP из репозиториев SagerNet.<br/><br/>
 <u>Обратите внимание</u>, что другие sing-box-клиенты (Hiddify, husi, NekoBox, Karing и прочие) обычно игнорируют маршрутизацию (rule-set) из добавленных профилей и используют правила, настроенные пользователем через UI.
     ]]></string>
-    <string name="setting_process_manual">При запросе профилей</string>
-    <string name="setting_process_server">При использовании Моста</string>
     <string name="setting_hook_unlock">Разблокировать профили</string>
-    <string name="setting_hook_unlock_desc">Разблокировать функции экспорта и редактирования профилей зашифрованных подписок</string>
+    <string name="setting_hook_unlock_desc">Разблокировать экспорт и изменение профилей зашифрованных подписок внутри интерфейса Happ и v2RayTun</string>
     <string name="setting_header_appearance">Внешний вид</string>
+
+    <string name="setting_header_decryption">Расшифровка</string>
+    <string name="setting_header_decryption_info">Ниже собраны альтернативные способы расшифровки ссылок, которые могут сработать, когда Happwner не может дешифровать ссылку самостоятельно. Все они требуют дополнительных действий с вашей стороны и не гарантируют положительный результат.</string>
+
+    <string name="setting_xposed_card_desc">Перехват ссылок, подмена HWID и разблокировка профилей</string>
+
+    <string name="setting_happanion_card_desc">Расшифровка Happ-ссылок через библиотеку, перенаправление интентов</string>
+    <string name="setting_happanion_not_found"><![CDATA[
+Приложение-компаньон для Happwner с функциями для редких случаев. Возможности:<br/><br/>
+• Расшифровка <tt>happ://crypt5</tt> с помощью нативной библиотеки из Happ;<br/>
+• Принудительное перенаправление браузерных интент-ссылок, предназначенных для Happ, в Happwner.<br/><br/>
+Это приложение устанавливается <b>вместо</b> Happ из Google Play. Вам будет предложено удалить Happ, если он установлен.
+     ]]></string>
+    <string name="btn_install">Установить</string>
+    <string name="btn_uninstall">Удалить</string>
+    <string name="setting_xposed_not_found"><![CDATA[
+Xposed не найден. Установите фреймворк или пропатчите нужное приложение. <a href="https://github.com/Omegaplexx/Happwner/blob/main/README_RU.md#xposed-%D0%BE%D0%BF%D1%86%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE">Подробнее</a>
+     ]]></string>
+    <string name="setting_xposed_not_found_features"><![CDATA[
+Этот метод расшифровки позволяет внутри целевых/пропатченных приложений:<br/><br/>
+• Перехватывать расшифрованные ссылки;<br/>
+• Перехватывать и подменять HWID;<br/>
+• Разблокировать редактирование профилей зашифрованных подписок (Happ и v2RayTun);<br/>
+• Вызывать интерфейс Happwner тремя одновременными касаниями.
+     ]]></string>
+
     <string name="setting_header_response">Обработка профилей</string>
     <string name="setting_bridge_header">Мост подписок</string>
     <string name="setting_enable_bridge">Мост</string>
-    <string name="setting_enable_bridge_desc">Запустить локальный HTTP-прокси-сервер для обновления подписок в других приложениях</string>
+    <string name="setting_enable_bridge_desc">Локальный HTTP-прокси-сервер для обновления подписок в других приложениях</string>
     <string name="setting_battery_opt">Оптимизация батареи</string>
     <string name="setting_battery_opt_desc">Игнорировать ограничения энергопотребления. Рекомендуется для стабильной работы сервера, необходимо для Watchdog</string>
     <string name="setting_battery_opt_unrestricted">Ограничение снято</string>
-    <string name="setting_watchdog_desc">Принудительное пробуждение процесса сервера каждые 10 секунд через системные таймеры. Вспомогательная служба</string>
+    <string name="setting_watchdog_desc">Принудительно пробуждать процесс сервера каждые 10 секунд через системные таймеры. Вспомогательная служба</string>
 
     <string name="notif_action_hide">Скрыть</string>
     <string name="notif_action_disconnect">Отключить</string>
@@ -114,21 +202,17 @@
     <string name="msg_show_full">Показать полностью</string>
     <string name="msg_please_wait">Подождите…</string>
     <string name="msg_decrypted">Расшифровано</string>
-    <string name="msg_bridge_service_enable">Эта функция позволяет обновлять подписки в любых прокси-клиентах через службу Happwner. По нажатии «ОК» Happwner запросит разрешение на показ уведомлений, запустит службу и скопирует ссылку в буфер обмена — импортируйте её в ваше приложение.&lt;br&gt;&lt;br&gt;&lt;b&gt;Важно:&lt;/b&gt; включите «Обход LAN» или добавьте правило &lt;tt&gt;geoip:private&lt;/tt&gt; в &lt;tt&gt;direct&lt;/tt&gt;, иначе обновление не будет работать при активном соединении в вашем прокси-клиенте.</string>
-    <string name="msg_bridge_service_info">Эта функция позволяет обновлять подписки в любых прокси-клиентах через службу Happwner.&lt;br&gt;&lt;br&gt;&lt;b&gt;Важно:&lt;/b&gt; включите «Обход LAN» или добавьте правило &lt;tt&gt;geoip:private&lt;/tt&gt; в &lt;tt&gt;direct&lt;/tt&gt;, иначе обновление не будет работать при активном соединении в вашем прокси-клиенте.</string>
+    <string name="msg_bridge_service_enable">Эта функция позволяет обновлять ваши подписки через любые прокси-клиенты (Hiddify, husi, v2rayNG и многие другие). По нажатии «ОК» Happwner запросит разрешение на показ уведомлений, запустит службу-мост и скопирует ссылку в буфер обмена — импортируйте её в ваше приложение.&lt;br&gt;&lt;br&gt;&lt;b&gt;Важно:&lt;/b&gt; включите «Обход LAN» или добавьте правило &lt;tt&gt;geoip:private&lt;/tt&gt; в &lt;tt&gt;direct&lt;/tt&gt;, иначе обновление не будет работать при активном соединении в вашем прокси-клиенте.</string>
+    <string name="msg_bridge_service_info">Эта функция позволяет обновлять ваши подписки через любые прокси-клиенты (Hiddify, husi, v2rayNG и многие другие). Нажмите «Подписка» на главном экране, добавьте скопированную ссылку в ваше приложение и обновляйте подписку там же. &lt;br&gt;&lt;br&gt;&lt;b&gt;Важно:&lt;/b&gt; включите «Обход LAN» или добавьте правило &lt;tt&gt;geoip:private&lt;/tt&gt; в &lt;tt&gt;direct&lt;/tt&gt;, иначе обновление не будет работать при активном соединении в вашем прокси-клиенте.</string>
 
-    <string name="error_unsupported_happ_link">Расшифруйте ссылку (требуется Xposed/LSPatch)</string>
     <string name="error_decrypt_first">Расшифруйте ссылку</string>
     <string name="error_convert_first">Преобразуйте ссылку</string>
-    <string name="import_confirm_title">Вставить эту ссылку?</string>
+    <string name="import_confirm_title">Вставить ссылку?</string>
     <string name="import_confirm_msg">%1$s</string>
     <string name="error_invalid_format">Неподдерживаемый формат</string>
     <string name="error_invalid_link">Введите корректную ссылку</string>
-    <string name="msg_decrypted_success">Успешно расшифровано</string>
     <string name="title_decryption_error">Ошибка расшифровки</string>
     <string name="error_url_not_found">Не удалось расшифровать ссылку</string>
-    <string name="label_exit_code">Код выхода</string>
-    <string name="msg_error">Ошибка</string>
 
     <string name="about_app">О приложении</string>
     <string name="about_app_text">

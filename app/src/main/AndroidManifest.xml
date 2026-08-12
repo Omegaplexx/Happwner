@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
@@ -22,7 +23,7 @@
         android:forceQueryable="true">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.Happwner.Splash"
@@ -55,6 +56,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="incy" android:host="add" />
+                <data android:scheme="incy" android:host="crypt1" />
                 <data android:scheme="incy" android:host="import" />
             </intent-filter>
             <intent-filter>
@@ -64,53 +66,53 @@
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ui.SettingsActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".ui.MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".BridgeToggleActivity"
+            android:name=".bridge.BridgeToggleActivity"
             android:exported="false"
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-        <receiver android:name=".IdReceiver" android:exported="true">
+        <receiver android:name=".hook.IdReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="${applicationId}.ID_CAPTURED" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".BootReceiver" android:exported="true">
+        <receiver android:name=".bridge.BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".WatchdogReceiver" android:exported="false" />
+        <receiver android:name=".bridge.WatchdogReceiver" android:exported="false" />
 
-        <receiver android:name=".SettingsRequestReceiver" android:exported="true">
+        <receiver android:name=".hook.SettingsRequestReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="${applicationId}.SETTINGS_REQUEST" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".LSPatchReceiver" android:exported="true">
+        <receiver android:name=".hook.LSPatchReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="${applicationId}.MODULE_LOADED" />
             </intent-filter>
         </receiver>
 
         <provider
-            android:name=".SettingsProvider"
+            android:name=".data.SettingsProvider"
             android:authorities="${applicationId}.settings"
             android:exported="true" />
 
         <service
-            android:name=".SubscriptionService"
+            android:name=".bridge.SubscriptionService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="specialUse">
@@ -119,7 +121,7 @@
         </service>
 
         <service
-            android:name=".BridgeTileService"
+            android:name=".bridge.BridgeTileService"
             android:exported="true"
             android:icon="@drawable/ic_bridge_dns_white"
             android:label="@string/tile_bridge_label"

@@ -4,7 +4,6 @@
     <color name="brand_purple">#7063FF</color>
     <color name="brand_purple_secondary">#7063FF</color>
     <color name="brand_purple_secondary_highlight">#667063FF</color>
-    <color name="toolbar_ripple">#8E85FF</color>
     <color name="ripple_gray">#33808080</color>
 
     <color name="status_bar">#554DC3</color>

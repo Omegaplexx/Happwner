@@ -83,7 +83,6 @@
             android:orientation="vertical"
             android:padding="@dimen/island_padding">
 
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -263,8 +262,150 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/spacing_large"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                android:layout_marginStart="@dimen/spacing_tiny">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/setting_header_decryption"
+                    android:textColor="?attr/happAccent"
+                    android:textSize="@dimen/text_size_secondary"
+                    android:textStyle="bold"
+                    android:textAllCaps="true" />
 
+                <ImageView
+                    android:id="@+id/iconDecryptionInfo"
+                    android:layout_width="28dp"
+                    android:layout_height="@dimen/icon_size_small"
+                    android:layout_marginStart="@dimen/spacing_tiny"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="1dp"
+                    android:src="@drawable/ic_info"
+                    android:contentDescription="@string/setting_header_decryption"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="?attr/happAccent" />
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/itemHappanion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                app:cardCornerRadius="@dimen/ui_corner_radius"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/happCardStroke"
+                app:cardBackgroundColor="?attr/happCardBg">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/card_content_padding"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_standard"
+                        android:layout_height="@dimen/icon_size_standard"
+                        android:src="@drawable/ic_compare_arrows"
+                        app:tint="?attr/happAccent" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="@dimen/card_content_padding"
+                        android:layout_marginEnd="@dimen/card_content_padding"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_header_happanion"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_size_label" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_happanion_card_desc"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="@dimen/text_size_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
+                        android:src="@drawable/ic_expand_more"
+                        app:tint="@color/text_secondary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/itemXposed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/island_margin_bottom"
+                app:cardCornerRadius="@dimen/ui_corner_radius"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/happCardStroke"
+                app:cardBackgroundColor="?attr/happCardBg">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/card_content_padding"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_standard"
+                        android:layout_height="@dimen/icon_size_standard"
+                        android:src="@drawable/ic_healing"
+                        app:tint="?attr/happAccent" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="@dimen/card_content_padding"
+                        android:layout_marginEnd="@dimen/card_content_padding"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_header_xposed"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_size_label" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_xposed_card_desc"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="@dimen/text_size_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
+                        android:src="@drawable/ic_expand_more"
+                        app:tint="@color/text_secondary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -480,7 +621,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -515,7 +655,7 @@
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/itemProcessB64"
+                android:id="@+id/itemProcessManualScope"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/island_margin_bottom"
@@ -535,7 +675,7 @@
                     <ImageView
                         android:layout_width="@dimen/icon_size_standard"
                         android:layout_height="@dimen/icon_size_standard"
-                        android:src="@drawable/ic_code"
+                        android:src="@drawable/ic_paste"
                         app:tint="?attr/happAccent" />
 
                     <LinearLayout
@@ -549,15 +689,15 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/setting_process_b64"
+                            android:text="@string/setting_process_scope_manual"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_size_label" />
 
                         <TextView
-                            android:id="@+id/textProcessB64Desc"
+                            android:id="@+id/textProcessManualScopeDesc"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/setting_process_b64_desc"
+                            android:text="@string/setting_process_scope_manual_desc"
                             android:textColor="@color/text_secondary"
                             android:textSize="@dimen/text_size_secondary"
                             android:layout_marginTop="2dp" />
@@ -572,72 +712,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/itemProcessXray"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/island_margin_bottom"
-                app:cardCornerRadius="@dimen/ui_corner_radius"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="?attr/happCardStroke"
-                app:cardBackgroundColor="?attr/happCardBg">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="@dimen/card_content_padding"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size_standard"
-                        android:layout_height="@dimen/icon_size_standard"
-                        android:src="@drawable/ic_compare_arrows"
-                        app:tint="?attr/happAccent" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="@dimen/card_content_padding"
-                        android:layout_marginEnd="@dimen/card_content_padding"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_process_xray"
-                            android:textColor="@color/text_primary"
-                            android:textSize="@dimen/text_size_label" />
-
-                        <TextView
-                            android:id="@+id/textProcessXrayDesc"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_process_xray_desc"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="@dimen/text_size_secondary"
-                            android:layout_marginTop="2dp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:id="@+id/btnProcessXrayInfo"
-                        android:layout_width="28dp"
-                        android:layout_height="@dimen/icon_size_small"
-                        android:layout_marginEnd="-4dp"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:paddingTop="1dp"
-                        android:paddingBottom="1dp"
-                        android:src="@drawable/ic_info"
-                        android:contentDescription="@string/setting_process_xray_info_title"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        app:tint="?attr/happAccent" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/itemProcessResponse"
+                android:id="@+id/itemProcessServerScope"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/island_margin_bottom"
@@ -671,15 +746,15 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/setting_process_json"
+                            android:text="@string/setting_process_scope_server"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_size_label" />
 
                         <TextView
-                            android:id="@+id/textProcessResponseDesc"
+                            android:id="@+id/textProcessServerScopeDesc"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/setting_process_json_desc"
+                            android:text="@string/setting_process_scope_server_desc"
                             android:textColor="@color/text_secondary"
                             android:textSize="@dimen/text_size_secondary"
                             android:layout_marginTop="2dp" />
@@ -692,274 +767,6 @@
                         app:tint="@color/text_secondary" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-            <LinearLayout
-                android:id="@+id/xposedSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_header_xposed"
-                    android:textColor="?attr/happAccent"
-                    android:textSize="@dimen/text_size_secondary"
-                    android:textStyle="bold"
-                    android:textAllCaps="true"
-                    android:layout_marginTop="@dimen/spacing_large"
-                    android:layout_marginBottom="@dimen/island_margin_bottom"
-                    android:layout_marginStart="@dimen/spacing_tiny" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/itemHwidSpoof"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/island_margin_bottom"
-                    app:cardCornerRadius="@dimen/ui_corner_radius"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="?attr/happCardStroke"
-                    app:cardBackgroundColor="?attr/happCardBg">
-
-                    <LinearLayout
-                        android:id="@+id/rowHwidSpoofToggle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="@dimen/card_content_padding"
-                        android:gravity="center_vertical"
-                        android:background="@drawable/bg_row_ripple"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <ImageView
-                            android:layout_width="@dimen/icon_size_standard"
-                            android:layout_height="@dimen/icon_size_standard"
-                            android:src="@drawable/ic_key"
-                            app:tint="?attr/happAccent" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="@dimen/card_content_padding"
-                            android:layout_marginEnd="@dimen/card_content_padding"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_intercept_hwid"
-                                android:textColor="@color/text_primary"
-                                android:textSize="@dimen/text_size_label" />
-
-                            <TextView
-                                android:id="@+id/textHwidSpoofStatus"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColor="?attr/happAccent"
-                                android:textSize="@dimen/text_size_secondary"
-                                android:layout_marginTop="2dp" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_intercept_hwid_desc"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="@dimen/text_size_secondary"
-                                android:layout_marginTop="2dp" />
-                        </LinearLayout>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchHwidSpoof"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:clickable="false"
-                            android:focusable="false"
-                            android:background="@null" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/itemUnlock"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/island_margin_bottom"
-                    android:visibility="gone"
-                    app:cardCornerRadius="@dimen/ui_corner_radius"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="?attr/happCardStroke"
-                    app:cardBackgroundColor="?attr/happCardBg">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="@dimen/card_content_padding"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="@dimen/icon_size_standard"
-                            android:layout_height="@dimen/icon_size_standard"
-                            android:src="@drawable/ic_lock_open"
-                            app:tint="?attr/happAccent" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="@dimen/card_content_padding"
-                            android:layout_marginEnd="@dimen/card_content_padding"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/setting_hook_unlock"
-                                android:textColor="@color/text_primary"
-                                android:textSize="@dimen/text_size_label" />
-
-                            <TextView
-                                android:id="@+id/textUnlockDesc"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/setting_hook_unlock_desc"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="@dimen/text_size_secondary"
-                                android:layout_marginTop="2dp" />
-                        </LinearLayout>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchUnlock"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:clickable="false"
-                            android:focusable="false"
-                            android:background="@null" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/itemInterceptLinks"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/island_margin_bottom"
-                    app:cardCornerRadius="@dimen/ui_corner_radius"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="?attr/happCardStroke"
-                    app:cardBackgroundColor="?attr/happCardBg">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="@dimen/card_content_padding"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="@dimen/icon_size_standard"
-                            android:layout_height="@dimen/icon_size_standard"
-                            android:src="@drawable/ic_healing"
-                            app:tint="?attr/happAccent" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="@dimen/card_content_padding"
-                            android:layout_marginEnd="@dimen/card_content_padding"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/setting_lspatch_mode"
-                                android:textColor="@color/text_primary"
-                                android:textSize="@dimen/text_size_label" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/setting_lspatch_mode_desc"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="@dimen/text_size_secondary"
-                                android:layout_marginTop="2dp" />
-                        </LinearLayout>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchInterceptLinks"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:clickable="false"
-                            android:focusable="false"
-                            android:background="@null" />
-
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/itemShowDuplicates"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/island_margin_bottom"
-                    app:cardCornerRadius="@dimen/ui_corner_radius"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="?attr/happCardStroke"
-                    app:cardBackgroundColor="?attr/happCardBg">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="@dimen/card_content_padding"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="@dimen/icon_size_standard"
-                            android:layout_height="@dimen/icon_size_standard"
-                            android:src="@drawable/ic_filter_none"
-                            app:tint="?attr/happAccent" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="@dimen/card_content_padding"
-                            android:layout_marginEnd="@dimen/card_content_padding"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/setting_show_duplicates"
-                                android:textColor="@color/text_primary"
-                                android:textSize="@dimen/text_size_label" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/setting_show_duplicates_desc"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="@dimen/text_size_secondary"
-                                android:layout_marginTop="2dp" />
-                        </LinearLayout>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchShowDuplicates"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:clickable="false"
-                            android:focusable="false"
-                            android:background="@null" />
-
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

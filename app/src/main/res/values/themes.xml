@@ -37,7 +37,6 @@
         <item name="happScreenBg">@color/app_background</item>
         <item name="happCardBg">@color/island_surface</item>
         <item name="happCardStroke">@color/island_stroke</item>
-        <item name="happDialogBg">@color/dialog_background</item>
         <item name="happStatusBarBg">@color/status_bar</item>
         <item name="happToolbarBg">@color/brand_purple</item>
         <item name="happDialogStroke">@android:color/transparent</item>
@@ -105,18 +104,12 @@
         <item name="colorControlHighlight">@color/toolbar_ripple_contrast</item>
     </style>
 
-    <style name="Theme.Happwner.Translucent" parent="Theme.Happwner">
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowContentOverlay">@null</item>
-    </style>
 
     <style name="Theme.Happwner.Amoled" parent="Theme.Happwner">
         <item name="android:windowBackground">@color/amoled_bg</item>
 
         <item name="happScreenBg">@color/amoled_bg</item>
         <item name="happCardBg">@color/amoled_bg</item>
-        <item name="happDialogBg">@color/amoled_bg</item>
         <item name="happDialogStroke">@color/amoled_dialog_stroke</item>
 
         <item name="materialAlertDialogTheme">@style/Theme_Happwner_Dialog_Amoled</item>
