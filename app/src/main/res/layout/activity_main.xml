@@ -1,475 +1,514 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rootContainer"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/happScreenBg">
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="?attr/happScreenBg">
 
 <LinearLayout
-    android:id="@+id/rootLayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/happScreenBg"
-    android:orientation="vertical">
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
 
-    <View
-        android:id="@+id/statusBarBackground"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="?attr/happStatusBarBg" />
+	<View
+		android:id="@+id/backdropStatusBar"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:background="?attr/happStatusBarBg" />
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+	<View
+		android:layout_width="match_parent"
+		android:layout_height="?attr/actionBarSize"
+		android:background="?attr/happToolbarBg" />
+</LinearLayout>
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/happToolbarBg"
-            app:title="@string/app_name"
-            app:titleTextColor="@color/toolbar_text"
-            app:navigationIconTint="@color/toolbar_text"
-            app:theme="@style/ThemeOverlay_Happwner_Toolbar">
+<LinearLayout
+	android:id="@+id/rootLayout"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="?attr/happScreenBg"
+	android:orientation="vertical">
 
-            <ImageButton
-                android:id="@+id/action_settings"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="end"
-                android:layout_marginEnd="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_settings"
-                android:contentDescription="@string/title_settings"
-                app:tint="@color/toolbar_text" />
+	<View
+		android:id="@+id/statusBarBackground"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:background="?attr/happStatusBarBg" />
 
-        </androidx.appcompat.widget.Toolbar>
+	<com.google.android.material.appbar.AppBarLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
 
-    </com.google.android.material.appbar.AppBarLayout>
+		<androidx.appcompat.widget.Toolbar
+			android:id="@+id/toolbar"
+			android:layout_width="match_parent"
+			android:layout_height="?attr/actionBarSize"
+			android:background="?attr/happToolbarBg"
+			app:title="@string/app_name"
+			app:titleTextColor="@color/toolbar_text"
+			app:navigationIconTint="@color/toolbar_text"
+			app:theme="@style/ThemeOverlay_Happwner_Toolbar">
 
-    <FrameLayout
-        android:id="@+id/resultViewport"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+			<ImageButton
+				android:id="@+id/action_settings"
+				android:layout_width="40dp"
+				android:layout_height="40dp"
+				android:layout_gravity="end"
+				android:layout_marginEnd="8dp"
+				android:background="?attr/selectableItemBackgroundBorderless"
+				android:src="@drawable/ic_settings"
+				android:contentDescription="@string/title_settings"
+				app:tint="@color/toolbar_text" />
 
-    <com.happwner.ui.NoAutoScrollView
-        android:id="@+id/mainScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
-        android:scrollbars="vertical">
+		</androidx.appcompat.widget.Toolbar>
 
-        <LinearLayout
-            android:id="@+id/mainContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/island_padding"
-            android:focusable="true"
-            android:focusableInTouchMode="true">
+	</com.google.android.material.appbar.AppBarLayout>
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/islandIntercept"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/island_margin_bottom"
-                android:visibility="gone"
-                app:cardCornerRadius="@dimen/ui_corner_radius"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="?attr/happCardStroke"
-                app:cardBackgroundColor="?attr/happCardBg">
+	<FrameLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="@dimen/island_padding"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+	<com.happwner.ui.NoAutoScrollView
+		android:id="@+id/mainScrollView"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:fillViewport="true"
+		android:clipToPadding="false"
+		android:overScrollMode="never"
+		android:scrollbars="vertical">
 
-                    <LinearLayout
-                        android:id="@+id/historyHeader"
-                        android:layout_width="match_parent"
-                        android:layout_height="42dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="@dimen/spacing_tiny"
-                        android:background="@drawable/bg_row_ripple"
-                        android:clickable="true"
-                        android:focusable="true">
+		<LinearLayout
+			android:id="@+id/mainContainer"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:padding="@dimen/island_padding"
+			android:focusable="true"
+			android:focusableInTouchMode="true">
 
-                        <TextView
-                            android:id="@+id/labelCapturedUrls"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/label_captured_urls"
-                            android:textColor="?attr/happAccent"
-                            android:textStyle="bold"
-                            android:textAllCaps="true" />
+			<com.google.android.material.card.MaterialCardView
+				android:id="@+id/islandIntercept"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="@dimen/island_margin_bottom"
+				android:visibility="gone"
+				app:cardCornerRadius="@dimen/ui_corner_radius"
+				app:cardElevation="0dp"
+				app:strokeWidth="1dp"
+				app:strokeColor="?attr/happCardStroke"
+				app:cardBackgroundColor="?attr/happCardBg">
 
-                        <ImageButton
-                            android:id="@+id/btnClearHistory"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:background="@drawable/bg_icon_ripple"
-                            android:src="@drawable/ic_delete"
-                            android:translationX="4dp"
-                            app:tint="@color/text_secondary" />
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="vertical"
+					android:paddingHorizontal="@dimen/island_padding"
+					android:paddingTop="8dp"
+					android:paddingBottom="8dp">
 
-                        <ImageView
-                            android:id="@+id/btnExpandHistory"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:padding="@dimen/spacing_small"
-                            android:src="@drawable/ic_expand_more"
-                            android:translationX="4dp"
-                            app:tint="@color/text_secondary" />
-                    </LinearLayout>
+					<LinearLayout
+						android:id="@+id/historyHeader"
+						android:layout_width="match_parent"
+						android:layout_height="42dp"
+						android:orientation="horizontal"
+						android:gravity="center_vertical"
+						android:paddingHorizontal="@dimen/spacing_tiny"
+						android:background="@drawable/bg_row_ripple"
+						android:clickable="true"
+						android:focusable="true">
 
-                    <LinearLayout
-                        android:id="@+id/historyContent"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingTop="@dimen/spacing_small"
-                        android:visibility="gone">
+						<TextView
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_weight="1"
+							android:text="@string/label_captured_urls"
+							android:textColor="?attr/happAccent"
+							android:textStyle="bold"
+							android:textAllCaps="true" />
 
-                        <TextView
-                            android:id="@+id/emptyHistoryText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/label_history_empty"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="@dimen/text_size_secondary" />
+						<ImageButton
+							android:id="@+id/btnClearHistory"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:background="@drawable/bg_icon_ripple"
+							android:src="@drawable/ic_delete"
+							android:contentDescription="@string/cd_clear_history"
+							android:translationX="4dp"
+							android:visibility="gone"
+							app:tint="@color/text_secondary" />
 
-                        <LinearLayout
-                            android:id="@+id/capturedUrlsContainer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+						<ImageView
+							android:id="@+id/btnExpandHistory"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:padding="@dimen/spacing_small"
+							android:src="@drawable/ic_expand_more"
+							android:importantForAccessibility="no"
+							android:translationX="4dp"
+							app:tint="@color/text_secondary" />
+					</LinearLayout>
 
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="@dimen/ui_corner_radius"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="?attr/happCardStroke"
-                app:cardBackgroundColor="?attr/happCardBg">
+					<LinearLayout
+						android:id="@+id/historyContent"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:orientation="vertical"
+						android:paddingTop="@dimen/spacing_small"
+						android:visibility="gone">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="@dimen/island_padding"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="8dp">
+						<TextView
+							android:id="@+id/emptyHistoryText"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:text="@string/label_history_empty"
+							android:textColor="@color/text_secondary"
+							android:textSize="@dimen/text_size_secondary" />
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/urlInputGroup"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/island_margin_bottom">
+						<LinearLayout
+							android:id="@+id/capturedUrlsContainer"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:orientation="vertical" />
+					</LinearLayout>
+				</LinearLayout>
+			</com.google.android.material.card.MaterialCardView>
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layoutUrl"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/urlButtonsContainer"
-                            app:layout_constraintTop_toTopOf="parent"
-                            android:hint="@string/hint_url"
-                            app:errorEnabled="false">
+			<com.google.android.material.card.MaterialCardView
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				app:cardCornerRadius="@dimen/ui_corner_radius"
+				app:cardElevation="0dp"
+				app:strokeWidth="1dp"
+				app:strokeColor="?attr/happCardStroke"
+				app:cardBackgroundColor="?attr/happCardBg">
 
-                            <com.happwner.ui.LockableScrollEditText
-                                android:id="@+id/inputUrl"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="textMultiLine"
-                                android:minLines="1"
-                                android:maxLines="8"
-                                android:imeOptions="actionDone"
-                                android:textColor="@color/text_input_color_selector"
-                                android:gravity="top|start"
-                                android:paddingEnd="0dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="vertical"
+					android:paddingHorizontal="@dimen/island_padding"
+					android:paddingTop="12dp"
+					android:paddingBottom="8dp">
 
-                        <LinearLayout
-                            android:id="@+id/urlButtonsContainer"
-                            android:layout_width="wrap_content"
-                            android:layout_height="0dp"
-                            android:orientation="horizontal"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="@+id/layoutUrl"
-                            app:layout_constraintBottom_toBottomOf="@+id/layoutUrl"
-                            android:gravity="center_vertical">
+					<androidx.constraintlayout.widget.ConstraintLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginBottom="@dimen/island_margin_bottom">
 
-                            <ImageButton
-                                android:id="@+id/btnPasteUrlManual"
-                                android:layout_width="@dimen/btn_icon_size"
-                                android:layout_height="@dimen/btn_icon_size"
-                                android:layout_marginStart="@dimen/spacing_small"
-                                android:background="@drawable/bg_icon_ripple"
-                                android:src="@drawable/ic_paste"
-                                app:tint="@color/text_secondary" />
+						<com.google.android.material.textfield.TextInputLayout
+							android:id="@+id/layoutUrl"
+							style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							app:layout_constraintStart_toStartOf="parent"
+							app:layout_constraintEnd_toStartOf="@+id/urlButtonsContainer"
+							app:layout_constraintTop_toTopOf="parent"
+							android:hint="@string/hint_url"
+							app:errorEnabled="false">
 
-                            <ImageButton
-                                android:id="@+id/infoUrl"
-                                android:layout_width="@dimen/btn_icon_size"
-                                android:layout_height="@dimen/btn_icon_size"
-                                android:background="@drawable/bg_icon_ripple"
-                                android:src="@drawable/ic_info"
-                                app:tint="@color/text_secondary" />
-                        </LinearLayout>
+							<com.happwner.ui.LockableScrollEditText
+								android:id="@+id/inputUrl"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:inputType="textMultiLine"
+								android:saveEnabled="false"
+								android:minLines="1"
+								android:maxLines="8"
+								android:imeOptions="actionDone"
+								android:textColor="@color/text_input_color_selector"
+								android:gravity="top|start"
+								android:paddingEnd="0dp" />
+						</com.google.android.material.textfield.TextInputLayout>
 
-                        <TextView
-                            android:id="@+id/urlErrorText"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/error_red"
-                            android:textSize="@dimen/text_size_tiny"
-                            android:paddingStart="@dimen/spacing_medium"
-                            android:paddingTop="@dimen/spacing_tiny"
-                            android:visibility="gone"
-                            app:layout_constraintTop_toBottomOf="@id/layoutUrl"
-                            app:layout_constraintStart_toStartOf="@id/layoutUrl"
-                            app:layout_constraintEnd_toEndOf="@id/layoutUrl" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+						<LinearLayout
+							android:id="@+id/urlButtonsContainer"
+							android:layout_width="wrap_content"
+							android:layout_height="0dp"
+							android:orientation="horizontal"
+							app:layout_constraintEnd_toEndOf="parent"
+							app:layout_constraintTop_toTopOf="@+id/layoutUrl"
+							app:layout_constraintBottom_toBottomOf="@+id/layoutUrl"
+							android:gravity="center_vertical">
 
-                    <LinearLayout
-                        android:id="@+id/rowHwid"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="@dimen/island_margin_bottom">
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layoutHwid"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:hint="@string/hint_hwid"
-                            app:errorEnabled="false"
-                            app:helperTextEnabled="false">
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/inputHwid"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/text_input_color_selector"
-                                android:imeOptions="actionDone"
-                                android:inputType="text"
-                                android:maxLength="50" />
-                        </com.google.android.material.textfield.TextInputLayout>
-                        <ImageButton
-                            android:id="@+id/btnEditHwidManual"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:layout_marginStart="@dimen/spacing_small"
-                            android:background="@drawable/bg_icon_ripple"
-                            android:src="@drawable/ic_edit"
-                            app:tint="@color/text_secondary" />
-                        <ImageButton
-                            android:id="@+id/infoHwid"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:background="@drawable/bg_icon_ripple"
-                            android:src="@drawable/ic_info"
-                            app:tint="@color/text_secondary" />
-                    </LinearLayout>
+							<ImageButton
+								android:id="@+id/btnPasteUrlManual"
+								android:layout_width="@dimen/btn_icon_size"
+								android:layout_height="@dimen/btn_icon_size"
+								android:layout_marginStart="@dimen/spacing_small"
+								android:background="@drawable/bg_icon_ripple"
+								android:src="@drawable/ic_paste"
+								android:contentDescription="@string/cd_paste_link"
+								app:tint="@color/text_secondary" />
 
-                    <TextView
-                        android:id="@+id/hwidHint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="@dimen/text_size_tiny"
-                        android:textColor="@color/text_secondary"
-                        android:paddingStart="@dimen/spacing_medium"
-                        android:paddingEnd="@dimen/spacing_medium"
-                        android:layout_marginBottom="@dimen/island_margin_bottom"
-                        android:visibility="gone" />
+							<ImageButton
+								android:id="@+id/infoUrl"
+								android:layout_width="@dimen/btn_icon_size"
+								android:layout_height="@dimen/btn_icon_size"
+								android:background="@drawable/bg_icon_ripple"
+								android:src="@drawable/ic_info"
+								android:contentDescription="@string/cd_info_url"
+								app:tint="@color/text_secondary" />
+						</LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="@dimen/spacing_normal">
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layoutUserAgent"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:hint="@string/hint_ua"
-                            app:errorEnabled="false"
-                            app:helperTextEnabled="false">
-                            <com.happwner.ui.LockableScrollEditText
-                                android:id="@+id/inputUserAgent"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="textMultiLine"
-                                android:textColor="@color/text_input_color_selector"
-                                android:maxLines="2" />
-                        </com.google.android.material.textfield.TextInputLayout>
-                        <ImageButton
-                            android:id="@+id/btnEditUaManual"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:layout_marginStart="@dimen/spacing_small"
-                            android:background="@drawable/bg_icon_ripple"
-                            android:src="@drawable/ic_list_alt"
-                            app:tint="@color/text_secondary" />
-                        <ImageButton
-                            android:id="@+id/infoUserAgent"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:background="@drawable/bg_icon_ripple"
-                            android:src="@drawable/ic_info"
-                            app:tint="@color/text_secondary" />
-                    </LinearLayout>
+						<TextView
+							android:id="@+id/urlErrorText"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:textColor="@color/error_red"
+							android:textSize="@dimen/text_size_tiny"
+							android:paddingStart="@dimen/spacing_medium"
+							android:paddingTop="@dimen/spacing_tiny"
+							android:visibility="gone"
+							app:layout_constraintTop_toBottomOf="@id/layoutUrl"
+							app:layout_constraintStart_toStartOf="@id/layoutUrl"
+							app:layout_constraintEnd_toEndOf="@id/layoutUrl" />
+					</androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="@dimen/spacing_normal">
+					<LinearLayout
+						android:id="@+id/rowHwid"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:orientation="horizontal"
+						android:gravity="center_vertical"
+						android:layout_marginBottom="@dimen/island_margin_bottom">
+						<com.google.android.material.textfield.TextInputLayout
+							android:id="@+id/layoutHwid"
+							style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_weight="1"
+							android:hint="@string/hint_hwid"
+							app:errorEnabled="false"
+							app:helperTextEnabled="false">
+							<com.google.android.material.textfield.TextInputEditText
+								android:id="@+id/inputHwid"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:textColor="@color/text_input_color_selector"
+								android:imeOptions="actionDone"
+								android:inputType="text"
+								android:maxLength="50" />
+						</com.google.android.material.textfield.TextInputLayout>
+						<ImageButton
+							android:id="@+id/btnEditHwidManual"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:layout_marginStart="@dimen/spacing_small"
+							android:background="@drawable/bg_icon_ripple"
+							android:src="@drawable/ic_edit"
+							android:contentDescription="@string/cd_edit_hwid"
+							app:tint="@color/text_secondary" />
+						<ImageButton
+							android:id="@+id/infoHwid"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:background="@drawable/bg_icon_ripple"
+							android:src="@drawable/ic_info"
+							android:contentDescription="@string/cd_info_hwid"
+							app:tint="@color/text_secondary" />
+					</LinearLayout>
 
-                        <Button
-                            android:id="@+id/btnGet"
-                            style="@style/Widget.MaterialComponents.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:minHeight="48dp"
-                            android:text="@string/btn_get_proxy"
-                            android:textColor="@color/btn_get_text"
-                            app:cornerRadius="@dimen/spacing_tiny"
-                            android:layout_marginEnd="@dimen/spacing_small" />
+					<TextView
+						android:id="@+id/hwidHint"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:textSize="@dimen/text_size_tiny"
+						android:textColor="@color/text_secondary"
+						android:paddingStart="@dimen/spacing_medium"
+						android:paddingEnd="@dimen/spacing_medium"
+						android:layout_marginBottom="@dimen/island_margin_bottom"
+						android:visibility="gone" />
 
-                        <Button
-                            android:id="@+id/btnGetSub"
-                            style="@style/Widget.MaterialComponents.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:minHeight="48dp"
-                            android:text="@string/btn_get_sub"
-                            android:textColor="@color/btn_get_text"
-                            app:cornerRadius="@dimen/spacing_tiny" />
-                    </LinearLayout>
+					<LinearLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:orientation="horizontal"
+						android:gravity="center_vertical"
+						android:layout_marginBottom="@dimen/spacing_normal">
+						<com.google.android.material.textfield.TextInputLayout
+							android:id="@+id/layoutUserAgent"
+							style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_weight="1"
+							android:hint="@string/hint_ua"
+							app:errorEnabled="false"
+							app:helperTextEnabled="false">
+							<com.happwner.ui.LockableScrollEditText
+								android:id="@+id/inputUserAgent"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:inputType="textMultiLine"
+								android:saveEnabled="false"
+								android:textColor="@color/text_input_color_selector"
+								android:maxLines="2" />
+						</com.google.android.material.textfield.TextInputLayout>
+						<ImageButton
+							android:id="@+id/btnEditUaManual"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:layout_marginStart="@dimen/spacing_small"
+							android:background="@drawable/bg_icon_ripple"
+							android:src="@drawable/ic_list_alt"
+							android:contentDescription="@string/ua_select_title"
+							app:tint="@color/text_secondary" />
+						<ImageButton
+							android:id="@+id/infoUserAgent"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:background="@drawable/bg_icon_ripple"
+							android:src="@drawable/ic_info"
+							android:contentDescription="@string/cd_info_ua"
+							app:tint="@color/text_secondary" />
+					</LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="?attr/happCardStroke"
-                        android:layout_marginTop="0dp"
-                        android:layout_marginBottom="8dp" />
+					<LinearLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:orientation="horizontal"
+						android:layout_marginBottom="@dimen/spacing_normal">
 
-                    <LinearLayout
-                        android:id="@+id/outputHeader"
-                        android:layout_width="match_parent"
-                        android:layout_height="42dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="@dimen/spacing_tiny"
-                        android:background="@drawable/bg_row_ripple"
-                        android:clickable="true"
-                        android:focusable="true">
+						<Button
+							android:id="@+id/btnGet"
+							style="@style/Widget.MaterialComponents.Button"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_weight="1"
+							android:minHeight="48dp"
+							android:text="@string/btn_get_proxy"
+							android:textColor="@color/btn_get_text"
+							app:cornerRadius="@dimen/spacing_tiny"
+							android:layout_marginEnd="@dimen/spacing_small" />
 
-                        <TextView
-                            android:id="@+id/labelResultHeader"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/label_result"
-                            android:textColor="?attr/happAccent"
-                            android:textStyle="bold"
-                            android:textAllCaps="true" />
+						<Button
+							android:id="@+id/btnGetSubscription"
+							style="@style/Widget.MaterialComponents.Button"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_weight="1"
+							android:minHeight="48dp"
+							android:text="@string/btn_get_subscription"
+							android:textColor="@color/btn_get_text"
+							app:cornerRadius="@dimen/spacing_tiny" />
+					</LinearLayout>
 
-                        <ImageButton
-                            android:id="@+id/btnClearOutput"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:background="@drawable/bg_icon_ripple"
-                            android:src="@drawable/ic_delete"
-                            android:translationX="4dp"
-                            app:tint="@color/text_secondary" />
-                        <ImageButton
-                            android:id="@+id/btnCopyOutput"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:background="@drawable/bg_icon_ripple"
-                            android:src="@drawable/ic_copy"
-                            android:translationX="4dp"
-                            app:tint="@color/text_secondary" />
+					<View
+						android:layout_width="match_parent"
+						android:layout_height="1dp"
+						android:background="?attr/happCardStroke"
+						android:layout_marginTop="0dp"
+						android:layout_marginBottom="8dp" />
 
-                        <ImageView
-                            android:id="@+id/btnExpandOutput"
-                            android:layout_width="@dimen/btn_icon_size"
-                            android:layout_height="@dimen/btn_icon_size"
-                            android:padding="@dimen/spacing_small"
-                            android:src="@drawable/ic_expand_more"
-                            android:translationX="4dp"
-                            app:tint="@color/text_secondary" />
-                    </LinearLayout>
+					<LinearLayout
+						android:id="@+id/outputHeader"
+						android:layout_width="match_parent"
+						android:layout_height="42dp"
+						android:orientation="horizontal"
+						android:gravity="center_vertical"
+						android:paddingHorizontal="@dimen/spacing_tiny"
+						android:background="@drawable/bg_row_ripple"
+						android:clickable="true"
+						android:focusable="true">
 
-                    <TextView
-                        android:id="@+id/output"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:breakStrategy="simple"
-                        android:hyphenationFrequency="none"
-                        android:paddingTop="@dimen/spacing_small"
-                        android:text="@string/label_result_default"
-                        android:textColor="@color/text_secondary"
-                        android:textIsSelectable="false"
-                        android:visibility="gone"
-                        tools:ignore="UnusedAttribute" />
+						<TextView
+							android:id="@+id/labelResultHeader"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_weight="1"
+							android:text="@string/label_result"
+							android:textColor="?attr/happAccent"
+							android:textStyle="bold"
+							android:textAllCaps="true" />
 
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+						<ImageButton
+							android:id="@+id/btnClearOutput"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:background="@drawable/bg_icon_ripple"
+							android:src="@drawable/ic_delete"
+							android:contentDescription="@string/cd_clear_result"
+							android:translationX="4dp"
+							android:visibility="gone"
+							app:tint="@color/text_secondary" />
+						<ImageButton
+							android:id="@+id/btnSaveOutput"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:background="@drawable/bg_icon_ripple"
+							android:src="@drawable/ic_save"
+							android:contentDescription="@string/cd_save_result"
+							android:translationX="4dp"
+							android:visibility="gone"
+							app:tint="@color/text_secondary" />
+						<ImageButton
+							android:id="@+id/btnCopyOutput"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:background="@drawable/bg_icon_ripple"
+							android:src="@drawable/ic_copy"
+							android:contentDescription="@string/cd_copy_result"
+							android:translationX="4dp"
+							android:visibility="gone"
+							app:tint="@color/text_secondary" />
 
-        </LinearLayout>
-    </com.happwner.ui.NoAutoScrollView>
+						<ImageView
+							android:id="@+id/btnExpandOutput"
+							android:layout_width="@dimen/btn_icon_size"
+							android:layout_height="@dimen/btn_icon_size"
+							android:padding="@dimen/spacing_small"
+							android:src="@drawable/ic_expand_more"
+							android:importantForAccessibility="no"
+							android:translationX="4dp"
+							app:tint="@color/text_secondary" />
+					</LinearLayout>
 
-        <TextView
-            android:id="@+id/outputWaitLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/msg_please_wait"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            android:alpha="0"
-            android:visibility="gone" />
+					<TextView
+						android:id="@+id/output"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:breakStrategy="simple"
+						android:hyphenationFrequency="none"
+						android:paddingTop="@dimen/spacing_small"
+						android:text="@string/label_result_default"
+						android:textColor="@color/text_secondary"
+						android:textIsSelectable="false"
+						android:visibility="gone"
+						tools:ignore="UnusedAttribute" />
 
-        <com.happwner.ui.FastScrollThumb
-            android:id="@+id/fastScrollThumb"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+				</LinearLayout>
+			</com.google.android.material.card.MaterialCardView>
 
-    </FrameLayout>
+		</LinearLayout>
+	</com.happwner.ui.NoAutoScrollView>
+
+		<TextView
+			android:id="@+id/outputWaitLabel"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:text="@string/msg_please_wait"
+			android:textColor="@color/text_primary"
+			android:textSize="16sp"
+			android:alpha="0"
+			android:visibility="gone" />
+
+		<com.happwner.ui.FastScrollThumb
+			android:id="@+id/fastScrollThumb"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent" />
+
+	</FrameLayout>
 
 </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/settingsFragmentContainer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="?attr/happScreenBg"
-        android:clickable="true"
-        android:focusable="true"
-        android:visibility="gone" />
+	<FrameLayout
+		android:id="@+id/settingsFragmentContainer"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:background="?attr/happScreenBg"
+		android:clickable="true"
+		android:focusable="true"
+		android:visibility="gone" />
 
 </FrameLayout>

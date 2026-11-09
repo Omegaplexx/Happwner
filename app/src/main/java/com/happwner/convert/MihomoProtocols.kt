@@ -1,607 +1,540 @@
 package com.happwner.convert
 
-import org.json.JSONArray
+import com.happwner.text.splitHostPort
 import org.json.JSONObject
 
 // The per-protocol converters.
 
-// Builds a flow sequence from strings, dropping the blank ones.
-internal fun toFlowSeq(items: List<String>): YamlFlowSeq {
-    val out = YamlFlowSeq()
-    for (s in items) {
-        val v = s.trim()
-        if (v.isNotEmpty()) out.add(v)
-    }
-    return out
-}
-
-// ---------------------------------------------------------------- VLESS ----
-
 private class VlessEndpoint(
-    val address: String,
-    val port: Int,
-    val id: String,
-    var flow: String,
-    var encryption: String
+	val address: String,
+	val port: Int,
+	val id: String,
+	var flow: String,
+	var encryption: String
 )
 
-private fun vlessEndpoints(s: JSONObject): List<VlessEndpoint> {
-    val out = ArrayList<VlessEndpoint>()
-    for (v in s.xObjList("vnext")) {
-        val users = v.xObjList("users")
-        if (users.isEmpty()) {
-            out.add(VlessEndpoint(v.xStr("address"), v.xInt("port"), "", "", ""))
-            continue
-        }
-        for (u in users) {
-            out.add(
-                VlessEndpoint(
-                    address = v.xStr("address"),
-                    port = v.xInt("port"),
-                    id = u.xStr("id"),
-                    flow = u.xStr("flow"),
-                    encryption = u.xStr("encryption")
-                )
-            )
-        }
-    }
-    if (out.isEmpty() && (s.xStr("address").isNotEmpty() || s.xStr("id").isNotEmpty())) {
-        out.add(
-            VlessEndpoint(
-                address = s.xStr("address"),
-                port = s.xInt("port"),
-                id = s.xStr("id"),
-                flow = s.xStr("flow"),
-                encryption = s.xStr("encryption")
-            )
-        )
-    }
-    // The flat "encryption"/"flow" keys act as defaults for users that do not
-    // carry their own.
-    for (ep in out) {
-        if (ep.encryption.isEmpty()) ep.encryption = s.xStr("encryption")
-        if (ep.flow.isEmpty()) ep.flow = s.xStr("flow")
-    }
-    return out
+private fun vlessEndpoints(settings: JSONObject): List<VlessEndpoint> {
+	val out = ArrayList<VlessEndpoint>()
+	for (next in settings.xObjList("vnext")) {
+		val users = next.xObjList("users")
+		if (users.isEmpty()) {
+			out.add(VlessEndpoint(next.xStr("address"), next.xInt("port"), "", "", ""))
+			continue
+		}
+		for (user in users) {
+			out.add(
+				VlessEndpoint(
+					address = next.xStr("address"),
+					port = next.xInt("port"),
+					id = user.xStr("id"),
+					flow = user.xStr("flow"),
+					encryption = user.xStr("encryption")
+				)
+			)
+		}
+	}
+	if (out.isEmpty() && (settings.xStr("address").isNotEmpty() || settings.xStr("id").isNotEmpty())) {
+		out.add(
+			VlessEndpoint(
+				address = settings.xStr("address"),
+				port = settings.xInt("port"),
+				id = settings.xStr("id"),
+				flow = settings.xStr("flow"),
+				encryption = settings.xStr("encryption")
+			)
+		)
+	}
+	// The flat "encryption"/"flow" keys act as defaults for users that do not
+	// carry their own.
+	for (endpoint in out) {
+		if (endpoint.encryption.isEmpty()) endpoint.encryption = settings.xStr("encryption")
+		if (endpoint.flow.isEmpty()) endpoint.flow = settings.xStr("flow")
+	}
+	return out
 }
 
-internal fun MihomoConv.convertVless(ob: JSONObject, preferred: String): List<YamlMap> {
-    val settings = outboundSettings(ob)
-    val endpoints = vlessEndpoints(settings)
-    if (endpoints.isEmpty()) throw MihomoUnsupported("the vless outbound has no server")
-    if (settings.xStr("seed").isNotEmpty()) {
-        warn("vless \"seed\" has no mihomo equivalent and was dropped")
-    }
+internal fun MihomoConversion.convertVless(outbound: JSONObject, preferred: String): List<YamlMap> {
+	val settings = outboundSettings(outbound)
+	val endpoints = vlessEndpoints(settings)
+	if (endpoints.isEmpty()) throw MihomoUnsupported("the vless outbound has no server")
+	if (settings.xStr("seed").isNotEmpty()) {
+		warn(UNUSED_VLESS_SEED)
+	}
 
-    val ss = ob.xObj("streamSettings")
-    val out = ArrayList<YamlMap>(endpoints.size)
-    for (ep in endpoints) {
-        val name = name(preferred, ob.xStr("tag"), "vless", ep.address, ep.port)
-        val m = base(name, "vless", ep.address, ep.port)
-        if (ep.id.isEmpty()) throw MihomoUnsupported("the vless outbound has no user id")
-        m.set("uuid", ep.id)
+	val streamSettings = outbound.xObj("streamSettings")
+	val out = ArrayList<YamlMap>(endpoints.size)
+	for (endpoint in endpoints) {
+		val name = name(preferred, outbound.xStr("tag"), "vless", endpoint.address, endpoint.port)
+		val proxy = base(name, "vless", endpoint.address, endpoint.port)
+		if (endpoint.id.isEmpty()) throw MihomoUnsupported(missingCredentialRefusal("vless", "uuid"))
+		proxy.set("uuid", endpoint.id)
 
-        val flow = normaliseFlow(ep.flow)
-        if (flow.isNotEmpty()) {
-            if (flow != "xtls-rprx-vision") {
-                throw MihomoUnsupported(
-                    "mihomo only supports the xtls-rprx-vision flow, not \"${ep.flow}\""
-                )
-            }
-            m.set("flow", flow)
-        }
+		// The encryption first, as the other passes read it: whether a flow can run depends on it.
+		vlessEncryptionRefusal(endpoint.encryption)?.let { throw MihomoUnsupported(it) }
+		val enc = endpoint.encryption.trim()
+		if (enc.isNotEmpty() && enc != "none") proxy.set("encryption", enc)
 
-        val enc = vlessEncryption(ep.encryption)
-        if (enc.isNotEmpty()) m.set("encryption", enc)
+		val flow = normalizeFlow(endpoint.flow)
+		if (flow.isNotEmpty()) {
+			vlessFlowRefusal(endpoint.flow, endpoint.encryption,
+				streamSettings)?.let { throw MihomoUnsupported(it) }
+			proxy.set("flow", flow)
+		}
 
-        udpFlag(m)
-        applyMux(m, ob, "vless")
-        applyTls(m, ss, TLS_V2RAY)
-        applyTransport(m, ss, "vless")
-        applyDialer(m, ob)
-        out.add(m)
-    }
-    return out
+		udpFlag(proxy)
+		applyMux(proxy, outbound, "vless")
+		applyTls(proxy, streamSettings, TLS_V2RAY)
+		applyTransport(proxy, streamSettings, "vless")
+		applyDialer(proxy, outbound)
+		out.add(proxy)
+	}
+	return out
 }
-
-// Trims the flow to the part mihomo understands. Xray's "-udp443" suffix only changes how UDP/443
-// is handled, and mihomo drops it.
-internal fun normaliseFlow(raw: String): String {
-    val flow = raw.trim()
-    if (flow.isEmpty() || flow == "none") return ""
-    return flow.removeSuffix("-udp443")
-}
-
-// Validates Xray's VLESS encryption string.
-internal fun vlessEncryption(raw: String): String {
-    val enc = raw.trim()
-    if (enc.isEmpty() || enc == "none") return ""
-
-    val parts = enc.split(".")
-    if (parts.size < 4 || parts[0] != "mlkem768x25519plus") {
-        throw MihomoUnsupported(
-            "unsupported vless encryption \"$enc\": mihomo only implements mlkem768x25519plus"
-        )
-    }
-    if (parts[1] !in setOf("native", "xorpub", "random")) {
-        throw MihomoUnsupported(
-            "invalid vless encryption \"$enc\": mode must be native, xorpub or random"
-        )
-    }
-    if (parts[2] !in setOf("1rtt", "0rtt")) {
-        // A "600s"-style value belongs in the server's decryption field; using
-        // it on a client makes mihomo (and Xray) reject the node.
-        throw MihomoUnsupported(
-            "invalid vless encryption \"$enc\": the client field takes 1rtt or 0rtt, " +
-                "not \"${parts[2]}\" (a value like \"600s\" belongs in the server's decryption field)"
-        )
-    }
-
-    // Remaining tokens are either padding descriptors or base64 keys. mihomo
-    // tells them apart by length, so the same rule is applied here.
-    var keys = 0
-    val padding = ArrayList<String>()
-    for (token in parts.subList(3, parts.size)) {
-        if (token.length < 20) {
-            padding.add(token)
-            continue
-        }
-        val decoded = decodeBase64RawUrl(token)
-            ?: throw MihomoUnsupported(
-                "invalid vless encryption \"$enc\": key \"${truncateToken(token)}\" is not raw-URL base64"
-            )
-        // 32 bytes is an X25519 public key, 1184 an ML-KEM-768 encapsulation key.
-        if (decoded.size != 32 && decoded.size != 1184) {
-            throw MihomoUnsupported(
-                "invalid vless encryption \"$enc\": key \"${truncateToken(token)}\" " +
-                    "decodes to ${decoded.size} bytes, expected 32 or 1184"
-            )
-        }
-        keys++
-    }
-    if (keys == 0) {
-        throw MihomoUnsupported("invalid vless encryption \"$enc\": no server key found")
-    }
-    validateVlessPadding(padding, enc)
-    return enc
-}
-
-// Checks the padding descriptors of a VLESS encryption string ("a-b-c", alternating length and gap,
-// the first with minimum values).
-private fun validateVlessPadding(tokens: List<String>, enc: String) {
-    if (tokens.isEmpty()) return
-    var maxLen = 0
-    for ((i, token) in tokens.withIndex()) {
-        val fields = token.split("-")
-        if (fields.size < 3 || fields[0].isEmpty() || fields[1].isEmpty() || fields[2].isEmpty()) {
-            throw MihomoUnsupported(
-                "invalid vless encryption \"$enc\": padding parameter \"$token\" must have the form a-b-c"
-            )
-        }
-        val values = IntArray(3)
-        for (j in 0 until 3) {
-            values[j] = fields[j].toIntOrNull()
-                ?: throw MihomoUnsupported(
-                    "invalid vless encryption \"$enc\": padding parameter \"$token\" is not numeric"
-                )
-        }
-        if (i == 0 && (values[0] < 100 || values[1] < 35 || values[2] < 35)) {
-            throw MihomoUnsupported(
-                "invalid vless encryption \"$enc\": the first padding parameter \"$token\" " +
-                    "must be at least 100-35-35"
-            )
-        }
-        if (i % 2 == 0) maxLen += maxOf(values[1], values[2])
-    }
-    if (maxLen > 18 + 65535) {
-        throw MihomoUnsupported(
-            "invalid vless encryption \"$enc\": the total padding length must not exceed 65553"
-        )
-    }
-}
-
-private fun truncateToken(s: String): String = if (s.length <= 16) s else s.substring(0, 16) + "..."
-
-// ---------------------------------------------------------------- VMess ----
 
 private class VmessEndpoint(
-    val address: String,
-    val port: Int,
-    val id: String,
-    val alterId: Int,
-    val security: String,
-    val experiments: String
+	val address: String,
+	val port: Int,
+	val id: String,
+	val alterIdNote: String?,
+	val security: String,
+	val securityNote: String?,
+	val experiments: String
 )
 
-private fun vmessEndpoints(s: JSONObject): List<VmessEndpoint> {
-    val out = ArrayList<VmessEndpoint>()
-    for (v in s.xObjList("vnext")) {
-        for (u in v.xObjList("users")) {
-            var alter = u.xInt("alterId")
-            if (alter == 0) alter = u.xInt("alterid")
-            out.add(
-                VmessEndpoint(
-                    address = v.xStr("address"),
-                    port = v.xInt("port"),
-                    id = u.xStr("id"),
-                    alterId = alter,
-                    security = u.xStr("security").lowercase(),
-                    experiments = u.xStr("experiments")
-                )
-            )
-        }
-    }
-    if (out.isEmpty() && (s.xStr("address").isNotEmpty() || s.xStr("id").isNotEmpty())) {
-        out.add(
-            VmessEndpoint(
-                address = s.xStr("address"),
-                port = s.xInt("port"),
-                id = s.xStr("id"),
-                alterId = s.xInt("alterId"),
-                security = s.xStr("security").lowercase(),
-                experiments = ""
-            )
-        )
-    }
-    return out
+private fun vmessEndpoints(settings: JSONObject): List<VmessEndpoint> {
+	val out = ArrayList<VmessEndpoint>()
+	for (next in settings.xObjList("vnext")) {
+		for (user in next.xObjList("users")) {
+			out.add(
+				VmessEndpoint(
+					address = next.xStr("address"),
+					port = next.xInt("port"),
+					id = user.xStr("id"),
+					alterIdNote = vmessAlterIdNote(user),
+					security = vmessSecurity(user),
+					securityNote = vmessSecurityNote(user),
+					experiments = user.xStr("experiments")
+				)
+			)
+		}
+	}
+	if (out.isEmpty() &&
+		(settings.xStrOf("address", "server").isNotEmpty() || settings.xStrOf("id", "uuid").isNotEmpty())
+	) {
+		out.add(
+			VmessEndpoint(
+				address = settings.xStrOf("address", "server"),
+				port = if (settings.xInt("port") > 0) settings.xInt("port") else settings.xInt("server_port"),
+				id = settings.xStrOf("id", "uuid"),
+				alterIdNote = vmessAlterIdNote(settings),
+				security = vmessSecurity(settings),
+				securityNote = vmessSecurityNote(settings),
+				experiments = settings.xStr("experiments")
+			)
+		)
+	}
+	return out
 }
 
-internal fun MihomoConv.convertVmess(ob: JSONObject, preferred: String): List<YamlMap> {
-    val settings = outboundSettings(ob)
-    val endpoints = vmessEndpoints(settings)
-    if (endpoints.isEmpty()) throw MihomoUnsupported("the vmess outbound has no server")
+internal fun MihomoConversion.convertVmess(outbound: JSONObject, preferred: String): List<YamlMap> {
+	val settings = outbound.xObj("settings") ?: outbound
+	val endpoints = vmessEndpoints(settings)
+	if (endpoints.isEmpty()) throw MihomoUnsupported("the vmess outbound has no server")
 
-    val ss = ob.xObj("streamSettings")
-    val out = ArrayList<YamlMap>(endpoints.size)
-    for (ep in endpoints) {
-        val name = name(preferred, ob.xStr("tag"), "vmess", ep.address, ep.port)
-        val m = base(name, "vmess", ep.address, ep.port)
-        if (ep.id.isEmpty()) throw MihomoUnsupported("the vmess outbound has no user id")
-        m.set("uuid", ep.id)
-        // mihomo requires alterId, including the modern value of 0.
-        m.set("alterId", ep.alterId)
-        m.set("cipher", vmessCipher(ep.security))
+	val streamSettings = outbound.xObj("streamSettings")
+	val out = ArrayList<YamlMap>(endpoints.size)
+	for (endpoint in endpoints) {
+		val name = name(preferred, outbound.xStr("tag"), "vmess", endpoint.address, endpoint.port)
+		val proxy = base(name, "vmess", endpoint.address, endpoint.port)
+		if (endpoint.id.isEmpty()) throw MihomoUnsupported(missingCredentialRefusal("vmess", "uuid"))
+		proxy.set("uuid", endpoint.id)
+		// mihomo requires alterId, including the modern value of 0.
+		proxy.set("alterId", 0)
+		endpoint.alterIdNote?.let { warn(it) }
+		proxy.set("cipher", endpoint.security)
+		endpoint.securityNote?.let { warn(it) }
 
-        if (ep.experiments.isNotEmpty()) {
-            // The experiment flags have dedicated mihomo options.
-            if (ep.experiments.contains("AuthenticatedLength")) {
-                m.set("authenticated-length", true)
-            }
-            if (ep.experiments.contains("NoTerminationSignal")) {
-                warn("the vmess NoTerminationSignal experiment has no mihomo equivalent and was dropped")
-            }
-        }
+		if (endpoint.experiments.isNotEmpty()) {
+			// The experiment flags have dedicated mihomo options.
+			if (endpoint.experiments.contains("AuthenticatedLength")) {
+				proxy.set("authenticated-length", true)
+			}
+			if (endpoint.experiments.contains("NoTerminationSignal")) {
+				warn("the vmess NoTerminationSignal experiment has no mihomo equivalent and was dropped")
+			}
+		}
 
-        udpFlag(m)
-        applyMux(m, ob, "vmess")
-        applyTls(m, ss, TLS_V2RAY)
-        applyTransport(m, ss, "vmess")
-        applyDialer(m, ob)
-        out.add(m)
-    }
-    return out
+		udpFlag(proxy)
+		applyMux(proxy, outbound, "vmess")
+		applyTls(proxy, streamSettings, TLS_V2RAY)
+		applyTransport(proxy, streamSettings, "vmess")
+		applyDialer(proxy, outbound)
+		out.add(proxy)
+	}
+	return out
 }
 
-// Maps Xray's user security to a cipher mihomo accepts.
-internal fun vmessCipher(security: String): String = when (security.trim().lowercase()) {
-    "aes-128-gcm" -> "aes-128-gcm"
-    "chacha20-poly1305" -> "chacha20-poly1305"
-    "none" -> "none"
-    "zero" -> "zero"
-    else -> "auto"
+internal fun MihomoConversion.convertTrojan(outbound: JSONObject, preferred: String): List<YamlMap> {
+	val settings = outboundSettings(outbound)
+	val servers = xrayServers(settings, "address")
+	if (servers.isEmpty()) throw MihomoUnsupported("the trojan outbound has no server")
+
+	val streamSettings = outbound.xObj("streamSettings")
+	val out = ArrayList<YamlMap>(servers.size)
+	for (server in servers) {
+		val address = server.xStr("address")
+		val port = server.xInt("port")
+		val name = name(preferred, outbound.xStr("tag"), "trojan", address, port)
+		val proxy = base(name, "trojan", address, port)
+		val password = server.xStrRaw("password")
+		if (password.isEmpty()) throw MihomoUnsupported(missingCredentialRefusal("trojan", "password"))
+		proxy.set("password", password)
+
+		val flow = server.xStr("flow")
+		if (normalizeFlow(flow).isNotEmpty()) {
+			warn("trojan flow \"$flow\" has no mihomo equivalent and was dropped")
+		}
+
+		udpFlag(proxy)
+		applyMux(proxy, outbound, "trojan")
+		applyTls(proxy, streamSettings, TLS_TROJAN)
+		applyTransport(proxy, streamSettings, "trojan")
+		applyDialer(proxy, outbound)
+		out.add(proxy)
+	}
+	return out
 }
 
-// --------------------------------------------------------------- Trojan ----
-
-internal fun MihomoConv.convertTrojan(ob: JSONObject, preferred: String): List<YamlMap> {
-    val settings = outboundSettings(ob)
-    var servers = settings.xObjList("servers")
-    if (servers.isEmpty() &&
-        (settings.xStr("address").isNotEmpty() || settings.xStr("password").isNotEmpty())
-    ) {
-        servers = listOf(settings)
-    }
-    if (servers.isEmpty()) throw MihomoUnsupported("the trojan outbound has no server")
-
-    val ss = ob.xObj("streamSettings")
-    val out = ArrayList<YamlMap>(servers.size)
-    for (sv in servers) {
-        val address = sv.xStr("address")
-        val port = sv.xInt("port")
-        val name = name(preferred, ob.xStr("tag"), "trojan", address, port)
-        val m = base(name, "trojan", address, port)
-        val password = sv.xStrRaw("password")
-        if (password.isEmpty()) throw MihomoUnsupported("the trojan outbound has no password")
-        m.set("password", password)
-
-        val flow = sv.xStr("flow")
-        if (normaliseFlow(flow).isNotEmpty()) {
-            // mihomo's trojan has no flow field at all.
-            warn("trojan flow \"$flow\" has no mihomo equivalent and was dropped")
-        }
-
-        udpFlag(m)
-        applyMux(m, ob, "trojan")
-        applyTls(m, ss, TLS_TROJAN)
-        applyTransport(m, ss, "trojan")
-        applyDialer(m, ob)
-        out.add(m)
-    }
-    return out
+// A server's SIP003 plugin in mihomo's form, with what the plugin itself takes where mihomo would
+// put its own (a "bing.com" host, a mode it insists on): obfs-local is mihomo's obfs, and
+// v2ray-plugin runs over websocket alone there.
+private fun MihomoConversion.setMihomoPlugin(proxy: YamlMap, plugin: TransportPlugin) {
+	val options = YamlMap()
+	if (plugin.name == "obfs-local") {
+		proxy.set("plugin", "obfs")
+		options.set("mode", plugin.options["obfs"] ?: "http")
+		options.set("host", plugin.options["obfs-host"])
+	} else {
+		if ((plugin.options["mode"] ?: "websocket") != "websocket") {
+			throw MihomoUnsupported(
+				"the server's v2ray-plugin runs over quic, and mihomo runs it over websocket alone"
+			)
+		}
+		proxy.set("plugin", "v2ray-plugin")
+		options.set("mode", "websocket")
+		options.set("host", plugin.options["host"])
+		options.set("path", plugin.options["path"] ?: "/")
+		if ("tls" in plugin.options) options.set("tls", true)
+		options.set("mux", plugin.muxOn())
+		if ("certRaw" in plugin.options) {
+			warn("the server's plugin certRaw has no place in mihomo's v2ray-plugin, so it was dropped")
+		}
+	}
+	proxy.set("plugin-opts", options)
 }
 
-// ---------------------------------------------------------- Shadowsocks ----
+internal fun MihomoConversion.convertShadowsocks(outbound: JSONObject, preferred: String): List<YamlMap> {
+	// A node copied out of a sing-box configuration keeps its server on the outbound itself rather
+	// than in a settings block. It is the same server either way, and refusing to read it would
+	// leave a working node behind.
+	val servers = shadowsocksServers(outbound)
+	if (servers.isEmpty()) throw MihomoUnsupported(unusableServerRefusal("shadowsocks", "", 0))
 
-internal fun MihomoConv.convertShadowsocks(ob: JSONObject, preferred: String): List<YamlMap> {
-    val settings = outboundSettings(ob)
-    var servers = settings.xObjList("servers")
-    if (servers.isEmpty() &&
-        (settings.xStr("address").isNotEmpty() || settings.xStr("password").isNotEmpty())
-    ) {
-        servers = listOf(settings)
-    }
-    if (servers.isEmpty()) throw MihomoUnsupported("the shadowsocks outbound has no server")
+	val streamSettings = outbound.xObj("streamSettings")
+	val out = ArrayList<YamlMap>(servers.size)
+	for (server in servers) {
+		val address = server.xStrOf("address", "server")
+		val port = if (server.xInt("port") > 0) server.xInt("port") else server.xInt("server_port")
+		val name = name(preferred, outbound.xStr("tag"), "ss", address, port)
+		val proxy = base(name, "ss", address, port)
+		if (server.xStr("method").isEmpty()) throw MihomoUnsupported(MISSING_SS_METHOD_REFUSAL)
+		unknownSsMethodRefusal(canonicalSsMethod(server.xStr("method")))
+			?.let { throw MihomoUnsupported(it) }
+		// What Xray refuses before what mihomo lacks, in the order every pass checks it.
+		val password = server.xStrRaw("password")
+		if (password.isEmpty()) throw MihomoUnsupported(missingCredentialRefusal("shadowsocks", "password"))
+		ss2022KeyRefusal(server.xStr("method"), password)?.let { throw MihomoUnsupported(it) }
+		val cipher = ssCipher(server.xStr("method"))
+		if (cipher.isEmpty()) {
+			throw MihomoUnsupported("unsupported shadowsocks method \"${server.xStr("method")}\"")
+		}
+		proxy.set("cipher", cipher)
+		proxy.set("password", password)
+		udpFlag(proxy)
 
-    val ss = ob.xObj("streamSettings")
-    val out = ArrayList<YamlMap>(servers.size)
-    for (sv in servers) {
-        val address = sv.xStr("address")
-        val port = sv.xInt("port")
-        val name = name(preferred, ob.xStr("tag"), "ss", address, port)
-        val m = base(name, "ss", address, port)
-        val cipher = ssCipher(sv.xStr("method"))
-        if (cipher.isEmpty()) {
-            throw MihomoUnsupported("unsupported shadowsocks method \"${sv.xStr("method")}\"")
-        }
-        m.set("cipher", cipher)
-        m.set("password", sv.xStrRaw("password"))
-        udpFlag(m)
-        if (sv.xBool("uot")) {
-            m.set("udp-over-tcp", true)
-            m.setInt("udp-over-tcp-version", sv.xInt("UoTVersion"))
-        }
+		// A plugin the server names itself comes first, as in the sing-box pass, in mihomo's own form.
+		val serverPlugin = serverPluginOf(server)
+		serverPlugin.refusal?.let { throw MihomoUnsupported(it) }
+		serverPlugin.plugin?.let { plugin ->
+			setMihomoPlugin(proxy, plugin.withOwnDefaults())
+			serverPlugin.notes.forEach { warn(it) }
+		}
 
-        // Shadowsocks in Xray ignores streamSettings, but generated configs
-        // sometimes carry one anyway.
-        if (ss != null && streamNetwork(ss) != "tcp") {
-            warn("shadowsocks ignores streamSettings; the ${streamNetwork(ss)} transport was dropped")
-        }
-        applyDialer(m, ob)
-        out.add(m)
-    }
-    return out
+		// Xray wraps the outbound in its transport; the one shape a core can carry is WebSocket,
+		// as the v2ray-plugin in websocket mode. Anything else is a node that would connect to
+		// nothing, and is refused.
+		val form = transportFormOf("shadowsocks", streamSettings)
+		form.refusal?.let { throw MihomoUnsupported(it) }
+		val transportPlugin = form.pluginFor(address)
+		serverPlugin.plugin?.let { own -> transportPlugin?.let { warn(displacedTransportNote(own, it)) } }
+		if (transportPlugin != null && !proxy.has("plugin")) {
+			proxy.set("plugin", transportPlugin.name)
+			val pluginOptions = YamlMap()
+			pluginOptions.set("mode", "websocket")
+			transportPlugin.options["host"]?.let { pluginOptions.set("host", it) }
+			transportPlugin.options["path"]?.let { pluginOptions.set("path", it) }
+			if (transportPlugin.options.containsKey("tls")) {
+				pluginOptions.set("tls", true)
+				if (transportPlugin.insecure) pluginOptions.set("skip-cert-verify", true)
+			}
+			proxy.set("plugin-opts", pluginOptions)
+		}
+		applyDialer(proxy, outbound)
+		out.add(proxy)
+	}
+	return out
 }
 
 // The Shadowsocks methods mihomo implements, established by offering the core each name with a key of
 // the right length (2022-blake3-aes-128-gcm looks unsupported until given a 16-byte key).
 private val MIHOMO_SS_METHODS = setOf(
-    "none",
-    "aes-128-gcm", "aes-192-gcm", "aes-256-gcm",
-    "chacha20-ietf-poly1305", "xchacha20-ietf-poly1305",
-    "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305",
-    "aes-128-ctr", "aes-192-ctr", "aes-256-ctr",
-    "aes-128-cfb", "aes-192-cfb", "aes-256-cfb",
-    "aes-128-ccm", "aes-192-ccm", "aes-256-ccm",
-    "lea-128-gcm", "lea-192-gcm", "lea-256-gcm",
-    "rc4-md5", "chacha20", "chacha20-ietf"
+	"none",
+	"aes-128-gcm", "aes-192-gcm", "aes-256-gcm",
+	"chacha20-ietf-poly1305", "xchacha20-ietf-poly1305",
+	"2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305",
+	"aes-128-ctr", "aes-192-ctr", "aes-256-ctr",
+	"aes-128-cfb", "aes-192-cfb", "aes-256-cfb",
+	"aes-128-ccm", "aes-192-ccm", "aes-256-ccm",
+	"lea-128-gcm", "lea-192-gcm", "lea-256-gcm",
+	"rc4-md5", "chacha20", "chacha20-ietf"
 )
 
 // The method under mihomo's spelling, or empty when it has none. An unknown name reaching the core is
 // answered with "cipher: ... initialize error", which refuses the whole config file.
-internal fun ssCipher(method: String): String = when (val m = method.trim().lowercase()) {
-    "" -> ""
-    "plain", "none" -> "none"
-    "chacha20-poly1305", "chacha20-ietf-poly1305" -> "chacha20-ietf-poly1305"
-    "xchacha20-poly1305", "xchacha20-ietf-poly1305" -> "xchacha20-ietf-poly1305"
-    // AEAD, AEAD-2022 and the stream ciphers use the same names in both
-    // projects - but only the ones mihomo actually has.
-    else -> if (m in MIHOMO_SS_METHODS) m else ""
-}
-
-// ------------------------------------------------------- SOCKS and HTTP ----
+internal fun ssCipher(method: String): String =
+	when (val name = canonicalSsMethod(method.trim().lowercase())) {
+		"", "none", "chacha20-ietf-poly1305", "xchacha20-ietf-poly1305" -> name
+		// AEAD, AEAD-2022 and the stream ciphers use the same names in both
+		// projects - but only the ones mihomo actually has.
+		else -> if (name in MIHOMO_SS_METHODS) name else ""
+	}
 
 private class ProxyEndpoint(
-    val address: String,
-    val port: Int,
-    val user: String,
-    val pass: String,
-    val headers: Map<String, String>
+	val address: String,
+	val port: Int,
+	val user: String,
+	val pass: String,
+	val headers: Map<String, String>
 )
 
-private fun proxyEndpoints(s: JSONObject): List<ProxyEndpoint> {
-    val out = ArrayList<ProxyEndpoint>()
-    for (sv in s.xObjList("servers")) {
-        var user = ""
-        var pass = ""
-        val users = sv.xObjList("users")
-        if (users.isNotEmpty()) {
-            user = users[0].xStrOf("user", "username")
-            pass = users[0].xStrRawOf("pass", "password")
-        }
-        out.add(
-            ProxyEndpoint(
-                address = sv.xStr("address"),
-                port = sv.xInt("port"),
-                user = user,
-                pass = pass,
-                headers = sv.xHeaders("headers")
-            )
-        )
-    }
-    if (out.isEmpty() && s.xStr("address").isNotEmpty()) {
-        out.add(
-            ProxyEndpoint(
-                address = s.xStr("address"),
-                port = s.xInt("port"),
-                user = s.xStr("user"),
-                pass = s.xStrRaw("pass"),
-                headers = emptyMap()
-            )
-        )
-    }
-    return out
+private fun proxyEndpoints(settings: JSONObject): List<ProxyEndpoint> {
+	val out = ArrayList<ProxyEndpoint>()
+	for (server in settings.xObjList("servers")) {
+		var user = ""
+		var pass = ""
+		val users = server.xObjList("users")
+		if (users.isNotEmpty()) {
+			user = users[0].xStrOf("user", "username")
+			pass = users[0].xStrRawOf("pass", "password")
+		}
+		out.add(
+			ProxyEndpoint(
+				address = server.xStr("address"),
+				port = server.xInt("port"),
+				user = user,
+				pass = pass,
+				headers = settings.xHeaders("headers")
+			)
+		)
+	}
+	if (out.isEmpty() && settings.xStr("address").isNotEmpty()) {
+		out.add(
+			ProxyEndpoint(
+				address = settings.xStr("address"),
+				port = settings.xInt("port"),
+				user = settings.xStr("user"),
+				// Xray makes a user of these only when one is named; a lone password goes unused.
+				pass = if (settings.xStr("user").isEmpty()) "" else settings.xStrRaw("pass"),
+				headers = settings.xHeaders("headers")
+			)
+		)
+	}
+	return out
 }
 
-internal fun MihomoConv.convertSocks(ob: JSONObject, preferred: String): List<YamlMap> {
-    val settings = outboundSettings(ob)
-    val endpoints = proxyEndpoints(settings)
-    if (endpoints.isEmpty()) throw MihomoUnsupported("the socks outbound has no server")
+internal fun MihomoConversion.convertSocks(outbound: JSONObject, preferred: String): List<YamlMap> {
+	val settings = outboundSettings(outbound)
+	val endpoints = proxyEndpoints(settings)
+	if (endpoints.isEmpty()) throw MihomoUnsupported("the socks outbound has no server")
+	val streamSettings = outbound.xObj("streamSettings")
+	// The proxy type carries no transport: a node under one would connect to nothing.
+	transportFormOf("socks", streamSettings).refusal?.let { throw MihomoUnsupported(it) }
 
-    val ss = ob.xObj("streamSettings")
-    val out = ArrayList<YamlMap>(endpoints.size)
-    for (ep in endpoints) {
-        val name = name(preferred, ob.xStr("tag"), "socks5", ep.address, ep.port)
-        val m = base(name, "socks5", ep.address, ep.port)
-        m.setStr("username", ep.user)
-        m.setStr("password", ep.pass)
-        udpFlag(m)
-        if (ss != null && streamSecurity(ss) == "tls") {
-            m.set("tls", true)
-            val t = streamTls(ss)
-            if (t != null && (t.xBool("allowInsecure") || opts.skipCertVerify)) {
-                m.set("skip-cert-verify", true)
-            }
-        }
-        applyDialer(m, ob)
-        out.add(m)
-    }
-    return out
+	val out = ArrayList<YamlMap>(endpoints.size)
+	for (endpoint in endpoints) {
+		val name = name(preferred, outbound.xStr("tag"), "socks5", endpoint.address, endpoint.port)
+		val proxy = base(name, "socks5", endpoint.address, endpoint.port)
+		proxy.setString("username", endpoint.user)
+		proxy.setString("password", endpoint.pass)
+		udpFlag(proxy)
+		if (streamSettings != null && streamSecurity(streamSettings) == "tls") {
+			val saidFrom = diagnostics.size
+			val tls = streamTls(streamSettings)
+			// mihomo's socks5 has no server name for TLS and checks the certificate against the address it
+			// dials, so a certificate for another name fails every connection.
+			val serverName = tls?.xStr("serverName").orEmpty()
+			if (serverName.isNotEmpty() && !serverName.equals(endpoint.address, ignoreCase = true)) {
+				throw MihomoUnsupported(
+					"tlsSettings.serverName \"$serverName\" is not the address this node dials, " +
+						"and mihomo's socks5 takes no server name for TLS, so the node would not connect"
+				)
+			}
+			proxy.set("tls", true)
+			if (tls != null && tls.xBool("allowInsecure")) {
+				proxy.set("skip-cert-verify", true)
+			}
+			tls?.let { applyProxyTls(proxy, it, streamSettings, "socks5", saidFrom) }
+		}
+		applyMux(proxy, outbound, "socks")
+		applyDialer(proxy, outbound)
+		out.add(proxy)
+	}
+	return out
 }
 
-internal fun MihomoConv.convertHttp(ob: JSONObject, preferred: String): List<YamlMap> {
-    val settings = outboundSettings(ob)
-    val endpoints = proxyEndpoints(settings)
-    if (endpoints.isEmpty()) throw MihomoUnsupported("the http outbound has no server")
+internal fun MihomoConversion.convertHttp(outbound: JSONObject, preferred: String): List<YamlMap> {
+	val settings = outboundSettings(outbound)
+	val endpoints = proxyEndpoints(settings)
+	if (endpoints.isEmpty()) throw MihomoUnsupported("the http outbound has no server")
+	val streamSettings = outbound.xObj("streamSettings")
+	// The proxy type carries no transport: a node under one would connect to nothing.
+	transportFormOf("http", streamSettings).refusal?.let { throw MihomoUnsupported(it) }
 
-    val ss = ob.xObj("streamSettings")
-    val out = ArrayList<YamlMap>(endpoints.size)
-    for (ep in endpoints) {
-        val name = name(preferred, ob.xStr("tag"), "http", ep.address, ep.port)
-        val m = base(name, "http", ep.address, ep.port)
-        m.setStr("username", ep.user)
-        m.setStr("password", ep.pass)
-        if (ss != null && streamSecurity(ss) == "tls") {
-            m.set("tls", true)
-            val t = streamTls(ss)
-            if (t != null) {
-                m.setStr("sni", t.xStr("serverName"))
-                if (t.xBool("allowInsecure") || opts.skipCertVerify) m.set("skip-cert-verify", true)
-            }
-        }
-        if (ep.headers.isNotEmpty()) {
-            val headers = YamlMap()
-            for (k in ep.headers.keys.sorted()) headers.setStr(k, ep.headers[k])
-            m.set("headers", headers)
-        }
-        applyDialer(m, ob)
-        out.add(m)
-    }
-    return out
+	val out = ArrayList<YamlMap>(endpoints.size)
+	for (endpoint in endpoints) {
+		val name = name(preferred, outbound.xStr("tag"), "http", endpoint.address, endpoint.port)
+		val proxy = base(name, "http", endpoint.address, endpoint.port)
+		proxy.setString("username", endpoint.user)
+		proxy.setString("password", endpoint.pass)
+		if (streamSettings != null && streamSecurity(streamSettings) == "tls") {
+			val saidFrom = diagnostics.size
+			proxy.set("tls", true)
+			val tls = streamTls(streamSettings)
+			if (tls != null) {
+				proxy.setString("sni", tls.xStr("serverName"))
+				if (tls.xBool("allowInsecure")) proxy.set("skip-cert-verify", true)
+				applyProxyTls(proxy, tls, streamSettings, "HTTP", saidFrom)
+			}
+		}
+		if (endpoint.headers.isNotEmpty()) {
+			val headers = YamlMap()
+			for (key in endpoint.headers.keys.sorted()) headers.setString(key, endpoint.headers[key])
+			proxy.set("headers", headers)
+		}
+		applyMux(proxy, outbound, "http")
+		applyDialer(proxy, outbound)
+		out.add(proxy)
+	}
+	return out
 }
 
-// ------------------------------------------------------------ WireGuard ----
+internal fun MihomoConversion.convertWireGuard(outbound: JSONObject, preferred: String): List<YamlMap> {
+	val settings = outboundSettings(outbound)
+	wireguardRefusal(settings)?.let { throw MihomoUnsupported(it) }
+	val peers = wireguardUsablePeers(settings)
+	wireguardDroppedPeerNotes(settings).forEach { warn(it) }
+	val secret = settings.xStr("secretKey")
 
-internal fun MihomoConv.convertWireGuard(ob: JSONObject, preferred: String): List<YamlMap> {
-    val settings = outboundSettings(ob)
-    val peers = settings.xObjList("peers")
-    if (peers.isEmpty()) throw MihomoUnsupported("the wireguard outbound has no peers")
-    val secret = settings.xStr("secretKey")
-    if (secret.isEmpty()) throw MihomoUnsupported("the wireguard outbound has no secretKey")
+	// mihomo takes the first peer's endpoint as the proxy address and carries
+	// any further peers in a "peers" list.
+	val primary = peers[0]
+	val endpoint = splitEndpoint(primary.xStr("endpoint"))
+		?: throw MihomoUnsupported("peer endpoint \"${primary.xStr("endpoint")}\" is not host:port")
+	val name = name(preferred, outbound.xStr("tag"), "wireguard", endpoint.first, endpoint.second)
+	val proxy = base(name, "wireguard", endpoint.first, endpoint.second)
+	proxy.set("private-key", canonicalWireguardKey(secret))
+	proxy.setString("public-key", canonicalWireguardKey(primary.xStr("publicKey")))
+	proxy.setString("pre-shared-key", canonicalWireguardKey(primary.xStr("preSharedKey")))
 
-    // mihomo takes the first peer's endpoint as the proxy address and carries
-    // any further peers in a "peers" list.
-    val primary = peers[0]
-    val endpoint = splitEndpoint(primary.xStr("endpoint"))
-        ?: throw MihomoUnsupported("peer endpoint \"${primary.xStr("endpoint")}\" is not host:port")
+	val addresses = settings.xStrList("address").map { it.trim() }.filter { it.isNotEmpty() }
+		.mapNotNull { raw ->
+			wireguardInterfacePrefix(raw).also { if (it == null) warn(wireguardAddressDroppedNote(raw)) }
+		}
+		.ifEmpty {
+			// The same assumption the sing-box pass makes, said the same way: a proxy with no
+			// interface address is one mihomo cannot bring up.
+			warn(
+				"the wireguard outbound names no address; " +
+					"${WIREGUARD_ASSUMED_ADDRESS} was assumed - check it against " +
+					"what the server assigned"
+			)
+			listOf(WIREGUARD_ASSUMED_ADDRESS)
+		}
+	for (raw in addresses) {
+		var address = raw
+		// mihomo wants the bare interface address, not a CIDR.
+		val slash = address.indexOf('/')
+		if (slash >= 0) address = address.substring(0, slash)
+		if (address.contains(":")) {
+			if (!proxy.has("ipv6")) proxy.set("ipv6", address)
+		} else if (!proxy.has("ip")) {
+			proxy.set("ip", address)
+		}
+	}
 
-    val name = name(preferred, ob.xStr("tag"), "wireguard", endpoint.first, endpoint.second)
-    val m = base(name, "wireguard", endpoint.first, endpoint.second)
-    m.set("private-key", secret)
-    m.setStr("public-key", primary.xStr("publicKey"))
-    m.setStr("pre-shared-key", primary.xStr("preSharedKey"))
+	val allowed = primary.xStrList("allowedIPs")
+	if (allowed.isNotEmpty()) proxy.set("allowed-ips", toFlowSeq(allowed))
+	proxy.setInt("mtu", settings.xInt("mtu"))
+	proxy.setInt("persistent-keepalive", primary.xInt("keepAlive"))
+	val reserved = parseReserved(settings.xOpt("reserved")) { warn(reservedNotByteNote(it)) }
+	if (reserved != null && reserved.isNotEmpty()) {
+		if (reserved.size == WG_RESERVED_BYTES) {
+			val seq = YamlFlowSeq()
+			for (byte in reserved) seq.add(byte.toInt() and 0xFF)
+			proxy.set("reserved", seq)
+		} else {
+			// The core wants exactly three bytes and refuses the whole config file otherwise
+			// ("invalid reserved value, required 3 bytes, got N"), so a hand-edited four-byte value
+			// is left out and named rather than written.
+			warn(
+				"wireguard reserved is ${reserved.size} bytes and mihomo wants " +
+					"$WG_RESERVED_BYTES, so it was dropped"
+			)
+		}
+	}
+	udpFlag(proxy)
 
-    for (raw in settings.xStrList("address")) {
-        var a = raw.trim()
-        if (a.isEmpty()) continue
-        // mihomo wants the bare interface address, not a CIDR.
-        val slash = a.indexOf('/')
-        if (slash >= 0) a = a.substring(0, slash)
-        if (a.contains(":")) {
-            if (!m.has("ipv6")) m.set("ipv6", a)
-        } else if (!m.has("ip")) {
-            m.set("ip", a)
-        }
-    }
+	if (peers.size > 1) {
+		val list = YamlSeq()
+		for (peer in peers) {
+			val peerEndpoint = splitEndpoint(peer.xStr("endpoint"))
+			if (peerEndpoint == null) {
+				warn("wireguard peer with endpoint \"${peer.xStr("endpoint")}\" was dropped: not host:port")
+				continue
+			}
+			val peerMap = YamlMap()
+			peerMap.set("server", peerEndpoint.first)
+			peerMap.set("port", peerEndpoint.second)
+			peerMap.setString("public-key", canonicalWireguardKey(peer.xStr("publicKey")))
+			peerMap.setString("pre-shared-key", canonicalWireguardKey(peer.xStr("preSharedKey")))
+			// Xray gives a peer without allowedIPs everything; mihomo refuses the whole file over a
+			// listed peer that names none, so that default is written out.
+			val pAllowed = peer.xStrList("allowedIPs").ifEmpty { listOf("0.0.0.0/0", "::/0") }
+			peerMap.set("allowed-ips", toFlowSeq(pAllowed))
+			list.add(peerMap)
+		}
+		if (list.size > 1) proxy.set("peers", list)
+	}
 
-    val allowed = primary.xStrList("allowedIPs")
-    if (allowed.isNotEmpty()) m.set("allowed-ips", toFlowSeq(allowed))
-    m.setInt("mtu", settings.xInt("mtu"))
-    m.setInt("persistent-keepalive", primary.xInt("keepAlive"))
-    val reserved = parseReserved(settings.xOpt("reserved"))
-    if (reserved != null && reserved.isNotEmpty()) {
-        if (reserved.size == WG_RESERVED_BYTES) {
-            val seq = YamlFlowSeq()
-            for (b in reserved) seq.add(b.toInt() and 0xFF)
-            m.set("reserved", seq)
-        } else {
-            // The core wants exactly three bytes and refuses the whole config file otherwise
-            // ("invalid reserved value, required 3 bytes, got N"), so a hand-edited four-byte value
-            warn(
-                "wireguard reserved is ${reserved.size} bytes and mihomo wants " +
-                    "$WG_RESERVED_BYTES, so it was dropped"
-            )
-        }
-    }
-    udpFlag(m)
-
-    if (peers.size > 1) {
-        val list = YamlSeq()
-        for (p in peers) {
-            val pe = splitEndpoint(p.xStr("endpoint"))
-            if (pe == null) {
-                warn("wireguard peer with endpoint \"${p.xStr("endpoint")}\" was dropped: not host:port")
-                continue
-            }
-            val pm = YamlMap()
-            pm.set("server", pe.first)
-            pm.set("port", pe.second)
-            pm.setStr("public-key", p.xStr("publicKey"))
-            pm.setStr("pre-shared-key", p.xStr("preSharedKey"))
-            val pAllowed = p.xStrList("allowedIPs")
-            if (pAllowed.isNotEmpty()) pm.set("allowed-ips", toFlowSeq(pAllowed))
-            list.add(pm)
-        }
-        if (list.size > 1) m.set("peers", list)
-    }
-
-    applyDialer(m, ob)
-    return listOf(m)
-}
-
-// WireGuard's reserved field is three bytes; the core refuses any other length.
-internal const val WG_RESERVED_BYTES = 3
-
-// Accepts the reserved bytes as a JSON array or a base64 string.
-internal fun parseReserved(raw: Any?): ByteArray? {
-    if (raw == null) return null
-    if (raw is JSONArray) {
-        val out = ByteArray(raw.length())
-        for (i in 0 until raw.length()) {
-            val n = raw.opt(i) as? Number ?: return null
-            out[i] = n.toInt().toByte()
-        }
-        return out
-    }
-    val s = xScalarString(raw).trim()
-    if (s.isEmpty()) return null
-    return decodeBase64Any(s)
+	applyDialer(proxy, outbound)
+	return listOf(proxy)
 }
 
 // Splits a "host:port" endpoint, handling a bracketed IPv6 literal.
 internal fun splitEndpoint(endpoint: String): Pair<String, Int>? {
-    val trimmed = endpoint.trim()
-    if (trimmed.isEmpty()) return null
-    val hp = splitHostPort(trimmed) ?: return null
-    val port = parsePort(hp.second) ?: return null
-    return hp.first to port
+	val trimmed = endpoint.trim()
+	if (trimmed.isEmpty()) return null
+	val hostPort = splitHostPort(trimmed)
+	val port = hostPort.port?.takeIf { it in 1..65535 } ?: return null
+	return hostPort.host to port
 }

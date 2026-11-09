@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:minHeight="64dp"
+	android:orientation="horizontal"
+	android:gravity="center_vertical"
+	android:paddingStart="@dimen/dialog_message_padding"
+	android:paddingEnd="@dimen/dialog_message_padding"
+	android:paddingTop="@dimen/spacing_small"
+	android:paddingBottom="@dimen/spacing_small"
+	android:background="@drawable/bg_row_ripple">
+
+	<ImageView
+		android:id="@+id/imageAppIcon"
+		android:layout_width="@dimen/app_icon_size"
+		android:layout_height="@dimen/app_icon_size"
+		android:importantForAccessibility="no" />
+
+	<LinearLayout
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="@dimen/spacing_normal"
+		android:layout_weight="1"
+		android:orientation="vertical">
+
+		<TextView
+			android:id="@+id/textAppLabel"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textColor="@color/text_primary"
+			android:textSize="@dimen/text_size_body" />
+
+		<TextView
+			android:id="@+id/textAppDetails"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textColor="@color/text_secondary"
+			android:textSize="@dimen/text_size_secondary" />
+	</LinearLayout>
+</LinearLayout>

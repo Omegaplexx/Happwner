@@ -1,38 +1,28 @@
-# Сохраняем класс входа для Xposed
+# Keep the Xposed entry class
 -keep class com.happwner.hook.MainHook { *; }
 
-# Сохраняем метод проверки статуса модуля, чтобы Xposed мог его найти по имени
--keep class com.happwner.hook.ModuleStatus {
-    public boolean isModuleActive();
+# Keep the module status method, so Xposed can find it by name
+-keep class com.happwner.data.ModuleStatus {
+	public boolean isModuleActive();
 }
 
-# Если используются другие классы, на которые завязаны внешние вызовы (например, через Intent)
+# Keep members other components reach from outside (via Intent, for example)
 -keepclassmembers class * extends android.content.BroadcastReceiver {
-    public void onReceive(android.content.Context, android.content.Intent);
+	public void onReceive(android.content.Context, android.content.Intent);
 }
 
-# --- AndroidX WorkManager & Room (Fixes NoSuchMethodException in Full Mode) ---
-
-# Keep the generated WorkDatabase_Impl and its constructor
--keep class androidx.work.impl.WorkDatabase_Impl {
-    public <init>();
-}
-
-# General rule to keep all Room Database implementations and their constructors
--keep class * extends androidx.room.RoomDatabase {
-    public <init>();
-}
-
-# Keep WorkManager internal components
--keep class androidx.work.impl.background.systemalarm.RescheduleReceiver { *; }
--keep class androidx.work.impl.background.systemalarm.ConstraintProxy { *; }
--keep class androidx.work.impl.background.systemalarm.ConstraintProxy$* { *; }
--keep class androidx.work.impl.background.systemjob.SystemJobService { *; }
--keep class androidx.work.impl.foreground.SystemForegroundService { *; }
-
-# WorkManager Initializers and App Startup
--keep class androidx.work.WorkManagerInitializer { *; }
+# App Startup, and the initializers it looks up by name from the merged manifest
 -keep class androidx.startup.InitializationProvider { *; }
-
-# Keep App Startup Initializers
 -keep class * implements androidx.startup.Initializer { *; }
+
+# The converters name the exception in the note they leave behind, and a note reading
+# "internal error (a)" says nothing. Keeping the names does not keep the classes: an unused one is
+# still removed, it just is not renamed.
+-keepnames class * extends java.lang.Throwable
+
+# Debug logging stays out of release builds: those lines print subscription links, device ids and
+# user agents, and a bug report a person shares would carry them along.
+-assumenosideeffects class android.util.Log {
+	public static int v(...);
+	public static int d(...);
+}

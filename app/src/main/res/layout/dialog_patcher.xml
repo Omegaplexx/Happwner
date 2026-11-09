@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:overScrollMode="never"
+	android:fillViewport="false">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:paddingTop="@dimen/dialog_content_padding_top"
+		android:paddingStart="@dimen/dialog_message_padding"
+		android:paddingEnd="@dimen/dialog_message_padding"
+		android:paddingBottom="@dimen/spacing_small">
+
+		<com.happwner.ui.DropdownLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:hint="@string/hint_patcher_target"
+			app:endIconMode="dropdown_menu"
+			app:errorEnabled="false"
+			app:helperTextEnabled="false">
+			<com.happwner.ui.DropdownField
+				android:id="@+id/inputPatcherTarget"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="none"
+				android:textColor="@color/text_input_color_selector" />
+		</com.happwner.ui.DropdownLayout>
+
+		<com.happwner.ui.DropdownLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="@dimen/spacing_small"
+			android:hint="@string/label_patcher_sig_bypass"
+			app:endIconMode="dropdown_menu"
+			app:errorEnabled="false"
+			app:helperTextEnabled="false">
+			<com.happwner.ui.DropdownField
+				android:id="@+id/inputSigBypass"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:inputType="none"
+				android:textColor="@color/text_input_color_selector" />
+		</com.happwner.ui.DropdownLayout>
+
+		<TextView
+			android:id="@+id/textPatcherPackageName"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="@dimen/spacing_normal"
+			android:textColor="@color/text_secondary"
+			android:textSize="@dimen/text_size_secondary" />
+
+		<TextView
+			android:id="@+id/textPatcherVersionName"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="2dp"
+			android:textColor="@color/text_secondary"
+			android:textSize="@dimen/text_size_secondary" />
+
+		<View
+			android:layout_width="match_parent"
+			android:layout_height="1dp"
+			android:layout_marginTop="@dimen/spacing_normal"
+			android:layout_marginBottom="@dimen/spacing_normal"
+			android:background="?attr/happCardStroke" />
+
+		<TextView
+			android:id="@+id/textPatcherInfo"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:textColor="@color/text_secondary"
+			android:textSize="@dimen/text_size_secondary" />
+	</LinearLayout>
+</ScrollView>

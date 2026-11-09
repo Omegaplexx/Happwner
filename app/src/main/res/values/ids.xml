@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item name="tag_crossfade_height_anim" type="id" />
-    <item name="tag_dialog_anim_mode" type="id" />
-    <item name="tag_ua_crossfade" type="id" />
-    <item name="tag_ua_overlay" type="id" />
+	<item name="tag_crossfade_height_anim" type="id" />
+	<item name="tag_dialog_state" type="id" />
+	<item name="tag_ua_crossfade" type="id" />
+	<item name="tag_label_color_fade" type="id" />
+	<item name="tag_ua_overlay" type="id" />
+	<item name="tag_height_glide" type="id" />
 </resources>

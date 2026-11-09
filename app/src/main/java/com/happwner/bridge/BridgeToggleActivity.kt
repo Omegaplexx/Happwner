@@ -1,50 +1,26 @@
 package com.happwner.bridge
 
-import android.Manifest
 import android.app.Activity
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
+import androidx.core.content.pm.ShortcutManagerCompat
 
-// Invisible proxy: toggles the bridge, requesting notification permission if needed
+// The launcher shortcut's target, and the tile's when a start from the tile itself is refused:
+// switches the bridge to the other state and closes - no window, nothing asked. The shortcut's
+// icon shows the state, and a refused start is told by enable() itself.
 class BridgeToggleActivity : Activity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Already on: just turn it off and finish
-        if (BridgeController.isEnabled(this)) {
-            BridgeController.disable(this)
-            finish()
-            return
-        }
-
-        // API 33+: ask for notification permission first, then enable in the callback
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIF)
-            return
-        }
-
-        // Permission already granted (or not needed): enable now
-        BridgeController.enable(this)
-        finish()
-    }
-
-    // Enable regardless of the result (the FGS runs even without a visible notification)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQ_NOTIF) {
-            BridgeController.enable(this)
-        }
-        finish()
-    }
-
-    companion object {
-        private const val REQ_NOTIF = 4021
-    }
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		// Done however it was reached: the launcher ranks shortcuts by their actions taking place.
+		// Android refuses the report while the user is locked - never a reason to skip the toggle.
+		try {
+			ShortcutManagerCompat.reportShortcutUsed(this, BridgeController.SHORTCUT_ID_TOGGLE)
+		} catch (_: Throwable) {}
+		if (BridgeController.isOn(this)) {
+			BridgeController.disable(this)
+		} else {
+			BridgeController.enable(this)
+		}
+		finish()
+	}
 }

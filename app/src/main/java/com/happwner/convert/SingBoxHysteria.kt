@@ -1,293 +1,302 @@
 package com.happwner.convert
 
+import com.happwner.text.firstNonEmpty
 import org.json.JSONArray
 import org.json.JSONObject
 
 // Hysteria2, Hysteria v1 and TUIC as sing-box outbounds, which panels write in Xray-shaped configs.
-// Checked against sing-box 1.13.15; TLS is never optional here - the core answers "TLS required".
+// TLS is never optional for any of the three: the core answers "TLS required".
 internal object SingBoxHysteria {
 
-    // What the core accepts; anything else refuses the whole document.
-    private val TUIC_CONGESTION = setOf("cubic", "new_reno", "bbr")
-    private val TUIC_RELAY_MODES = setOf("native", "quic")
+	// What the core accepts; anything else refuses the whole document.
+	private val TUIC_CONGESTION = setOf("cubic", "new_reno", "bbr")
+	private val TUIC_RELAY_MODES = setOf("native", "quic")
 
-    // Converts a hysteria2 outbound, or a hysteria one that turns out to be v2.
-    internal fun convertHysteria2(o: JSONObject, notes: MutableList<String>): JSONObject? {
-        val settings = o.xObj("settings") ?: JSONObject()
-        val ss = o.xObj("streamSettings")
+	// Port hopping: sing-box takes "start:end" ranges where Xray writes "443-8443,9000". A range
+	// of seconds ("5-10") keeps its low end - hop_interval_max came in sing-box 1.14, and the 1.12
+	// and 1.13 cores refuse the whole document over a field they do not know.
+	private fun applyPortHopping(
+		outbound: JSONObject, ports: String, intervalText: String, notes: MutableList<String>
+	) {
+		notes.addAll(hopPorts(ports).notes())
+		val hopRanges = portHopRanges(ports)
+		if (hopRanges.isEmpty()) return
+		outbound.put("server_ports", JSONArray(hopRanges))
+		val (hop, hopNote) = dialableHopInterval(intervalText)
+		hopNote?.let { notes.add(it) }
+		val low = SingBoxUtil.toDuration(hop.low) ?: return
+		outbound.put("hop_interval", low)
+		if (hop.isRange) {
+			notes.add(
+				"the hop interval range \"$intervalText\" needs sing-box 1.14, which the 1.12 and " +
+					"1.13 cores refuse the document over; it hops every $low instead"
+			)
+		}
+	}
 
-        val params = HysteriaParams(
-            obfs = parsedObfsAnywhere(settings).first,
-            obfsPassword = parsedObfsAnywhere(settings).second,
-            hopInterval = hysteriaHopInterval(settings)
-        )
-        params.fromStream(notes, ss)
+	// Converts a hysteria2 outbound, or a hysteria one that turns out to be v2.
+	internal fun convertHysteria2(xrayOutbound: JSONObject, notes: MutableList<String>): JSONObject? {
+		val settings = xrayOutbound.xObj("settings") ?: JSONObject()
+		val streamSettings = xrayOutbound.xObj("streamSettings")
 
-        val endpoints = hysteriaEndpoints(settings)
-        val ep = endpoints.firstOrNull() ?: return null
-        if (endpoints.size > 1) {
-            notes.add(
-                "the outbound lists ${endpoints.size} servers and a sing-box outbound holds one, " +
-                    "so the first was used"
-            )
-        }
+		// One endpoint: the converter splits an outbound naming several before it reaches here.
+		val endpoint = hysteriaEndpoints(settings, streamSettings).firstOrNull() ?: return null
 
-        var port = ep.port
-        val ports = firstNonEmpty(ep.ports, params.ports)
-        if (port == 0) firstPortOfRange(ports)?.let { port = it }
-        if (ep.address.isEmpty()) return null
-        if (port !in 1..65535) return null
+		val params = HysteriaParams(
+			obfs = parsedObfsAnywhere(settings).first,
+			obfsPassword = parsedObfsAnywhere(settings).second,
+			hopInterval = endpoint.hopInterval.ifEmpty { hysteriaHopInterval(settings) }
+		)
+		params.fromStream(notes, streamSettings)
+		params.windowsDroppedNote("sing-box")?.let { notes.add(it) }
 
-        val sb = JSONObject()
-        sb.put("type", "hysteria2")
-        sb.put("server", ep.address)
-        sb.put("server_port", port)
+		var port = endpoint.port
+		val ports = firstNonEmpty(endpoint.ports, params.ports)
+		if (port == 0) firstPortOfRange(ports)?.let { port = it }
+		// Left out with the reason, the way the mihomo pass and the link builder leave it out: a
+		// node dropped in silence looks like a node that was never there.
+		if (!LinkParams.usableHost(endpoint.address) || port !in 1..65535) {
+			notes.add(unusableServerRefusal("hysteria2", endpoint.address, port))
+			return null
+		}
+		// Hysteria2 authenticates by password alone; without one the node connects to nothing.
+		val password = firstNonEmpty(endpoint.password, params.password)
+		if (password.isEmpty()) {
+			notes.add(MISSING_HYSTERIA2_PASSWORD_REFUSAL)
+			return null
+		}
+		notes.addAll(brutalRateNotes(streamSettings))
 
-        // Port hopping: sing-box takes a list of "start:end" ranges, where Xray
-        // and the Hysteria clients write "443-8443,9000".
-        val hopRanges = portHopRanges(ports)
-        if (hopRanges.isNotEmpty()) {
-            sb.put("server_ports", JSONArray(hopRanges))
-            val interval = firstNonEmpty(params.hopInterval, "")
-            if (interval.isNotEmpty()) sb.put("hop_interval", durationSeconds(interval))
-        }
+		val outbound = JSONObject()
+		outbound.put("type", "hysteria2")
+		outbound.put("server", endpoint.address)
+		outbound.put("server_port", port)
 
-        val password = firstNonEmpty(ep.password, params.password)
-        if (password.isNotEmpty()) sb.put("password", password)
+		applyPortHopping(outbound, ports, params.hopInterval, notes)
 
-        // The core takes plain integers in Mbps; the source may spell them "100 Mbps", "100", or
-        // leave them out entirely.
-        for ((key, raw) in listOf(
-            "up_mbps" to firstNonEmpty(ep.up, params.up),
-            "down_mbps" to firstNonEmpty(ep.down, params.down)
-        )) {
-            if (raw.isBlank()) continue
-            val n = mbpsNumber(raw)
-            if (n != null) sb.put(key, n)
-            else notes.add(
-                "the rate \"$raw\" is not a whole number of Mbps and hysteria2 takes no other " +
-                    "unit here, so it was left out and the core will pace itself"
-            )
-        }
+		outbound.put("password", password)
 
-        val obfsMode = firstNonEmpty(params.obfs, "")
-        if (obfsMode.isNotEmpty()) {
-            if (obfsMode.equals("salamander", ignoreCase = true)) {
-                val ob = JSONObject()
-                ob.put("type", "salamander")
-                val op = params.obfsPassword
-                if (op.isNotEmpty()) ob.put("password", op)
-                sb.put("obfs", ob)
-            } else {
-                // gecko is a mihomo extension; sing-box only implements
-                // salamander, and an unknown type is refused at load.
-                notes.add("obfuscation \"$obfsMode\" has no sing-box equivalent and was dropped")
-            }
-        }
+		// The core takes plain integers in Mbps; the source may spell them "100 Mbps", "100", or
+		// leave them out entirely.
+		for ((key, raw) in listOf(
+			"up_mbps" to firstNonEmpty(endpoint.up, params.up),
+			"down_mbps" to firstNonEmpty(endpoint.down, params.down)
+		)) {
+			if (raw.isBlank()) continue
+			// Named by direction, as the mihomo pass names it: the two rates are often the same.
+			val direction = key.substringBefore('_')
+			val bits = bitsPerSecond(raw)
+			if (bits == null) {
+				notes.add(
+					"the $direction rate \"$raw\" is not one Hysteria reads, so it was dropped and " +
+						"the core will pace itself"
+				)
+				continue
+			}
+			// None at all is no rate, for Xray as for the core.
+			if (bits <= 0L) continue
+			val mbps = mbpsNumber(raw)
+			if (mbps == null) {
+				notes.add(
+					"the $direction rate \"$raw\" is under half a Mbps, and hysteria2 takes whole Mbps " +
+						"here, so it was dropped and the core will pace itself"
+				)
+				continue
+			}
+			outbound.put(key, mbps)
+			if (bits % 1_000_000L != 0L) {
+				notes.add(
+					"the $direction rate \"$raw\" is $bits bits a second, and hysteria2 " +
+						"takes whole Mbps here, so $mbps stands in"
+				)
+			}
+		}
 
-        sb.put("tls", hysteriaTlsBlock(settings, ss))
-        return sb
-    }
+		val obfsMode = params.obfs.lowercase()
+		if (obfsMode.isNotEmpty()) {
+			hysteriaObfsRefusal(obfsMode, params.obfsPassword)?.let {
+				notes.add(it)
+				return null
+			}
+			// A node the server would not answer without its obfuscation is refused, not stripped:
+			// a third type has no sing-box form, and gecko came in 1.14, which the 1.12 and 1.13
+			// cores refuse the whole document over.
+			if (obfsMode == "gecko") {
+				notes.add(
+					"hysteria2 obfuscation \"gecko\" needs sing-box 1.14, and the 1.12 and 1.13 " +
+						"cores refuse the whole document over it"
+				)
+				return null
+			}
+			if (obfsMode != "salamander") {
+				notes.add(
+					"hysteria2 obfuscation \"${params.obfs}\" has no sing-box equivalent"
+				)
+				return null
+			}
+			val obfsBlock = JSONObject()
+			obfsBlock.put("type", obfsMode)
+			obfsBlock.put("password", params.obfsPassword)
+			outbound.put("obfs", obfsBlock)
+		}
 
-    // Converts a Hysteria v1 outbound.
-    internal fun convertHysteria(o: JSONObject, notes: MutableList<String>): JSONObject? {
-        val settings = o.xObj("settings") ?: JSONObject()
-        val ss = o.xObj("streamSettings")
+		outbound.put("tls", hysteriaTlsBlock(hysteriaTls(settings, streamSettings), streamSettings,
+			endpoint.address, notes))
+		return outbound
+	}
 
-        val endpoints = hysteriaEndpoints(settings)
-        val ep = endpoints.firstOrNull() ?: return null
-        if (endpoints.size > 1) {
-            notes.add(
-                "the outbound lists ${endpoints.size} servers and a sing-box outbound holds one, " +
-                    "so the first was used"
-            )
-        }
-        if (ep.address.isEmpty()) return null
-        if (ep.port !in 1..65535) return null
+	// Converts a Hysteria v1 outbound.
+	internal fun convertHysteria(xrayOutbound: JSONObject, notes: MutableList<String>): JSONObject? {
+		val settings = xrayOutbound.xObj("settings") ?: JSONObject()
+		val streamSettings = xrayOutbound.xObj("streamSettings")
 
-        val sb = JSONObject()
-        sb.put("type", "hysteria")
-        sb.put("server", ep.address)
-        sb.put("server_port", ep.port)
+		// One endpoint: the converter splits an outbound naming several before it reaches here.
+		val endpoint = hysteriaEndpoints(settings, streamSettings).firstOrNull() ?: return null
+		if (!LinkParams.usableHost(endpoint.address) || endpoint.port !in 1..65535) {
+			notes.add(unusableServerRefusal("hysteria", endpoint.address, endpoint.port))
+			return null
+		}
 
-        // Always auth_str, never auth.
-        if (ep.password.isNotEmpty()) sb.put("auth_str", ep.password)
+		val outbound = JSONObject()
+		outbound.put("type", "hysteria")
+		outbound.put("server", endpoint.address)
+		outbound.put("server_port", endpoint.port)
 
-        // The core takes the rate either as a number of Mbps or as a string with a unit, and its
-        // unit table is wider than Mbps alone.
-        val upOk = putRate(sb, "up", "up_mbps", ep.up)
-        val downOk = putRate(sb, "down", "down_mbps", ep.down)
-        if (!upOk || !downOk) {
-            // Both rates are mandatory in version 1; the core answers a missing
-            // one with "missing upload speed" and refuses the outbound.
-            notes.add("hysteria v1 needs both up and down rates")
-            return null
-        }
+		// auth_str rather than auth, which sing-box reads as base64.
+		if (endpoint.password.isNotEmpty()) outbound.put("auth_str", endpoint.password)
 
-        // Port hopping is a version 1 feature too, and was going out only for
-        // version 2.
-        val ports = ep.ports
-        val hopRanges = portHopRanges(ports)
-        if (hopRanges.isNotEmpty()) {
-            sb.put("server_ports", JSONArray(hopRanges))
-            val interval = hysteriaHopInterval(settings)
-            if (interval.isNotEmpty()) sb.put("hop_interval", durationSeconds(interval))
-        }
+		// The core takes the rate either as a number of Mbps or as a string with a unit, and its
+		// unit table is wider than Mbps alone.
+		val upOk = putRate(outbound, "up", "up_mbps", endpoint.up)
+		val downOk = putRate(outbound, "down", "down_mbps", endpoint.down)
+		if (!upOk || !downOk) {
+			// Both rates are mandatory in version 1; the core answers a missing
+			// one with "missing upload speed" and refuses the outbound.
+			val bad = listOf(endpoint.up, endpoint.down).firstOrNull { it.isNotBlank() && v1Rate(it) == null }
+			notes.add(
+				if (bad == null) "hysteria v1 needs both up and down rates"
+				else "hysteria v1 needs both up and down rates, and \"$bad\" is not one sing-box reads"
+			)
+			return null
+		}
 
-        val (obfsMode, obfsPassword) = parsedObfsAnywhere(settings)
-        // Version 1's obfuscator is a plain string, unlike version 2's object.
-        val obfs = firstNonEmpty(obfsPassword, obfsMode)
-        if (obfs.isNotEmpty()) sb.put("obfs", obfs)
+		// Port hopping is a version 1 feature too.
+		applyPortHopping(outbound, endpoint.ports,
+			endpoint.hopInterval.ifEmpty { hysteriaHopInterval(settings) }, notes)
 
-        sb.put("tls", hysteriaTlsBlock(settings, ss))
-        return sb
-    }
+		val (obfsMode, obfsPassword) = parsedObfsAnywhere(settings)
+		// Version 1's obfuscator is a plain string, unlike version 2's object.
+		val obfs = firstNonEmpty(obfsPassword, obfsMode)
+		if (obfs.isNotEmpty()) outbound.put("obfs", obfs)
 
-    // Converts a TUIC outbound.
-    internal fun convertTuic(o: JSONObject, notes: MutableList<String>): JSONObject? {
-        val settings = o.xObj("settings") ?: JSONObject()
-        val ss = o.xObj("streamSettings")
+		outbound.put("tls", hysteriaTlsBlock(hysteriaTls(settings, streamSettings), streamSettings,
+			endpoint.address, notes))
+		return outbound
+	}
 
-        val servers = settings.xObjList("servers")
-        val src = servers.firstOrNull() ?: settings
-        if (servers.size > 1) {
-            notes.add(
-                "the outbound lists ${servers.size} servers and a sing-box outbound holds one, " +
-                    "so the first was used"
-            )
-        }
+	internal fun convertTuic(xrayOutbound: JSONObject, notes: MutableList<String>): JSONObject? {
+		// A node copied out of a sing-box configuration keeps all of it beside the protocol, as mihomo
+		// and the links read it.
+		val settings = xrayOutbound.xObj("settings") ?: xrayOutbound
+		val streamSettings = xrayOutbound.xObj("streamSettings")
 
-        val address = firstNonEmpty(src.xStr("address"), src.xStr("server"))
-        val port = src.xInt("port")
-        if (address.isEmpty() || port !in 1..65535) return null
+		val servers = settings.xObjList("servers")
+		val src = servers.firstOrNull() ?: settings
+		if (servers.size > 1) {
+			notes.add(
+				"the outbound lists ${servers.size} servers and a sing-box outbound holds one, " +
+					"so the first was used"
+			)
+		}
 
-        val uuid = firstNonEmpty(src.xStr("uuid"), settings.xStr("uuid"))
-        if (uuid.isEmpty()) {
-            // sing-box implements TUIC v5 only, which is uuid plus password.
-            notes.add("sing-box implements TUIC v5, which needs a uuid; this outbound has none")
-            return null
-        }
+		val address = firstNonEmpty(src.xStr("address"), src.xStr("server"))
+		val listed = servers.isNotEmpty()
+		val port = if (listed || src.xInt("port") > 0) src.xInt("port") else src.xInt("server_port")
+		if (!LinkParams.usableHost(address) || port !in 1..65535) {
+			notes.add(unusableServerRefusal("tuic", address, port))
+			return null
+		}
 
-        val sb = JSONObject()
-        sb.put("type", "tuic")
-        sb.put("server", address)
-        sb.put("server_port", port)
-        sb.put("uuid", uuid)
-        val password = firstNonEmpty(src.xStrRaw("password"), settings.xStrRaw("password"))
-        if (password.isNotEmpty()) sb.put("password", password)
+		val uuid = firstNonEmpty(src.xStr("uuid"), settings.xStr("uuid"))
+		tuicUuidRefusal(uuid)?.let { notes.add(it); return null }
+		if (uuid.isEmpty()) {
+			// sing-box implements TUIC v5 only, which is uuid plus password.
+			notes.add("sing-box implements TUIC v5, which needs a uuid; this outbound has none")
+			return null
+		}
 
-        // The core validates this one and refuses the whole document over a value it does not know,
-        // so an unfamiliar name is dropped here rather than taking the subscription down with it.
-        val congestion = firstNonEmpty(
-            settings.xStr("congestion_control"), settings.xStr("congestionController")
-        )
-        if (congestion.isNotEmpty()) {
-            if (congestion in TUIC_CONGESTION) sb.put("congestion_control", congestion)
-            else notes.add("congestion control \"$congestion\" is not one sing-box implements and was dropped")
-        }
-        val relay = firstNonEmpty(
-            settings.xStr("udp_relay_mode"), settings.xStr("udpRelayMode")
-        )
-        if (relay.isNotEmpty()) {
-            if (relay in TUIC_RELAY_MODES) sb.put("udp_relay_mode", relay)
-            else notes.add("udp relay mode \"$relay\" is not one sing-box implements and was dropped")
-        }
-        if (settings.xBool("reduce_rtt") || settings.xBool("reduceRtt")) {
-            sb.put("zero_rtt_handshake", true)
-        }
-        // heartbeat_interval is in MILLISECONDS - that is what the clients and mihomo's own
-        // documentation say, and 10000 is the value they suggest.
-        val heartbeatMs = settings.xInt("heartbeat_interval")
-        if (heartbeatMs > 0) sb.put("heartbeat", "${heartbeatMs}ms")
+		val outbound = JSONObject()
+		outbound.put("type", "tuic")
+		outbound.put("server", address)
+		outbound.put("server_port", port)
+		outbound.put("uuid", uuid)
+		val password = firstNonEmpty(src.xStrRaw("password"), settings.xStrRaw("password"))
+		if (password.isNotEmpty()) outbound.put("password", password)
 
-        val tls = hysteriaTlsBlock(settings, ss)
-        if (settings.xBool("disable_sni")) tls.put("disable_sni", true)
-        sb.put("tls", tls)
-        return sb
-    }
+		// The core refuses the whole document over a value it does not know, so an unfamiliar name is
+		// dropped here. Read beside the address as well as beside the protocol, like the password.
+		val congestion = tuicSetting(
+			src, settings, "congestion_control", "congestionController", "congestionControl"
+		)
+		if (congestion.isNotEmpty()) {
+			if (congestion in TUIC_CONGESTION) outbound.put("congestion_control", congestion)
+			else notes.add(
+				"congestion control \"$congestion\" is not one sing-box implements and was dropped")
+		}
+		val relay = tuicSetting(src, settings, "udp_relay_mode", "udpRelayMode")
+		if (relay.isNotEmpty()) {
+			if (relay in TUIC_RELAY_MODES) outbound.put("udp_relay_mode", relay)
+			else notes.add("udp relay mode \"$relay\" is not one sing-box implements and was dropped")
+		}
+		if (tuicFlag(src, settings, *TUIC_ZERO_RTT_NAMES)) {
+			outbound.put("zero_rtt_handshake", true)
+		}
+		// heartbeat_interval is in MILLISECONDS - that is what the clients and mihomo's own
+		// documentation say, and 10000 is the value they suggest.
+		val heartbeatMs = tuicHeartbeatMs(src, settings)
+		if (heartbeatMs > 0) outbound.put("heartbeat", "${heartbeatMs}ms")
 
-    // The TLS block these three always carry - not conditional, since the core answers a missing
-    // one with "TLS required" and rejects the whole document.
-    private fun hysteriaTlsBlock(settings: JSONObject, ss: JSONObject?): JSONObject {
-        val t = hysteriaTls(settings, ss)
-        val tls = JSONObject()
-        tls.put("enabled", true)
-        if (t.sni.isNotEmpty()) tls.put("server_name", t.sni)
-        if (t.insecure) tls.put("insecure", true)
-        if (t.alpn.isNotEmpty()) tls.put("alpn", JSONArray(t.alpn))
-        return tls
-    }
+		val tls = hysteriaTlsBlock(tuicTls(xrayOutbound, streamSettings), streamSettings, address, notes)
+		if (tuicFlag(src, settings, *TUIC_DISABLE_SNI_NAMES)) tls.put("disable_sni", true)
+		outbound.put("tls", tls)
+		return outbound
+	}
 
-    // Turns a "443-8443,9000" port list into the "443:8443" ranges sing-box takes. A single port
-    // stays a single port, spelled as a one-wide range.
-    internal fun portHopRanges(ports: String): List<String> {
-        if (ports.isBlank()) return emptyList()
-        val out = ArrayList<String>()
-        for (raw in ports.split(",")) {
-            val part = raw.trim()
-            if (part.isEmpty()) continue
-            val dash = part.indexOf('-')
-            if (dash > 0) {
-                val from = parsePort(part.substring(0, dash))
-                val to = parsePort(part.substring(dash + 1))
-                if (from != null && to != null) out.add("$from:$to")
-            } else {
-                parsePort(part)?.let { out.add("$it:$it") }
-            }
-        }
-        return out
-    }
+	// The TLS block these three always carry - not conditional, since the core answers a missing
+	// one with "TLS required" and rejects the whole document.
+	private fun hysteriaTlsBlock(
+		tlsDetails: HysteriaTls, streamSettings: JSONObject?, address: String, notes: MutableList<String>
+	): JSONObject {
+		val tls = JSONObject()
+		tls.put("enabled", true)
+		if (tlsDetails.sni.isNotEmpty()) tls.put("server_name", tlsDetails.sni)
+		if (tlsDetails.insecure) tls.put("insecure", true)
+		if (tlsDetails.alpn.isNotEmpty()) tls.put("alpn", JSONArray(tlsDetails.alpn))
+		val tlsSettings = streamTls(streamSettings)
+		tlsSettings?.let { SingBoxStream.applyCertificates(it, tls, notes) }
+		SingBoxStream.applyVerifyName(tlsSettings, tls, tlsDetails.sni, address, tlsDetails.insecure, notes)
+		// No field takes the hash here either, and one written where nothing reads it would pin nothing.
+		if (tlsDetails.pin.isNotEmpty()) notes.add(SingBoxStream.UNPINNED_NOTE)
+		quicProtocolFingerprintNote(tlsSettings)?.let { notes.add(it) }
+		return tls
+	}
 
-    // Writes a rate under whichever of the two names fits it, and reports whether anything was
-    // written at all.
-    private fun putRate(sb: JSONObject, stringKey: String, numberKey: String, raw: String): Boolean {
-        if (raw.isBlank()) return false
-        mbpsNumber(raw)?.let { sb.put(numberKey, it); return true }
-        if (isRateString(raw)) { sb.put(stringKey, raw.trim()); return true }
-        return false
-    }
+	// Turns a "443-8443,9000" port list into the "443:8443" ranges sing-box takes, the parts a core can
+	// dial alone (hopPorts). A single port stays a single port, spelled as a one-wide range.
+	internal fun portHopRanges(ports: String): List<String> =
+		hopPorts(ports).ranges.map { "${it.first}:${it.last}" }
 
-    // Seconds, however the source spelled the interval.
-    internal fun durationSeconds(v: String): String {
-        val s = v.trim()
-        if (s.isEmpty()) return "30s"
-        if (s.all { it in '0'..'9' }) return "${s}s"
-        return s
-    }
+	// Writes a rate under whichever of the two names fits it, and reports whether anything was
+	// written at all.
+	private fun putRate(outbound: JSONObject, stringKey: String, numberKey: String, raw: String): Boolean {
+		if (raw.isBlank()) return false
+		mbpsNumber(raw, version = 1)?.let { outbound.put(numberKey, it); return true }
+		outbound.put(stringKey, v1Rate(raw) ?: return false)
+		return true
+	}
 
-    // Bits per second for the units the Hysteria clients accept, or null when the text is not a
-    // rate.
-    private fun bitsPerSecond(raw: String): Long? {
-        val s = raw.trim()
-        if (s.isEmpty()) return null
-        val digits = s.takeWhile { it in '0'..'9' }
-        if (digits.isEmpty()) return null
-        val n = digits.toLongOrNull() ?: return null
-        val unit = s.drop(digits.length).trim()
-        val mult = when (unit) {
-            "", "mbps", "Mbps", "m", "M" -> 1_000_000L
-            "bps" -> 1L
-            "Bps" -> 8L
-            "Kbps" -> 1_000L
-            "KBps" -> 8_000L
-            "MBps" -> 8_000_000L
-            "Gbps" -> 1_000_000_000L
-            "GBps" -> 8_000_000_000L
-            "Tbps" -> 1_000_000_000_000L
-            "TBps" -> 8_000_000_000_000L
-            else -> return null
-        }
-        return n * mult
-    }
-
-    // A rate in whole Mbps for the hysteria2 outbound, which takes up_mbps/down_mbps as numbers
-    // only.
-    internal fun mbpsNumber(raw: String): Int? {
-        val bps = bitsPerSecond(raw) ?: return null
-        if (bps <= 0 || bps % 1_000_000L != 0L) return null
-        return (bps / 1_000_000L).toInt()
-    }
-
-    // True when the text is a rate the core would take verbatim in its string form.
-    internal fun isRateString(raw: String): Boolean = bitsPerSecond(raw) != null
+	// A version 1 rate in the core's string form, or null: its unit table is case-sensitive and has
+	// no bare bps, and "100 mbps" as written would take the whole document down.
+	private fun v1Rate(raw: String): String? =
+		coreRateString(raw, version = 1)?.takeUnless { it.endsWith(" bps") }
 }

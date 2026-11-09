@@ -50,7 +50,7 @@ An Android app for exporting encrypted subscriptions from the proxy utilities [H
 * **Subscription profile decryption**. If a provider encrypted their configs using one of the ten `key[01-10]` keys built into Happ, the app will automatically decrypt them and display the corresponding message;
 * **HWID spoofing** when requesting subscriptions through the Happwner interface. Allows bypassing device limits and restoring access to subscriptions after changing devices;
 * **Profile conversion** for better compatibility with VPN clients. See the [section below](#profile-conversion);
-* **Subscription Bridge** — a service for updating Happ subscriptions inside any apps (NekoBox, Hiddify, v2rayNG, husi, Exclave, Karing, and others);
+* **Subscription Bridge** — a service for updating Happ subscriptions inside any apps (NekoBox, Hiddify, v2rayNG, husi, Exclave, Karing, and others); a **Local network** option in the settings opens the bridge to other devices on the network and hands out links with this phone's address;
 * **Intent link interception** for `happ://add` and its v2RayTun and INCY counterparts, so that subscription links go from the browser straight into Happwner;
 
 ## Profile conversion
@@ -59,7 +59,7 @@ Happ providers serve profiles as Xray JSON, which not every client understands. 
 
 | Mode | Result | For which clients |
 | --- | --- | --- |
-| **Xray to URI** | `vless://`, `hy2://`, `trojan://` and other links | works with almost anything |
+| **Xray to URI** | `vless://`, `hysteria2://`, `trojan://` and other links | works with almost anything |
 | **Xray to sing-box** | sing-box JSON configs | NekoBox, husi, Hiddify, Karing, and others |
 | **Xray to Mihomo** | Mihomo (Clash Meta) YAML configs | FlClash, Clash Meta, Prizrak-Box, and others |
 
@@ -67,7 +67,7 @@ The mode is chosen separately for two cases:
 * **Profiles** — for requesting configurations inside Happwner itself;
 * **Subscription** — when another app requests them through the Bridge.
 
-Not every profile converts without losses: some Xray features have no equivalents in other formats. Unsupported profiles are skipped, and their number is shown next to the result. The full list of limitations is in the app itself, in the description of each mode.
+Not every profile converts without losses: some Xray features have no equivalents in other formats. Unsupported profiles are skipped, and their number is shown next to the result. The full list of limitations is in [conversion_limitations.md](conversion_limitations.md).
 
 ## Alternative decryption methods
 
@@ -75,13 +75,14 @@ These methods are for the rare cases where Happwner cannot decrypt a link on its
 
 ### [Happanion](https://github.com/Omegaplexx/Happanion)
 
-A companion app that installs **instead of** Happ from Google Play. It can decrypt `happ://crypt5` using the library from Happ and **force** browser intent links into Happwner. Installed from the Happwner settings, under "Decryption".
+A companion app that installs **instead of** Happ from Google Play. It can decrypt `happ://crypt5` using the library from Happ and **force** browser intent links into Happwner. When Happwner's own keys don't fit a link, Happwner hands it to Happanion by itself. Installed from the Happwner settings, under "Decryption".
 
 ### Xposed
 
 * **Link interception**. Works beyond Happ. Useful if the target app encrypts or hides the link it fetches profiles from;
 * **HWID spoofing inside apps** marked as targets in the Xposed manager;
 * **Access to `crypt` subscription profiles**. Happ and v2RayTun only. Forces profile parameters to be shown and allows exporting configs even when the subscription is encrypted;
+* **Passing intent links to Happwner**. A link another app hands to the target app by intent opens in a chooser that includes Happwner;
 * **Quick access to the Happwner interface** via a three-finger tap while a target app is open.
 
 Xposed functionality requires Xposed / EdXposed / LSPosed / Vector to be installed, OR a patched version of the app in question created using Xpatch / LSPatch / NPatch / FPA.

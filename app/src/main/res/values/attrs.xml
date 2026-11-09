@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <attr name="happScreenBg" format="color" />
-    <attr name="happCardBg" format="color" />
-    <attr name="happCardStroke" format="color" />
-    <attr name="happStatusBarBg" format="color" />
-    <attr name="happToolbarBg" format="color" />
-    <attr name="happDialogStroke" format="color" />
-    <attr name="happAccent" format="color" />
+	<attr name="happScreenBg" format="color" />
+	<attr name="happCardBg" format="color" />
+	<attr name="happCardStroke" format="color" />
+	<attr name="happStatusBarBg" format="color" />
+	<attr name="happToolbarBg" format="color" />
+	<attr name="happDialogStroke" format="color" />
+	<attr name="happAccent" format="color" />
+
+	<declare-styleable name="TallPageLayout">
+		<attr name="fitContent" format="boolean" />
+	</declare-styleable>
 </resources>

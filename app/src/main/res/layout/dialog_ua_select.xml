@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:overScrollMode="never"
+	android:fillViewport="false">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:paddingTop="@dimen/dialog_content_padding_top"
+		android:paddingBottom="@dimen/spacing_small">
+
+		<RadioGroup
+			android:id="@+id/dialogRadioGroup"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+
+			<com.google.android.material.radiobutton.MaterialRadioButton
+				android:id="@+id/radioOption1"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+				android:layout_marginEnd="@dimen/spacing_normal"
+				android:paddingStart="12dp"
+				android:paddingEnd="28dp"
+				android:text=""
+				android:textColor="@color/text_secondary"
+				android:textSize="@dimen/text_size_body"
+				app:buttonTint="@color/dialog_control_selector" />
+
+			<com.google.android.material.radiobutton.MaterialRadioButton
+				android:id="@+id/radioOption2"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+				android:layout_marginEnd="@dimen/spacing_normal"
+				android:paddingStart="12dp"
+				android:paddingEnd="28dp"
+				android:text=""
+				android:textColor="@color/text_secondary"
+				android:textSize="@dimen/text_size_body"
+				app:buttonTint="@color/dialog_control_selector" />
+
+			<com.google.android.material.radiobutton.MaterialRadioButton
+				android:id="@+id/radioOption3"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+				android:layout_marginEnd="@dimen/spacing_normal"
+				android:paddingStart="12dp"
+				android:paddingEnd="28dp"
+				android:text=""
+				android:textColor="@color/text_secondary"
+				android:textSize="@dimen/text_size_body"
+				app:buttonTint="@color/dialog_control_selector" />
+
+		</RadioGroup>
+
+		<View
+			android:layout_width="match_parent"
+			android:layout_height="1dp"
+			android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+			android:layout_marginEnd="@dimen/dialog_checkbox_margin_start"
+			android:layout_marginTop="@dimen/spacing_small"
+			android:layout_marginBottom="@dimen/spacing_small"
+			android:background="?attr/happCardStroke" />
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			android:gravity="center_vertical">
+
+			<com.google.android.material.checkbox.MaterialCheckBox
+				android:id="@+id/checkPreferSubscriptionUa"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+				android:paddingStart="12dp"
+				android:text="@string/ua_prefer_subscription"
+				android:textColor="@color/dialog_label_selector"
+				android:textSize="@dimen/text_size_body"
+				app:buttonTint="@color/dialog_control_selector"
+				app:buttonIconTint="@color/dialog_control_selector" />
+
+			<ImageView
+				android:id="@+id/btnPreferSubscriptionUaInfo"
+				android:layout_width="28dp"
+				android:layout_height="@dimen/icon_size_small"
+				android:layout_marginEnd="@dimen/spacing_normal"
+				android:paddingStart="4dp"
+				android:paddingEnd="4dp"
+				android:paddingTop="1dp"
+				android:paddingBottom="1dp"
+				android:src="@drawable/ic_info"
+				android:contentDescription="@string/ua_prefer_subscription_info_title"
+				android:background="?attr/selectableItemBackgroundBorderless"
+				app:tint="?attr/happAccent" />
+		</LinearLayout>
+
+	</LinearLayout>
+</ScrollView>

@@ -1,43 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="ui_corner_radius">10dp</dimen>
-    <dimen name="ui_corner_radius_ripple">8dp</dimen>
-    <dimen name="dialog_corner_radius">12dp</dimen>
+	<dimen name="ui_corner_radius">10dp</dimen>
+	<dimen name="ui_corner_radius_ripple">8dp</dimen>
+	<dimen name="dialog_corner_radius">12dp</dimen>
 
-    <dimen name="spacing_tiny">4dp</dimen>
-    <dimen name="spacing_small">8dp</dimen>
-    <dimen name="spacing_medium">12dp</dimen>
-    <dimen name="spacing_normal">16dp</dimen>
-    <dimen name="spacing_large">24dp</dimen>
+	<dimen name="spacing_tiny">4dp</dimen>
+	<dimen name="spacing_small">8dp</dimen>
+	<dimen name="spacing_medium">12dp</dimen>
+	<dimen name="spacing_normal">16dp</dimen>
+	<dimen name="spacing_large">24dp</dimen>
 
-    <dimen name="island_padding">12dp</dimen>
-    <dimen name="island_margin_bottom">8dp</dimen>
-    <dimen name="card_content_padding">16dp</dimen>
+	<dimen name="island_padding">12dp</dimen>
+	<dimen name="island_margin_bottom">8dp</dimen>
+	<dimen name="card_content_padding">16dp</dimen>
 
-    <dimen name="icon_size_standard">24dp</dimen>
-    <dimen name="icon_size_small">20dp</dimen>
-    <dimen name="btn_icon_size">40dp</dimen>
+	<dimen name="icon_size_standard">24dp</dimen>
+	<dimen name="icon_size_small">20dp</dimen>
+	<dimen name="btn_icon_size">40dp</dimen>
+	<dimen name="app_icon_size">40dp</dimen>
+	<dimen name="dialog_tall_margin">24dp</dimen>
 
-    <dimen name="dialog_content_padding_top">12dp</dimen>
-    <dimen name="dialog_checkbox_margin_start">12dp</dimen>
-    <dimen name="dialog_message_padding">20dp</dimen>
+	<dimen name="dialog_content_padding_top">12dp</dimen>
+	<dimen name="dialog_checkbox_margin_start">12dp</dimen>
+	<dimen name="dialog_message_padding">20dp</dimen>
 
-    <dimen name="dialog_btn_hitbox_horizontal">12dp</dimen>
-    <dimen name="dialog_btn_min_width">64dp</dimen>
+	<dimen name="dialog_btn_hitbox_horizontal">12dp</dimen>
+	<dimen name="dialog_btn_min_width">64dp</dimen>
 
-    <dimen name="text_size_dialog_title">18sp</dimen>
-    <dimen name="text_size_label">16sp</dimen>
-    <dimen name="text_size_body">16sp</dimen>
-    <dimen name="text_size_secondary">14sp</dimen>
-    <dimen name="text_size_tiny">12sp</dimen>
+	<dimen name="text_size_dialog_title">18sp</dimen>
+	<dimen name="text_size_label">16sp</dimen>
+	<dimen name="text_size_body">16sp</dimen>
+	<dimen name="text_size_secondary">14sp</dimen>
+	<dimen name="text_size_tiny">12sp</dimen>
 
-    <dimen name="padding_history_vertical">2dp</dimen>
+	<dimen name="padding_history_vertical">2dp</dimen>
 
-    <dimen name="fastscroll_thumb_width">5dp</dimen>
-    <dimen name="fastscroll_thumb_min_length">40dp</dimen>
-    <dimen name="fastscroll_thumb_margin_end">2.5dp</dimen>
-    <dimen name="fastscroll_thumb_margin_vertical">4dp</dimen>
-    <dimen name="fastscroll_touch_target_width">32dp</dimen>
-    <dimen name="fastscroll_touch_slop_vertical">8dp</dimen>
+	<dimen name="fastscroll_thumb_width">5dp</dimen>
+	<dimen name="fastscroll_thumb_min_length">40dp</dimen>
+	<dimen name="fastscroll_thumb_margin_end">2.5dp</dimen>
+	<dimen name="fastscroll_thumb_margin_vertical">4dp</dimen>
+	<dimen name="fastscroll_touch_target_width">32dp</dimen>
+	<dimen name="fastscroll_touch_slop_vertical">8dp</dimen>
 </resources>
