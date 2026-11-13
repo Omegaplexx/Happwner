@@ -7,6 +7,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.CursorWrapper
 import android.net.Uri
@@ -33,7 +34,9 @@ import java.lang.ref.WeakReference
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.net.URL
+import java.security.MessageDigest
 import java.util.Collections
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
@@ -270,15 +273,13 @@ class MainHook : IXposedHookLoadPackage {
 				"android.view.MotionEvent", object : XC_MethodHook() {
 					override fun beforeHookedMethod(param: MethodHookParam) {
 						guardHook("handleLoadPackage/before") {
-							val event = param.args[0] as MotionEvent
-							if (event.pointerCount == 3 &&
-								event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
+							if (SwitchGesture.isTriggered(param.args[0] as MotionEvent)) {
 								val activity = param.thisObject as Activity
-								val intent = activity.packageManager.getLaunchIntentForPackage(MODULE_PACKAGE)
-								if (intent != null) {
-									intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-									activity.startActivity(intent)
-								}
+								// Explicit, so it reaches the running instance; the package tells Happwner where to return.
+								activity.startActivity(Intent(ModuleIds.ACTION_SWITCH_FROM_APP)
+									.setClassName(MODULE_PACKAGE, ModuleIds.MAIN_ACTIVITY)
+									.putExtra(SettingsProvider.EXTRA_PACKAGE, activity.packageName)
+									.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 							}
 						}
 					}
@@ -293,13 +294,13 @@ class MainHook : IXposedHookLoadPackage {
 		// 6. Optional: unlock the hidden Happ settings
 		hookHideSettings(lpparam.classLoader)
 
-		// 7. Optional: unlock v2RayTun encrypted subscriptions (only fires if its class is present)
-		hookV2RayTunUnlock(lpparam.classLoader)
+		// 7. Optional: unlock v2RayTun encrypted subscriptions
+		if (lpparam.packageName == "com.v2raytun.android") hookV2RayTunUnlock(lpparam.classLoader)
 
 		// 8. Keep the on-screen HWID label in sync with the spoof without a restart (Happ only)
 		hookHwidLabels(lpparam.classLoader, lpparam.packageName)
 
-		// 9. INCY: force our HWID, finding the method via its encrypted-cache read (survives obfuscation)
+		// 9. INCY: force our HWID in its formula and in its cache read (found by behaviour, survives obfuscation)
 		if (lpparam.packageName == "llc.itdev.incy") hookIncyHwid(lpparam.classLoader)
 	}
 
@@ -340,15 +341,49 @@ class MainHook : IXposedHookLoadPackage {
 		}
 	}
 
-	// Finds the HWID getter from its cached-UUID read (survives obfuscation), mirrors that HWID
-	// to the field, and forces our value.
+	// INCY renames its classes on every build, so both hooks find their targets by behaviour.
+	// The HWID is computed once and cached in an encrypted SharedPreferences, so both are needed.
 	private fun hookIncyHwid(classLoader: ClassLoader) {
+		hookIncyFormula()
+		hookIncyCacheRead(classLoader)
+	}
+
+	// hwid = upper(sha256("incy_hwid_" + seed)) cut as 8-4-4-4-12; seed = sha256hex(android_id|MANUFACTURER|
+	// MODEL|BRAND|DEVICE|PRODUCT|BOARD|HARDWARE). Only 16 digest bytes are used: ours replace them.
+	private fun hookIncyFormula() {
+		val salt = "incy_hwid_".toByteArray()
+		try {
+			XposedHelpers.findAndHookMethod(MessageDigest::class.java, "digest", ByteArray::class.java,
+				object : XC_MethodHook() {
+				override fun afterHookedMethod(param: MethodHookParam) {
+					guardHook("hookIncyFormula/after") {
+						val input = param.args[0] as? ByteArray ?: return
+						if (input.size < salt.size || !salt.indices.all { input[it] == salt[it] }) return
+						val id = cachedId
+						if (!isHwidSpoofActive || id.isNullOrEmpty()) return
+						val hex = id.replace("-", "")
+						if (hex.length != 32 || !hex.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) return
+						val digest = ByteArray(32)
+						for (i in 0 until 16) digest[i] = hex.substring(i * 2, i * 2 + 2).toInt(16).toByte()
+						logTrace("INCY: formula HWID -> $id")
+						param.result = digest
+					}
+				}
+			})
+		} catch (error: Throwable) {
+			Log.e(ModuleIds.LOG_LSP, "INCY: cannot hook MessageDigest.digest: ${error.message}")
+		}
+	}
+
+	// The HWID getter reads the cache through SharedPreferences.getString. A UUID-shaped result gives
+	// the getter away (the no-arg String method up the stack): its result is replaced from then on.
+	private fun hookIncyCacheRead(classLoader: ClassLoader) {
 		val hwidShape = Regex("^[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$")
 		val skip = arrayOf(
 			"android.", "androidx.", "java.", "javax.", "kotlin.", "kotlinx.", "dalvik.", "sun.", "libcore.",
 			"com.android.", "de.robv.android.xposed.", "org.lsposed.", ModuleIds.PACKAGE_PREFIX
 		)
-		val probes = mutableListOf<XC_MethodHook.Unhook>()
+		val probes = CopyOnWriteArrayList<XC_MethodHook.Unhook>()
 		val onCacheRead = object : XC_MethodHook() {
 			override fun afterHookedMethod(param: MethodHookParam) {
 				guardHook("hookIncyHwid/after") {
@@ -357,7 +392,6 @@ class MainHook : IXposedHookLoadPackage {
 					if (!hwidShape.matches(value)) return
 					// INCY's full HWID (its cached UUID) - mirror it into the input field once per launch.
 					if (incyHwidCaptured.compareAndSet(false, true)) sendIdCapturedBroadcast(value)
-					// The no-arg String method that read it is INCY's HWID getter.
 					val method = Thread.currentThread().stackTrace.asSequence()
 						.filter { frame -> skip.none { frame.className.startsWith(it) } }
 						.mapNotNull { frame ->
@@ -387,15 +421,42 @@ class MainHook : IXposedHookLoadPackage {
 				}
 			}
 		}
-		val prefImpls = arrayOf("androidx.security.crypto.EncryptedSharedPreferences",
-			"android.app.SharedPreferencesImpl")
-		for (cls in prefImpls) {
-			try {
-				probes.add(XposedHelpers.findAndHookMethod(cls, classLoader, "getString",
-					String::class.java, String::class.java, onCacheRead))
-			} catch (error: Throwable) {
-				Log.e(ModuleIds.LOG_LSP, "INCY: cannot hook $cls.getString: ${error.message}")
+
+		// The encrypted wrapper reads through SharedPreferencesImpl.getString, so the first app class
+		// above it that implements SharedPreferences is the wrapper: its getString gets the hook above.
+		val wrapperHooked = AtomicBoolean(false)
+		val findWrapper = object : XC_MethodHook() {
+			override fun afterHookedMethod(param: MethodHookParam) {
+				guardHook("hookIncyHwid/wrapper") {
+					if (incyHwidHooked.get() || wrapperHooked.get()) return
+					val getString = Thread.currentThread().stackTrace.asSequence()
+						.filter { frame -> skip.none { frame.className.startsWith(it) } }
+						.mapNotNull { frame ->
+							try {
+								val cls = Class.forName(frame.className, false, classLoader)
+								if (!SharedPreferences::class.java.isAssignableFrom(cls)) null
+								else cls.getDeclaredMethod("getString", String::class.java, String::class.java)
+							} catch (_: Throwable) { null }
+						}
+						.firstOrNull() ?: return
+					if (!wrapperHooked.compareAndSet(false, true)) return
+					probes.add(XposedBridge.hookMethod(getString, onCacheRead))
+				}
 			}
+		}
+
+		// SharedPreferencesImpl also covers INCY's plain fallback file; the named class is older builds.
+		try {
+			probes.add(XposedHelpers.findAndHookMethod("android.app.SharedPreferencesImpl", classLoader,
+				"getString", String::class.java, String::class.java, onCacheRead))
+			probes.add(XposedHelpers.findAndHookMethod("android.app.SharedPreferencesImpl", classLoader,
+				"getString", String::class.java, String::class.java, findWrapper))
+			XposedHelpers.findClassIfExists("androidx.security.crypto.EncryptedSharedPreferences", classLoader)?.let {
+				probes.add(XposedHelpers.findAndHookMethod(it, "getString",
+					String::class.java, String::class.java, onCacheRead))
+			}
+		} catch (error: Throwable) {
+			Log.e(ModuleIds.LOG_LSP, "INCY: cannot hook getString: ${error.message}")
 		}
 	}
 
@@ -500,16 +561,31 @@ class MainHook : IXposedHookLoadPackage {
 		}
 	}
 
-	// Unlock v2RayTun: both SubscriptionItem and ConfigItem carry an isEncoded flag that hides share/edit UI
+	// Unlock v2RayTun: its model classes carry an isEncoded field that hides share/edit UI.
 	private fun hookV2RayTunUnlock(classLoader: ClassLoader) {
-		hookV2RayTunEncodedFlag(classLoader, "com.v2raytun.android.model.SubscriptionItem")
-		hookV2RayTunEncodedFlag(classLoader, "com.v2raytun.android.model.ConfigItem")
-		if (XposedHelpers.findClassIfExists("com.v2raytun.android.model.ConfigItem",
-			classLoader) == null) return
+		val models = findV2RayTunModels(classLoader)
+		if (models.isEmpty()) {
+			Log.w(ModuleIds.LOG_LSP, "v2RayTun: no model class with an isEncoded field found")
+			return
+		}
+		models.forEach { hookV2RayTunEncodedFlag(it) }
 		collectV2RayRecyclers(classLoader)
-		// Added once, after both getter hooks - re-binds lists per toggle, not per class.
+		// Added once, after the getter hook - re-binds lists per toggle, not per class.
 		val refreshObserver: (Boolean) -> Unit = { _ -> refreshV2RayLists() }
 		synchronized(unlockStateObservers) { unlockStateObservers.add(refreshObserver) }
+	}
+
+	// R8 renames the model classes (a, b, ...) but keeps their package and field names, so they are
+	// found by asking the package for each short name, not by one fixed name. Older builds kept the
+	// real names, which are tried too.
+	private fun findV2RayTunModels(classLoader: ClassLoader): List<Class<*>> {
+		val names = listOf("ConfigItem", "SubscriptionItem") + ('a'..'z').map { "$it" } + ('A'..'Z').map { "$it" }
+		return names.mapNotNull { XposedHelpers.findClassIfExists("com.v2raytun.android.model.$it", classLoader) }
+			.filter { clazz ->
+				try {
+					clazz.declaredFields.any { it.name == "isEncoded" && it.type == Boolean::class.javaPrimitiveType }
+				} catch (_: Throwable) { false }
+			}
 	}
 
 	// Tracks live RecyclerViews so a runtime toggle can re-bind rows - the getter hook alone
@@ -607,30 +683,79 @@ class MainHook : IXposedHookLoadPackage {
 		}
 	}
 
-	// UI reads isEncoded() to hide edit/share - hook the getter directly so it applies at class load.
-	private fun hookV2RayTunEncodedFlag(classLoader: ClassLoader, className: String) {
-		val clazz = XposedHelpers.findClassIfExists(className, classLoader) ?: return
-
-		val getter = try { clazz.getDeclaredMethod("isEncoded") } catch (_: Throwable) { return }
-		if (getter.returnType != Boolean::class.javaPrimitiveType) return
+	// The isEncoded field hides edit/share in the UI; its name survives obfuscation, its getter
+	// doesn't - this build even exposes it under two different method names - so every no-arg
+	// boolean getter that actually tracks the field is found by probing, like hookHideSettings below.
+	private fun hookV2RayTunEncodedFlag(clazz: Class<*>) {
+		val field = try {
+			clazz.getDeclaredField("isEncoded").apply { isAccessible = true }
+		} catch (_: Throwable) { return }
+		if (field.type != Boolean::class.javaPrimitiveType) return
 
 		val patchLock = Any()
+		val targetMethods = mutableListOf<Method>()
 		val activeUnhooks = mutableListOf<XC_MethodHook.Unhook>()
+		val probed = AtomicBoolean(false)
+		val ctorUnhooks = Collections.synchronizedList(mutableListOf<XC_MethodHook.Unhook>())
 
 		val applyPatches = {
 			synchronized(patchLock) {
 				if (activeUnhooks.isEmpty()) {
-					try {
-						activeUnhooks.add(XposedBridge.hookMethod(getter,
-							XC_MethodReplacement.returnConstant(false)))
-					} catch (_: Throwable) {}
+					for (method in targetMethods) {
+						try {
+							activeUnhooks.add(XposedBridge.hookMethod(method,
+								XC_MethodReplacement.returnConstant(false)))
+						} catch (_: Throwable) {}
+					}
 				}
 			}
 		}
 
 		val removePatches = { unhookAll(patchLock, activeUnhooks) }
 
-		followUnlockSetting(applyPatches, removePatches)
+		// On the first instance: toggle the field and keep every getter whose result follows it.
+		val ctorHook = object : XC_MethodHook() {
+			override fun afterHookedMethod(param: MethodHookParam) {
+				guardHook("hookV2RayTunEncodedFlag/after") {
+					if (!probed.compareAndSet(false, true)) return
+					val probe = param.thisObject ?: run { probed.set(false); return }
+					try {
+						val original = field.getBoolean(probe)
+						try {
+							for (method in clazz.declaredMethods) {
+								if (method.parameterTypes.isNotEmpty()) continue
+								if (method.returnType != Boolean::class.javaPrimitiveType) continue
+								if (!Modifier.isPublic(method.modifiers)) continue
+								try {
+									method.isAccessible = true
+									field.setBoolean(probe, false)
+									val whenFalse = method.invoke(probe) as Boolean
+									field.setBoolean(probe, true)
+									val whenTrue = method.invoke(probe) as Boolean
+									if (!whenFalse && whenTrue) {
+										synchronized(patchLock) { targetMethods.add(method) }
+									}
+								} catch (_: Throwable) {}
+							}
+						} finally {
+							try { field.setBoolean(probe, original) } catch (_: Throwable) {}
+						}
+						followUnlockSetting(applyPatches, removePatches)
+					} catch (error: Throwable) {
+						Log.e(ModuleIds.LOG_LSP, "hookV2RayTunEncodedFlag probe: ${error.message}")
+					} finally {
+						synchronized(ctorUnhooks) {
+							ctorUnhooks.forEach { try { it.unhook() } catch (_: Throwable) {} }
+							ctorUnhooks.clear()
+						}
+					}
+				}
+			}
+		}
+
+		for (ctor in clazz.declaredConstructors) {
+			try { ctorUnhooks.add(XposedBridge.hookMethod(ctor, ctorHook)) } catch (_: Throwable) {}
+		}
 	}
 
 	// Undoes every hook in the list under its lock; a hook that fails to come off is left behind.

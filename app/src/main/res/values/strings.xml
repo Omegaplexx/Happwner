@@ -15,7 +15,6 @@
 	<string name="label_intercept_hwid">Spoof HWID</string>
 	<string name="label_intercept_hwid_desc">Forcefully replace Hardware ID in target apps with the value from Happwner</string>
 	<string name="label_hwid_spoof_enable_field">Enable spoofing by tapping the pencil on the main screen</string>
-	<string name="label_hwid_spoof_off">Disabled</string>
 	<string name="label_hwid_spoof_current">Current: %1$s</string>
 
 	<string name="btn_get_proxy">Profiles</string>

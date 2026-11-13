@@ -24,6 +24,9 @@ internal object ModuleIds {
 	const val ACTION_TOGGLE_BRIDGE = "$PACKAGE.action.TOGGLE_BRIDGE"
 	const val ACTION_BRIDGE_RECOVERY = "$PACKAGE.action.BRIDGE_RECOVERY"
 
+	// Sent by the hook's three-finger gesture; carries the app it came from in EXTRA_PACKAGE.
+	const val ACTION_SWITCH_FROM_APP = "$PACKAGE.action.SWITCH_FROM_APP"
+
 	// The screen that takes a link opened in Happwner; named as a string to keep UI classes out of
 	// the hooked apps.
 	const val MAIN_ACTIVITY = "$PACKAGE.ui.MainActivity"

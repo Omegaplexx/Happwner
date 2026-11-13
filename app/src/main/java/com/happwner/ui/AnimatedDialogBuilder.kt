@@ -229,6 +229,7 @@ private class AnimatedDismissCallback(
 	private val createdAt = SystemClock.uptimeMillis()
 
 	override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+		SwitchBack.onTouch(dialog.context, event)
 		if (dialog.isInTransit()) return true
 		if (dialog.isShowing) {
 			// Ignores only a gesture that began before this dialog existed: the tap that opened it, arriving as

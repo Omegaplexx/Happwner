@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.happwner.R
@@ -46,6 +47,21 @@ abstract class ThemedActivity : AppCompatActivity() {
 	}
 
 	override fun finish() = finishForMode { super.finish() }
+
+	override fun onStart() {
+		super.onStart()
+		SwitchBack.screenStarted()
+	}
+
+	override fun onStop() {
+		SwitchBack.screenStopped(isChangingConfigurations)
+		super.onStop()
+	}
+
+	override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+		SwitchBack.onTouch(this, ev)
+		return super.dispatchTouchEvent(ev)
+	}
 
 	override fun onConfigurationChanged(newConfig: Configuration) {
 		super.onConfigurationChanged(newConfig)

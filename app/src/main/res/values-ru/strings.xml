@@ -14,7 +14,6 @@
 	<string name="label_intercept_hwid">Подменять HWID</string>
 	<string name="label_intercept_hwid_desc">Заменять идентификатор оборудования в целевых приложениях на значение из Happwner</string>
 	<string name="label_hwid_spoof_enable_field">Включите подмену, нажав на карандаш на главном экране</string>
-	<string name="label_hwid_spoof_off">Не подменяется</string>
 	<string name="label_hwid_spoof_current">Текущий: %1$s</string>
 
 	<string name="btn_get_proxy">Профили</string>

@@ -38,6 +38,7 @@ import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -1143,7 +1144,7 @@ class SettingsFragment : Fragment() {
 		val switch = view.findViewById<SwitchMaterial>(R.id.switchHwidSpoof)
 		val ctx = requireContext()
 		switch.isChecked = PrefsManager.isHwidSpoofEnabled(ctx)
-		updateHwidSpoofStatus(view)
+		updateHwidSpoofStatus(view, animate = false)
 		row.setOnClickListener {
 			val newState = !switch.isChecked
 			PrefsManager.getSafePrefs(ctx).edit {
@@ -1155,7 +1156,8 @@ class SettingsFragment : Fragment() {
 		}
 	}
 
-	private fun updateHwidSpoofStatus(view: View) {
+	// animate = false for the first state of a dialog that is opening: it is there from the start.
+	private fun updateHwidSpoofStatus(view: View, animate: Boolean = true) {
 		val status = view.findViewById<TextView>(R.id.textHwidSpoofStatus) ?: return
 		val ctx = context ?: return
 		val prefs = PrefsManager.getSafePrefs(ctx)
@@ -1167,10 +1169,54 @@ class SettingsFragment : Fragment() {
 			toggleOn && !fieldActive -> getString(R.string.label_hwid_spoof_enable_field)
 			toggleOn && fieldActive && custom.isNotEmpty() ->
 				getString(R.string.label_hwid_spoof_current, custom)
-			else -> getString(R.string.label_hwid_spoof_off)
+			else -> null
 		}
-		// crossfadeText no-ops when the text is unchanged, so repeated refreshes cost nothing.
-		status.crossfadeText(newStatus)
+		val visibility = if (newStatus != null) View.VISIBLE else View.GONE
+		if (!animate || ctx.skipProgrammaticAnimations() ||
+			(status.isVisible && status.height == 0)) {
+			status.animate().cancel()
+			status.alpha = 1f
+			status.updateLayoutParams<ViewGroup.MarginLayoutParams> { bottomMargin = 0 }
+			newStatus?.let { status.text = it }
+			status.visibility = visibility
+			return
+		}
+
+		// A fading line keeps its place but gives up its space (negative bottom margin): the description
+		// slides over it, and it is never drawn over the description.
+		val givesUpSpace = (status.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin < 0
+		val takeSpace = { status.updateLayoutParams<ViewGroup.MarginLayoutParams> { bottomMargin = 0 } }
+
+		// A line still hidden just takes the text; crossfadeText no-ops on unchanged text.
+		if (newStatus != null) {
+			if (status.isVisible) status.crossfadeText(newStatus) else status.text = newStatus
+		}
+		// Already there, or already on its way: a second refresh must not restart or cut the fade short.
+		val settled = if (visibility == View.VISIBLE) status.isVisible && !givesUpSpace
+			else !status.isVisible || givesUpSpace
+		if (settled) return
+
+		val duration = ctx.stateChangeDuration(R.integer.duration_standard_transition)
+		status.animate().cancel()
+		if (visibility == View.VISIBLE) {
+			status.glideHeights {
+				takeSpace()
+				// Back from a fade that was under way: up from where it got to.
+				if (status.isVisible) status.animate().alpha(1f).setDuration(duration).withLayer().start()
+				else status.fadeIn(duration)
+			}
+		} else {
+			status.glideHeights {
+				status.updateLayoutParams<ViewGroup.MarginLayoutParams> { bottomMargin = -(status.height + topMargin) }
+			}
+			status.animate().alpha(0f).setDuration(duration).withLayer().withEndAction {
+				// A cancelled fade ends here too; only a finished one has gone clear.
+				if (status.alpha != 0f) return@withEndAction
+				status.visibility = View.GONE
+				status.alpha = 1f
+				takeSpace()
+			}.start()
+		}
 	}
 
 	private fun bindUnlockItem(view: View) {

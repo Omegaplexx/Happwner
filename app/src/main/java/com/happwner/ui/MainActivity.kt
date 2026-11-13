@@ -365,6 +365,7 @@ class MainActivity : ThemedActivity() {
 		if (savedInstanceState == null) {
 			preAttachSettingsFragment()
 			handleViewIntent(intent)
+			SwitchBack.remember(intent)
 		} else {
 			restoreSettingsStateIfNeeded()
 			restoreMainDialogIfNeeded(savedInstanceState)
@@ -959,6 +960,7 @@ class MainActivity : ThemedActivity() {
 		super.onNewIntent(intent)
 		setIntent(intent)
 		handleViewIntent(intent)
+		SwitchBack.remember(intent)
 	}
 
 	// A link another app opens here (ACTION_VIEW), set aside for the import dialog when it is
