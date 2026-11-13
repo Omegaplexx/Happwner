@@ -14,7 +14,7 @@ object LSPortableRunner {
 
 	const val DEFAULT_SIG_BYPASS_LEVEL = 2
 
-	private val LSPORTABLE_SOURCE = ReleaseSource("Omegaplexx/LSPortable") { it == "lsportable" }
+	private val LSPORTABLE_SOURCE = ReleaseSource.named("Omegaplexx/LSPortable") { it == "lsportable" }
 
 	private const val LSPORTABLE_CACHE_NAME = "patcher/lsportable"
 	private const val PATCH_TIMEOUT_MS = 3 * 60_000L

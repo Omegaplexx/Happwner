@@ -9,12 +9,12 @@ enum class PatchTarget(
 ) {
 	HAPP(
 		"Happ", "su.happ.proxyutility",
-		ReleaseSource("Happ-proxy/happ-android") { it.equals("Happ.apk", ignoreCase = true) },
+		ReleaseSource.named("Happ-proxy/happ-android") { it.equals("Happ.apk", ignoreCase = true) },
 		"happ-latest.apk"
 	),
 	V2RAYTUN(
 		"v2RayTun", "com.v2raytun.android",
-		ReleaseSource("DigneZzZ/v2raytun") { it.endsWith(".apk", ignoreCase = true) },
+		ReleaseSource.named("DigneZzZ/v2raytun") { it.endsWith(".apk", ignoreCase = true) },
 		"v2raytun-latest.apk"
 	)
 }

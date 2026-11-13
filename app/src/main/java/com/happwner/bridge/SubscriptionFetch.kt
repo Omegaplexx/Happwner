@@ -244,6 +244,9 @@ object SubscriptionFetch {
 		var hops = 0
 		while (true) {
 			// Checked on every hop: the first address, each redirect, and a retry alike.
+			if (address.protocol != "http" && address.protocol != "https") {
+				throw IOException("Only http and https subscriptions are fetched")
+			}
 			if (fromNetwork) {
 				val allowed = BridgeLink.forNetworkClient(address)
 				if (allowed == null) {

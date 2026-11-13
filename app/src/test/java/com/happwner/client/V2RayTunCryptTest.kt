@@ -47,14 +47,14 @@ class V2RayTunCryptTest {
 
 	private fun assertDecrypts(label: String, expected: String, link: String) {
 		val result = V2RayTunCrypto.decryptCryptLink(link)
-		assertTrue("$label returned $result", result is V2RayTunCrypto.Result.Decrypted)
-		assertEquals(label, expected, (result as V2RayTunCrypto.Result.Decrypted).plaintext)
+		assertTrue("$label returned $result", result is CryptLinkResult.Decrypted)
+		assertEquals(label, expected, (result as CryptLinkResult.Decrypted).plaintext)
 	}
 
-	private fun assertRefused(label: String, link: String): V2RayTunCrypto.Result.Error {
+	private fun assertRefused(label: String, link: String): CryptLinkResult.Error {
 		val result = V2RayTunCrypto.decryptCryptLink(link)
-		assertTrue("$label: expected an error, got $result", result is V2RayTunCrypto.Result.Error)
-		return result as V2RayTunCrypto.Result.Error
+		assertTrue("$label: expected an error, got $result", result is CryptLinkResult.Error)
+		return result as CryptLinkResult.Error
 	}
 
 	@Test
@@ -113,7 +113,7 @@ class V2RayTunCryptTest {
 		for (text in listOf(null, "", "   ", "https://example.com", "v2raytun://import/abc")) {
 			assertEquals(
 				"input ${text?.take(24)}",
-				V2RayTunCrypto.Result.NotCryptLink,
+				CryptLinkResult.NotCryptLink,
 				V2RayTunCrypto.decryptCryptLink(text)
 			)
 		}

@@ -16,17 +16,16 @@ import android.os.RemoteException
 import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.happwner.patcher.ReleaseAsset
+import com.happwner.patcher.ReleaseDownloader
+import com.happwner.patcher.ReleaseSource
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import org.json.JSONArray
-import org.json.JSONObject
 
 // Bridge to the optional companion app Happanion (com.happproxy): it runs Happ's own liberror-code.so,
 // so it may open a Happ link the built-in keys cannot. Also fetches, installs and removes it.
@@ -39,9 +38,8 @@ object HappanionBridge {
 	// Where a build is fetched from and where "Info" points to.
 	private const val GITHUB_OWNER = "Omegaplexx"
 	private const val GITHUB_REPO = "Happanion"
-	private const val RELEASES_API_URL =
-		"https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest"
 	private const val PROJECT_URL = "https://github.com/$GITHUB_OWNER/$GITHUB_REPO"
+	private val RELEASE = ReleaseSource("$GITHUB_OWNER/$GITHUB_REPO") { pickApk(it, Build.SUPPORTED_ABIS.toList()) }
 
 	// The one cache folder the FileProvider shares, so an install exposes the APK and nothing else.
 	private const val APK_CACHE_DIR = "happanion"
@@ -224,15 +222,9 @@ object HappanionBridge {
 	}
 
 	// Downloads the latest release's APK into the cache, ready to install, on the IO dispatcher.
-	// Null on any failure - no release yet, no APK among its assets, or the network not cooperating.
+	// Null on any failure - no release yet, no APK among its assets, a bad digest, or no network.
 	suspend fun downloadLatestRelease(context: Context): File? = withContext(Dispatchers.IO) {
-		try {
-			val assetUrl = latestApkAssetUrl() ?: return@withContext null
-			downloadToCache(context, assetUrl)
-		} catch (throwable: Throwable) {
-			Log.w(TAG, "Happanion download failed: ${throwable.javaClass.simpleName}: ${throwable.message}")
-			null
-		}
+		ReleaseDownloader.downloadLatest(context, RELEASE, "$APK_CACHE_DIR/happanion-latest.apk") { _, _ -> }
 	}
 
 	// The only two architectures Happanion ships for.
@@ -245,53 +237,17 @@ object HappanionBridge {
 		return HAPPANION_APK_ABIS.firstOrNull { base.endsWith("-$it", ignoreCase = true) }
 	}
 
-	private fun latestApkAssetUrl(): String? {
-		val connection = (URL(RELEASES_API_URL).openConnection() as HttpURLConnection).apply {
-			connectTimeout = 10_000
-			readTimeout = 10_000
-			setRequestProperty("Accept", "application/vnd.github+json")
-		}
-		return try {
-			if (connection.responseCode != 200) return null
-			val body = connection.inputStream.bufferedReader().use { it.readText() }
-			val assets = JSONObject(body).optJSONArray("assets") ?: return null
-			apkAssetUrl(assets, Build.SUPPORTED_ABIS.toList())
-		} finally {
-			connection.disconnect()
-		}
-	}
-
-	// The download of the APK a release offers a device with these ABIs, or null when it offers none.
-	internal fun apkAssetUrl(assets: JSONArray, abis: List<String>): String? {
-		val apks = (0 until assets.length()).mapNotNull { assets.optJSONObject(it) }
-			.map { it.optString("name") to it.optString("browser_download_url") }
-			.filter { (name, url) -> name.endsWith(".apk", ignoreCase = true) && url.isNotEmpty() }
+	// The build a release offers a device with these ABIs, or null when it offers no APK.
+	internal fun pickApk(assets: List<ReleaseAsset>, abis: List<String>): ReleaseAsset? {
+		val apks = assets.filter { it.name.endsWith(".apk", ignoreCase = true) }
 		if (apks.isEmpty()) return null
 		// The device's own ABIs, most preferred first - the first asset naming one of them wins.
 		for (abi in abis) {
-			apks.firstOrNull { (name, _) -> abiOf(name).equals(abi, ignoreCase = true) }
-				?.let { return it.second }
+			apks.firstOrNull { abiOf(it.name).equals(abi, ignoreCase = true) }?.let { return it }
 		}
 		// None of the device's ABIs are named by any asset: fall back to the one naming no ABI at all,
 		// the universal build - or, failing that, whatever there is.
-		return apks.firstOrNull { (name, _) -> abiOf(name) == null }?.second ?: apks.first().second
-	}
-
-	private fun downloadToCache(context: Context, url: String): File? {
-		val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-			connectTimeout = 10_000
-			readTimeout = 30_000
-			instanceFollowRedirects = true
-		}
-		return try {
-			if (connection.responseCode != 200) return null
-			val dir = File(context.cacheDir, APK_CACHE_DIR).apply { mkdirs() }
-			val file = File(dir, "happanion-latest.apk")
-			connection.inputStream.use { input -> file.outputStream().use { input.copyTo(it) } }
-			file
-		} finally {
-			connection.disconnect()
-		}
+		return apks.firstOrNull { abiOf(it.name) == null } ?: apks.first()
 	}
 
 	// A content:// Uri through the app's own FileProvider: a plain file:// one is blocked from API 24 on.

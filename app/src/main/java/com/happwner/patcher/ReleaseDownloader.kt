@@ -14,8 +14,17 @@ import org.json.JSONObject
 // sha256 is the asset's digest as GitHub reports it (lowercase hex); null for assets that predate it.
 data class ReleaseInfo(val versionName: String, val downloadUrl: String, val sha256: String?)
 
+// One downloadable file of a release; sha256 as for ReleaseInfo.
+class ReleaseAsset(val name: String, val url: String, val sha256: String?)
+
 // A GitHub repo ("owner/name") and the rule that picks the wanted asset from its latest release.
-class ReleaseSource(val repo: String, val assetMatches: (String) -> Boolean)
+class ReleaseSource(val repo: String, val pick: (List<ReleaseAsset>) -> ReleaseAsset?) {
+	companion object {
+		// The first asset whose name passes.
+		fun named(repo: String, matches: (String) -> Boolean) =
+			ReleaseSource(repo) { assets -> assets.firstOrNull { matches(it.name) } }
+	}
+}
 
 object ReleaseDownloader {
 
@@ -53,16 +62,14 @@ object ReleaseDownloader {
 			val json = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
 			val version = json.optString("tag_name")
 			val assets = json.optJSONArray("assets") ?: return null
-			for (i in 0 until assets.length()) {
-				val asset = assets.optJSONObject(i) ?: continue
-				if (!source.assetMatches(asset.optString("name"))) continue
+			val listed = (0 until assets.length()).mapNotNull { assets.optJSONObject(it) }.mapNotNull { asset ->
 				val url = asset.optString("browser_download_url")
-				if (url.isEmpty()) continue
+				if (url.isEmpty()) return@mapNotNull null
 				val digest = asset.optString("digest")
 				val sha256 = digest.takeIf { it.startsWith("sha256:") }?.removePrefix("sha256:")?.lowercase()
-				return ReleaseInfo(version, url, sha256)
+				ReleaseAsset(asset.optString("name"), url, sha256)
 			}
-			null
+			source.pick(listed)?.let { ReleaseInfo(version, it.url, it.sha256) }
 		} catch (_: Throwable) {
 			null
 		} finally {

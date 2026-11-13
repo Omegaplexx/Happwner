@@ -32,32 +32,26 @@ object IncyCrypto {
 	private const val KEYMAT_B_OFFSET = 2048
 	private const val KEYMAT_LEN = 32
 
-	sealed class Result {
-		data class Decrypted(val plaintext: String) : Result()
-		object NotCryptLink : Result()
-		data class Error(val reason: String) : Result()
-	}
-
 	// Decrypt an incy://crypt1/ link back to its subscription URL
-	fun decryptCryptLink(link: String?): Result {
-		if (link.isNullOrEmpty()) return Result.NotCryptLink
+	fun decryptCryptLink(link: String?): CryptLinkResult {
+		if (link.isNullOrEmpty()) return CryptLinkResult.NotCryptLink
 		val trimmed = link.trim()
-		if (!IncyLinks.isCryptLink(trimmed)) return Result.NotCryptLink
+		if (!IncyLinks.isCryptLink(trimmed)) return CryptLinkResult.NotCryptLink
 		if (!trimmed.regionMatches(0, CRYPT1_PREFIX, 0, CRYPT1_PREFIX.length, ignoreCase = true)) {
 			// crypt2 and later would use a different key; fail loudly instead of silently
-			return Result.Error("unsupported INCY scheme version (only crypt1 is implemented)")
+			return CryptLinkResult.Error("unsupported INCY scheme version (only crypt1 is implemented)")
 		}
 
 		val payload = trimmed.substring(CRYPT1_PREFIX.length).trimEnd('/').trim()
-		if (payload.isEmpty()) return Result.Error("empty payload")
+		if (payload.isEmpty()) return CryptLinkResult.Error("empty payload")
 
 		val wire = try {
 			decodeBase64Lenient(payload)
 		} catch (_: IllegalArgumentException) {
-			return Result.Error("payload is not valid base64url")
+			return CryptLinkResult.Error("payload is not valid base64url")
 		}
 		if (wire.size < IV_LEN + TAG_LEN + 1) {
-			return Result.Error("payload too short: ${wire.size}B, need more than ${IV_LEN + TAG_LEN}B")
+			return CryptLinkResult.Error("payload too short: ${wire.size}B, need more than ${IV_LEN + TAG_LEN}B")
 		}
 
 		val key = deriveKey()
@@ -68,26 +62,26 @@ object IncyCrypto {
 			// JCE expects ciphertext||tag, which is exactly the rest of the wire buffer
 			cipher.doFinal(wire, IV_LEN, wire.size - IV_LEN)
 		} catch (_: Exception) {
-			return Result.Error("authentication failed (wrong key or tampered payload)")
+			return CryptLinkResult.Error("authentication failed (wrong key or tampered payload)")
 		}
 
-		val json = decodeStrictUtf8(plain) ?: return Result.Error("plaintext is not valid UTF-8")
+		val json = decodeStrictUtf8(plain) ?: return CryptLinkResult.Error("plaintext is not valid UTF-8")
 
 		// The GCM tag proves the payload was made with the bundled key - but that key ships inside
 		// the APK, so anyone can extract it and mint one.
-		if (JsonDepth.exceedsMaxDepth(json)) return Result.Error("malformed plaintext")
+		if (JsonDepth.exceedsMaxDepth(json)) return CryptLinkResult.Error("malformed plaintext")
 
 		val parsed = try {
 			JSONObject(json)
 		} catch (_: Exception) {
-			return Result.Error("malformed plaintext")
+			return CryptLinkResult.Error("malformed plaintext")
 		}
 
 		val url = parsed.optString("url").trim()
-		if (url.isEmpty()) return Result.Error("missing url field")
+		if (url.isEmpty()) return CryptLinkResult.Error("missing url field")
 
 		Log.d(TAG, "Decrypted crypt1: ${wire.size}B wire -> ${plain.size}B payload")
-		return Result.Decrypted(url)
+		return CryptLinkResult.Decrypted(url)
 	}
 
 	private val keyLock = Any()

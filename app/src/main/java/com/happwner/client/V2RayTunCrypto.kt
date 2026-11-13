@@ -17,32 +17,26 @@ object V2RayTunCrypto {
 	private val keyCache: Array<PrivateKey?> = arrayOfNulls(KEY_COUNT)
 	private val keyLock = Any()
 
-	sealed class Result {
-		data class Decrypted(val plaintext: String) : Result()
-		object NotCryptLink : Result()
-		data class Error(val reason: String) : Result()
-	}
-
 	private const val MAX_RSA_BLOCKS = 256
 
 	// Decrypt a v2raytun://crypt/ link, trying every bundled key
-	fun decryptCryptLink(link: String?): Result {
-		if (link.isNullOrEmpty()) return Result.NotCryptLink
+	fun decryptCryptLink(link: String?): CryptLinkResult {
+		if (link.isNullOrEmpty()) return CryptLinkResult.NotCryptLink
 		val trimmed = link.trim()
 		if (!trimmed.regionMatches(0, V2RayTunLinks.CRYPT_PREFIX, 0,
 			V2RayTunLinks.CRYPT_PREFIX.length, ignoreCase = true)) {
-			return Result.NotCryptLink
+			return CryptLinkResult.NotCryptLink
 		}
 
 		val payload = trimmed.substring(V2RayTunLinks.CRYPT_PREFIX.length).trim()
-		if (payload.isEmpty()) return Result.Error("empty payload")
+		if (payload.isEmpty()) return CryptLinkResult.Error("empty payload")
 
 		val cipherBytes = try {
 			decodeBase64Lenient(payload)
 		} catch (_: IllegalArgumentException) {
-			return Result.Error("payload is not valid base64")
+			return CryptLinkResult.Error("payload is not valid base64")
 		}
-		if (cipherBytes.isEmpty()) return Result.Error("ciphertext is empty after base64 decode")
+		if (cipherBytes.isEmpty()) return CryptLinkResult.Error("ciphertext is empty after base64 decode")
 
 		var lastReason = "no bundled key could decrypt the link"
 		for (ordinal in 0 until KEY_COUNT) {
@@ -75,11 +69,11 @@ object V2RayTunCrypto {
 			val candidate = text.trim()
 			if (looksLikeSchemeLink(candidate)) {
 				Log.d(TAG, "Decrypted with key #$ordinal: ${cipherBytes.size}B -> ${plain.size}B")
-				return Result.Decrypted(candidate)
+				return CryptLinkResult.Decrypted(candidate)
 			}
 		}
 		Log.w(TAG, "Decrypt failed: $lastReason")
-		return Result.Error(lastReason)
+		return CryptLinkResult.Error(lastReason)
 	}
 
 	// Cached PKCS#8 key by ordinal; all access under keyLock for safe publication

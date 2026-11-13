@@ -66,6 +66,7 @@ import com.happwner.R
 import com.happwner.bridge.BridgeController
 import com.happwner.bridge.BridgeLink
 import com.happwner.bridge.SubscriptionFetch
+import com.happwner.client.CryptLinkResult
 import com.happwner.client.HappCrypto
 import com.happwner.client.HappLinks
 import com.happwner.client.HappanionBridge
@@ -599,10 +600,7 @@ class MainActivity : ThemedActivity() {
 		// Collapse / expand the output section
 		outputHeader.setOnClickListener {
 			currentFocus?.clearFocus()
-			abortOutputExpansion()
-			output.animate().cancel()
-			output.alpha = 1f
-			hideWaitLabel()
+			settleOutput()
 			mainContainer.beginAdaptiveToggleTransition(output, R.id.hwidHint)
 			if (output.isVisible) {
 				output.visibility = View.GONE
@@ -679,10 +677,7 @@ class MainActivity : ThemedActivity() {
 			fullResponseText = ""
 			outputShowsResponse = false
 			updateOutputButtonsVisibility()
-			abortOutputExpansion()
-			output.animate().cancel()
-			output.alpha = 1f
-			hideWaitLabel()
+			settleOutput()
 
 			// The response stays on screen while the area collapses so the transition's Fade carries it out; swapping to the
 			// placeholder first would fade the placeholder and make the text change look instant.
@@ -710,6 +705,14 @@ class MainActivity : ThemedActivity() {
 			output, R.attr.happAccent,
 			ContextCompat.getColor(this, R.color.brand_purple_secondary)
 		))
+	}
+
+	// Stops what the result area is doing, so a collapse starts from a settled view.
+	private fun settleOutput() {
+		abortOutputExpansion()
+		output.animate().cancel()
+		output.alpha = 1f
+		hideWaitLabel()
 	}
 
 	// The "Subscription" button, with the debounce a double tap needs
@@ -1269,8 +1272,9 @@ class MainActivity : ThemedActivity() {
 		when {
 			hasCryptPayload(text, "happ://crypt") -> decryptAction { handleDecryptUrl(text) }
 			hasCryptPayload(text, "v2raytun://crypt") ->
-				decryptAction { handleDecryptV2RayTunUrl(text) }
-			hasCryptPayload(text, "incy://crypt") -> decryptAction { handleDecryptIncyUrl(text) }
+				decryptAction { handleDecryptCryptLink("v2raytun", text, V2RayTunCrypto::decryptCryptLink) }
+			hasCryptPayload(text, "incy://crypt") ->
+				decryptAction { handleDecryptCryptLink("incy", text, IncyCrypto::decryptCryptLink) }
 			text.startsWith("happ://add/") -> unwrapAction { HappLinks.stripAddPrefix(text) }
 			V2RayTunLinks.isImportLink(text) ->
 				unwrapAction { V2RayTunLinks.stripImportPrefix(text) }
@@ -1599,23 +1603,14 @@ class MainActivity : ThemedActivity() {
 		(findViewById<View>(R.id.mainScrollView) as? NoAutoScrollView)?.setFastScrollActive(large)
 	}
 
-	// Decrypt a v2raytun://crypt link off-thread, then show it (or the error)
-	private fun handleDecryptV2RayTunUrl(cryptUrl: String) = decryptInto(cryptUrl) {
-		val result = withContext(Dispatchers.IO) { V2RayTunCrypto.decryptCryptLink(cryptUrl) }
-		when (result) {
-			is V2RayTunCrypto.Result.Decrypted -> DecryptOutcome.Plain(result.plaintext)
-			is V2RayTunCrypto.Result.Error -> DecryptOutcome.Failed("v2raytun: ${result.reason}")
-			V2RayTunCrypto.Result.NotCryptLink -> DecryptOutcome.NotALink
-		}
-	}
-
-	// Decrypt an incy://crypt1 link off-thread, then show it (or the error)
-	private fun handleDecryptIncyUrl(cryptUrl: String) = decryptInto(cryptUrl) {
-		val result = withContext(Dispatchers.IO) { IncyCrypto.decryptCryptLink(cryptUrl) }
-		when (result) {
-			is IncyCrypto.Result.Decrypted -> DecryptOutcome.Plain(result.plaintext)
-			is IncyCrypto.Result.Error -> DecryptOutcome.Failed("incy: ${result.reason}")
-			IncyCrypto.Result.NotCryptLink -> DecryptOutcome.NotALink
+	// Decrypt a v2raytun:// or incy:// crypt link off-thread, then show it (or the error)
+	private fun handleDecryptCryptLink(
+		app: String, cryptUrl: String, decrypt: (String) -> CryptLinkResult
+	) = decryptInto(cryptUrl) {
+		when (val result = withContext(Dispatchers.IO) { decrypt(cryptUrl) }) {
+			is CryptLinkResult.Decrypted -> DecryptOutcome.Plain(result.plaintext)
+			is CryptLinkResult.Error -> DecryptOutcome.Failed("$app: ${result.reason}")
+			CryptLinkResult.NotCryptLink -> DecryptOutcome.NotALink
 		}
 	}
 

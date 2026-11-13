@@ -1,19 +1,15 @@
 package com.happwner.client
 
 import kotlinx.coroutines.runBlocking
-import org.json.JSONArray
-import org.json.JSONObject
+import com.happwner.patcher.ReleaseAsset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 class HappanionBridgeTest {
-	private fun assets(vararg names: String) =
-		JSONArray(names.map { JSONObject().put("name", it).put("browser_download_url", "https://d/$it") })
-
 	private fun pick(abis: List<String>, vararg names: String) =
-		HappanionBridge.apkAssetUrl(assets(*names), abis)
+		HappanionBridge.pickApk(names.map { ReleaseAsset(it, "https://d/$it", null) }, abis)?.url
 
 	@Test
 	fun `the build is picked by the device's ABI in its order of preference, an ABI counts only at the end of the name, and only APKs count`() {
@@ -33,8 +29,6 @@ class HappanionBridgeTest {
 		assertEquals("https://d/happanion-armeabi-v7a.apk",
 			pick(listOf("armeabi-v7a"), "happanion-arm64-v8a-debug.apk", "happanion-armeabi-v7a.apk"))
 		assertNull(pick(listOf("arm64-v8a"), "notes.txt", "source.zip"))
-		val noUrl = JSONArray().put(JSONObject().put("name", "happanion.apk"))
-		assertNull(HappanionBridge.apkAssetUrl(noUrl, listOf("arm64-v8a")))
 	}
 
 	@Test

@@ -32,7 +32,7 @@ class IncyCryptoTest {
 	private fun sealed(json: String) = linkOf(payloadOf(json.toByteArray()))
 
 	private fun reason(link: String?) =
-		(IncyCrypto.decryptCryptLink(link) as IncyCrypto.Result.Error).reason
+		(IncyCrypto.decryptCryptLink(link) as CryptLinkResult.Error).reason
 
 	// The bundled keymat yields the key the published INCY clients use: a slip in either blob would
 	// otherwise show only as every link failing to open.
@@ -47,13 +47,13 @@ class IncyCryptoTest {
 	@Test
 	fun `a sealed link opens to its url, however its prefix is written, and what is no crypt link is left alone`() {
 		val link = sealed("""{"url":" https://sub.example/s ","n":"Mine"}""")
-		val opened = IncyCrypto.Result.Decrypted("https://sub.example/s")
+		val opened = CryptLinkResult.Decrypted("https://sub.example/s")
 		assertEquals(opened, IncyCrypto.decryptCryptLink(link))
 		val upper = "INCY://CRYPT1/" + link.substringAfter("crypt1/")
 		assertEquals(opened, IncyCrypto.decryptCryptLink(upper))
 		assertEquals(opened, IncyCrypto.decryptCryptLink(" $link/ "))
 		for (other in listOf(null, "", "https://sub.example/s", "incy://add/https://sub.example/s")) {
-			assertEquals(IncyCrypto.Result.NotCryptLink, IncyCrypto.decryptCryptLink(other))
+			assertEquals(CryptLinkResult.NotCryptLink, IncyCrypto.decryptCryptLink(other))
 		}
 	}
 
