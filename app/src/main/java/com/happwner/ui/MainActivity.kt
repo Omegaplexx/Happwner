@@ -169,7 +169,10 @@ class MainActivity : ThemedActivity() {
 	private var pendingStartHeight: Int = -1
 	private var pendingHintAnimAfterImeClose: Boolean = false
 
+	private lateinit var outputBox: View
+	private lateinit var outputLabels: TextView
 	private lateinit var output: TextView
+	private lateinit var outputMore: TextView
 	private lateinit var outputWaitLabel: TextView
 	private lateinit var outputHeader: ViewGroup
 	private lateinit var btnClearOutput: ImageButton
@@ -207,7 +210,9 @@ class MainActivity : ThemedActivity() {
 	private val saveTap = TapDebounce()
 	private var fetchGeneration = 0
 	private var loadingPhaseRunning = false
-	private var pendingConfigText: CharSequence? = null
+	private var pendingConfigText: OutputContent? = null
+
+	private class OutputContent(val labels: CharSequence, val body: CharSequence, val more: CharSequence?)
 
 	// A person waits on this screen for the answer, so it gives up sooner than the bridge does.
 	private val fetchTimeouts by lazy {
@@ -310,7 +315,10 @@ class MainActivity : ThemedActivity() {
 		layoutUrl = findViewById(R.id.layoutUrl)
 		layoutUserAgent = findViewById(R.id.layoutUserAgent)
 		urlErrorText = findViewById(R.id.urlErrorText)
+		outputBox = findViewById(R.id.outputBox)
+		outputLabels = findViewById(R.id.outputLabels)
 		output = findViewById(R.id.output)
+		outputMore = findViewById(R.id.outputMore)
 		outputWaitLabel = findViewById(R.id.outputWaitLabel)
 		(findViewById<View>(R.id.mainScrollView) as? NoAutoScrollView)?.let { scrollView ->
 			scrollView.selectionView = output
@@ -602,15 +610,15 @@ class MainActivity : ThemedActivity() {
 		outputHeader.setOnClickListener {
 			currentFocus?.clearFocus()
 			settleOutput()
-			mainContainer.beginAdaptiveToggleTransition(output, R.id.hwidHint)
-			if (output.isVisible) {
-				output.visibility = View.GONE
+			mainContainer.beginAdaptiveToggleTransition(outputBox, R.id.hwidHint)
+			if (outputBox.isVisible) {
+				outputBox.visibility = View.GONE
 				btnExpandOutput.setImageResource(R.drawable.ic_expand_more)
 			} else {
 				// A Delete may still be waiting out the collapse; apply it now so the deleted
 				// response can't come back on screen when the area re-opens.
 				if (pendingPlaceholderReset != null) applyPlaceholderReset()
-				output.visibility = View.VISIBLE
+				outputBox.visibility = View.VISIBLE
 				btnExpandOutput.setImageResource(R.drawable.ic_expand_less)
 			}
 			// Collapsing the result falls back to the stock scrollbar; expanding a large one
@@ -682,9 +690,9 @@ class MainActivity : ThemedActivity() {
 
 			// The response stays on screen while the area collapses so the transition's Fade carries it out; swapping to the
 			// placeholder first would fade the placeholder and make the text change look instant.
-			val wasVisible = output.isVisible
+			val wasVisible = outputBox.isVisible
 			if (wasVisible) {
-				output.visibility = View.GONE
+				outputBox.visibility = View.GONE
 				btnExpandOutput.setImageResource(R.drawable.ic_expand_more)
 			}
 			if (!wasVisible || skipProgrammaticAnimations()) {
@@ -711,8 +719,8 @@ class MainActivity : ThemedActivity() {
 	// Stops what the result area is doing, so a collapse starts from a settled view.
 	private fun settleOutput() {
 		abortOutputExpansion()
-		output.animate().cancel()
-		output.alpha = 1f
+		outputBox.animate().cancel()
+		outputBox.alpha = 1f
 		hideWaitLabel()
 	}
 
@@ -795,17 +803,18 @@ class MainActivity : ThemedActivity() {
 			abortOutputExpansion()
 			hideWaitLabel()
 
-			output.crossfadeContent(onEnd = {
+			outputBox.crossfadeContent(onEnd = {
 				if (gen != fetchGeneration) return@crossfadeContent
 				loadingPhaseRunning = false
 				val pending = pendingConfigText
 				if (pending != null) {
 					pendingConfigText = null
-					output.crossfadeContent { showOutputText(pending) }
+					outputBox.crossfadeContent { showOutputText(pending) }
 				}
 			}) {
-				output.visibility = View.VISIBLE
+				outputBox.visibility = View.VISIBLE
 				btnExpandOutput.setImageResource(R.drawable.ic_expand_less)
+				hideOutputNotes()
 				output.text = getString(R.string.msg_loading)
 				output.setTextIsSelectable(false)
 				applyOutputScrollbar()
@@ -867,18 +876,17 @@ class MainActivity : ThemedActivity() {
 					ContextCompat.getColor(this@MainActivity, R.color.brand_purple_secondary)
 				)
 
-				val prefix = resultLabels(wasDecrypted, stats, fetched.subUa, accent)
-
-				val newText = measured(resultText(prefix, converted, gen, accent))
+				val labels = resultLabels(wasDecrypted, stats, fetched.subUa, accent)
+				val content = resultContent(labels, converted, gen, accent)
 
 				if (gen != fetchGeneration) return@launch
 				fullResponseText = converted
 				lastResponseSuffix = suffix
 
 				if (loadingPhaseRunning) {
-					pendingConfigText = newText
+					pendingConfigText = content
 				} else {
-					output.crossfadeContent { showOutputText(newText) }
+					outputBox.crossfadeContent { showOutputText(content) }
 				}
 			}
 		}
@@ -910,38 +918,35 @@ class MainActivity : ThemedActivity() {
 			label(resources.getQuantityString(plural, stats.xraySkipped, stats.xraySkipped))
 		}
 		subUa?.let { label(getString(R.string.msg_used_ua, it)) }
-		if (prefix.isNotEmpty()) prefix.append("\n\n")
+		if (prefix.isNotEmpty()) prefix.append("\n")
 		return prefix
 	}
 
 	// The result as first shown: the whole text when it is short enough, otherwise its head with a
 	// "show full" that expands it on tap - as long as no newer fetch has replaced this one.
-	private fun resultText(
-		prefix: SpannableStringBuilder,
+	private suspend fun resultContent(
+		labels: CharSequence,
 		converted: String,
 		gen: Int,
 		accent: Int
-	): CharSequence {
-		if (converted.length <= MAX_DISPLAY_CHARS) return SpannableStringBuilder(prefix).append(converted)
-		val expandPrefix: CharSequence = SpannableStringBuilder(prefix)
+	): OutputContent {
+		if (converted.length <= MAX_DISPLAY_CHARS) return OutputContent(labels, measured(converted), null)
 		val showFullSpan = object : ClickableSpan() {
 			override fun onClick(widget: View) {
 				if (gen != fetchGeneration) return
-				expandOutputToFull(expandPrefix, converted, gen)
+				expandOutputToFull(converted, gen)
 			}
 			override fun updateDrawState(drawState: TextPaint) {
 				drawState.color = accent
 				drawState.isUnderlineText = true
 			}
 		}
-		return SpannableStringBuilder(prefix)
-			.append(converted.take(MAX_DISPLAY_CHARS))
-			.append(getString(R.string.msg_text_truncated))
-			.apply {
-				val start = length
-				append(getString(R.string.msg_show_full))
-				setSpan(showFullSpan, start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-			}
+		val more = SpannableStringBuilder(getString(R.string.msg_text_truncated)).apply {
+			val start = length
+			append(getString(R.string.msg_show_full))
+			setSpan(showFullSpan, start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+		}
+		return OutputContent(labels, measured(converted.take(MAX_DISPLAY_CHARS)), more)
 	}
 
 	// Register for the module's ID / URL / refresh broadcasts
@@ -1404,7 +1409,8 @@ class MainActivity : ThemedActivity() {
 		val keepY = scrollView?.scrollY ?: 0
 		val hadFocusable = output.isFocusableInTouchMode
 		output.isFocusableInTouchMode = false
-		output.animate().cancel()
+		outputBox.animate().cancel()
+		outputMore.visibility = View.GONE
 		runCatching { setOutputText(text) }
 		if (!output.isTextSelectable) {
 			output.setTextIsSelectable(true)
@@ -1418,19 +1424,18 @@ class MainActivity : ThemedActivity() {
 
 	// Ends an expansion with the result shown whole and the wait label gone.
 	private fun endExpansion() {
-		output.alpha = 1f
+		outputBox.alpha = 1f
 		hideWaitLabel()
 		outputExpanding = false
 	}
 
 	// Expand to full text: fade the result out, swap text (keeping scroll, no jump), fade back in
-	private fun expandOutputToFull(prefix: CharSequence, body: String, gen: Int) {
+	private fun expandOutputToFull(body: String, gen: Int) {
 		if (outputExpanding) return
 		outputExpanding = true
 		outputExpandAborted = false
 
-		val fullText: CharSequence = if (prefix.isEmpty()) body else SpannableStringBuilder(
-			prefix).append(body)
+		val fullText: CharSequence = body
 		val duration = stateChangeDuration(R.integer.duration_standard_transition)
 		val animate = !skipProgrammaticAnimations()
 		// The text as laid out off the UI thread, for the swap to take as it is
@@ -1438,17 +1443,17 @@ class MainActivity : ThemedActivity() {
 
 		// Swap the text in, then fade the full text in
 		val swapAndReveal = {
-			if (!outputExpandAborted && gen == fetchGeneration && output.isVisible) {
+			if (!outputExpandAborted && gen == fetchGeneration && outputBox.isVisible) {
 				swapInOutputText(shown)
 				if (animate) {
-					output.alpha = 0f
+					outputBox.alpha = 0f
 					// The wait label fades out as the full text fades in; the full text is now interactive
 					blockOutputTouch = false
 					outputWaitLabel.animate().cancel()
 					outputWaitLabel.animate().alpha(0f).setDuration(duration).withLayer().withEndAction {
 						outputWaitLabel.visibility = View.GONE
 					}.start()
-					output.animate().alpha(1f).setDuration(duration).withLayerIfFits(output).withEndAction {
+					outputBox.animate().alpha(1f).setDuration(duration).withLayerIfFits(outputBox).withEndAction {
 						outputExpanding = false
 					}.start()
 				} else {
@@ -1465,20 +1470,20 @@ class MainActivity : ThemedActivity() {
 		val proceed = { if (fadeDone && warmDone) swapAndReveal() }
 
 		if (animate) {
-			output.animate().cancel()
+			outputBox.animate().cancel()
 			outputWaitLabel.animate().cancel()
 			// The wait label fades in over the visible result area as the truncated text fades out
 			blockOutputTouch = true
 			outputWaitLabel.fadeIn(duration)
-			output.animate().alpha(0f).setDuration(duration).withLayerIfFits(output).withEndAction {
+			outputBox.animate().alpha(0f).setDuration(duration).withLayerIfFits(outputBox).withEndAction {
 				fadeDone = true
 				proceed()
 			}.start()
 		} else {
 			// No animations: show the wait label instantly while the heavy work runs
-			output.animate().cancel()
+			outputBox.animate().cancel()
 			blockOutputTouch = true
-			output.alpha = 0f
+			outputBox.alpha = 0f
 			outputWaitLabel.animate().cancel()
 			outputWaitLabel.alpha = 1f
 			outputWaitLabel.visibility = View.VISIBLE
@@ -1508,6 +1513,7 @@ class MainActivity : ThemedActivity() {
 	private fun applyPlaceholderReset() {
 		pendingPlaceholderReset?.let { output.removeCallbacks(it) }
 		pendingPlaceholderReset = null
+		hideOutputNotes()
 		output.setHtmlText(R.string.label_result_default)
 		output.setTextIsSelectable(false)
 		applyOutputScrollbar()
@@ -1537,10 +1543,20 @@ class MainActivity : ThemedActivity() {
 		if (!taken) output.text = text
 	}
 
-	private fun showOutputText(text: CharSequence) {
-		output.visibility = View.VISIBLE
+	private fun hideOutputNotes() {
+		outputLabels.visibility = View.GONE
+		outputMore.visibility = View.GONE
+	}
+
+	private fun showOutputText(content: OutputContent) {
+		outputBox.visibility = View.VISIBLE
 		btnExpandOutput.setImageResource(R.drawable.ic_expand_less)
-		setOutputText(text)
+		outputLabels.text = content.labels
+		outputLabels.isVisible = content.labels.isNotEmpty()
+		outputMore.text = content.more
+		outputMore.isVisible = content.more != null
+		outputMore.movementMethod = OutputLinkMovementMethod.getInstance()
+		setOutputText(content.body)
 		if (!output.isTextSelectable) {
 			output.setTextIsSelectable(true)
 		}
@@ -1601,7 +1617,7 @@ class MainActivity : ThemedActivity() {
 	// Pick the scrollbar mode: custom thumb only for a large result that's expanded on screen,
 	// otherwise stock
 	private fun applyOutputScrollbar() {
-		val large = fullResponseText.length > MAX_DISPLAY_CHARS && output.isVisible
+		val large = fullResponseText.length > MAX_DISPLAY_CHARS && outputBox.isVisible
 		(findViewById<View>(R.id.mainScrollView) as? NoAutoScrollView)?.setFastScrollActive(large)
 	}
 

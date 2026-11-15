@@ -136,17 +136,14 @@ private fun AlertDialog.putBackAfterGlide(decor: View, reopen: () -> AlertDialog
 private fun AlertDialog.appearAs(next: AlertDialog) {
 	dismissInstantlyUnder(next)
 	val nextDecor = next.window?.decorView ?: return next.reveal()
-	nextDecor.onNextPreDraw {
-		// A frame after its first draw: that frame is long and would eat the animation's start.
-		nextDecor.postOnAnimation {
-			// Already shown (second rotation).
-			if (next.dialogState.waiting == null) return@postOnAnimation
-			if (next.shownAnimMode() == ANIM_MODE_SYSTEM) {
-				next.reveal()
-				return@postOnAnimation
-			}
-			nextDecor.animateDialogIn(next.context.isLowRam()) { next.reveal() }
+	nextDecor.afterFirstFrame {
+		// Already shown (second rotation).
+		if (next.dialogState.waiting == null) return@afterFirstFrame
+		if (next.shownAnimMode() == ANIM_MODE_SYSTEM) {
+			next.reveal()
+			return@afterFirstFrame
 		}
+		nextDecor.animateDialogIn(next.context.isLowRam()) { next.reveal() }
 	}
 }
 

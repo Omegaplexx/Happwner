@@ -184,7 +184,7 @@ What Happwner can do inside target/patched apps:<br/><br/>
 	<string name="msg_clipboard_empty">Clipboard is empty</string>
 	<string name="msg_enter_url">Enter URL</string>
 	<string name="msg_loading">Loading…</string>
-	<string name="msg_text_truncated">\n\n…text truncated to save resources\n</string>
+	<string name="msg_text_truncated">\n…text truncated to save resources\n</string>
 	<string name="msg_show_full">Show full</string>
 	<string name="msg_please_wait">Please wait…</string>
 	<string name="msg_decrypted">Decrypted</string>

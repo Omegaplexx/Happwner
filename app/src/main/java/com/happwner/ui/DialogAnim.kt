@@ -74,6 +74,8 @@ private fun AlertDialog.animateDimOut(duration: Long, low: Boolean) {
 internal fun dialogEnterMs(low: Boolean): Long = if (low) LOWRAM_DIALOG_MS else DIALOG_ENTER_MS
 private fun dialogExitMs(low: Boolean): Long = if (low) LOWRAM_DIALOG_MS else DIALOG_EXIT_MS
 
+internal fun View.afterFirstFrame(start: () -> Unit) = onNextPreDraw { postOnAnimation(start) }
+
 // Fade plus a slight scale-up; no scale on a low-RAM device.
 internal fun View.animateDialogIn(low: Boolean, onEnd: () -> Unit = {}) {
 	alpha = 0f

@@ -163,7 +163,7 @@ Happwner встроит свой Xposed-модуль в выбранное пр�
 	<string name="msg_clipboard_empty">Буфер обмена пуст</string>
 	<string name="msg_enter_url">Введите URL</string>
 	<string name="msg_loading">Загрузка…</string>
-	<string name="msg_text_truncated">\n\n…текст обрезан для экономии ресурсов\n</string>
+	<string name="msg_text_truncated">\n…текст обрезан для экономии ресурсов\n</string>
 	<string name="msg_show_full">Показать полностью</string>
 	<string name="msg_please_wait">Подождите…</string>
 	<string name="msg_decrypted">Расшифровано</string>

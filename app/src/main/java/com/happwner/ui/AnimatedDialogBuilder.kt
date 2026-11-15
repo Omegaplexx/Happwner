@@ -148,8 +148,12 @@ class AnimatedDialogBuilder(context: Context) : MaterialAlertDialogBuilder(conte
 				return dialog
 			}
 			val low = builderContext.isLowRam()
-			dialog.animateDimIn(dialogEnterMs(low), low)
-			decor.animateDialogIn(low)
+			decor.alpha = 0f
+			decor.afterFirstFrame {
+				if (dialog.isLeaving()) return@afterFirstFrame
+				dialog.animateDimIn(dialogEnterMs(low), low)
+				decor.animateDialogIn(low)
+			}
 		}
 
 		return dialog

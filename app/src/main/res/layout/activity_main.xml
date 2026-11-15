@@ -463,18 +463,47 @@
 							app:tint="@color/text_secondary" />
 					</LinearLayout>
 
-					<TextView
-						android:id="@+id/output"
+					<LinearLayout
+						android:id="@+id/outputBox"
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content"
-						android:breakStrategy="simple"
-						android:hyphenationFrequency="none"
+						android:orientation="vertical"
 						android:paddingTop="@dimen/spacing_small"
-						android:text="@string/label_result_default"
-						android:textColor="@color/text_secondary"
-						android:textIsSelectable="false"
-						android:visibility="gone"
-						tools:ignore="UnusedAttribute" />
+						android:visibility="gone">
+
+						<TextView
+							android:id="@+id/outputLabels"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:breakStrategy="simple"
+							android:hyphenationFrequency="none"
+							android:textColor="@color/text_secondary"
+							android:textIsSelectable="false"
+							android:visibility="gone"
+							tools:ignore="UnusedAttribute" />
+
+						<TextView
+							android:id="@+id/output"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:breakStrategy="simple"
+							android:hyphenationFrequency="none"
+							android:text="@string/label_result_default"
+							android:textColor="@color/text_secondary"
+							android:textIsSelectable="false"
+							tools:ignore="UnusedAttribute" />
+
+						<TextView
+							android:id="@+id/outputMore"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:breakStrategy="simple"
+							android:hyphenationFrequency="none"
+							android:textColor="@color/text_secondary"
+							android:textIsSelectable="false"
+							android:visibility="gone"
+							tools:ignore="UnusedAttribute" />
+					</LinearLayout>
 
 				</LinearLayout>
 			</com.google.android.material.card.MaterialCardView>
