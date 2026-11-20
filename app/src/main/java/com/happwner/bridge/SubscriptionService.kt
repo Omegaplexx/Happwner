@@ -37,7 +37,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
-import java.net.URLDecoder
 import java.util.Locale
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -506,10 +505,8 @@ class SubscriptionService : Service() {
 					}
 
 					if (query.isNotEmpty()) {
-						val params = parseParams(query)
-						val targetUrl = params["url"]
-						val hwid = params["hwid"] ?: ""
-						val userAgent = params["ua"] ?: ""
+						val request = BridgeLink.parseQuery(query)
+						val targetUrl = request.url
 
 						if (targetUrl != null) {
 							// Would leave this request waiting on one it makes to itself, tying up
@@ -522,9 +519,8 @@ class SubscriptionService : Service() {
 							}
 
 							val prefs = PrefsManager.getSafePrefs(this@SubscriptionService)
-							val fetched = SubscriptionFetch.fetchHonouringSubUa(targetUrl, hwid,
-								userAgent, PrefsManager.preferSubscriptionUa(prefs), fromNetwork,
-								turn)
+							val fetched = SubscriptionFetch.fetchHonouringSubUa(targetUrl, request.identity(),
+								PrefsManager.preferSubscriptionUa(prefs), fromNetwork, turn)
 							val response = fetched.resp
 							// The client gets the error, not a 200 whose body it would take for a subscription.
 							if (response.isError) {
@@ -586,24 +582,6 @@ class SubscriptionService : Service() {
 				} catch (_: Exception) {}
 			}
 		}
-	}
-
-	private fun parseParams(query: String): Map<String, String> {
-		val map = mutableMapOf<String, String>()
-		val pairs = query.split("&")
-		for (pair in pairs) {
-			val idx = pair.indexOf("=")
-			if (idx != -1) {
-				val key = pair.substring(0, idx)
-				val value = pair.substring(idx + 1)
-				try {
-					map[key] = URLDecoder.decode(value, "UTF-8")
-				} catch (_: Exception) {
-					map[key] = value
-				}
-			}
-		}
-		return map
 	}
 
 	private fun sendResponse(output: OutputStream, body: String, headers: Map<String, List<String>>) {

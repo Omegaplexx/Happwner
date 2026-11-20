@@ -112,14 +112,14 @@ internal fun AlertDialog.holdTall(): CardBox? {
 	return box
 }
 
-// Hosts height glides (see glideHeights): the card goes to its new size, the frame with it.
-fun AlertDialog.hostHeightGlides() {
+// Hosts height glides (see glideHeights); with fades, what a change shows or hides fades in step.
+fun AlertDialog.hostHeightGlides(fades: Boolean = false) {
 	val decor = window?.decorView ?: return
 	holdTall() ?: return
-	decor.setTag(R.id.tag_height_glide, DialogHeightGlide(this))
+	decor.setTag(R.id.tag_height_glide, DialogHeightGlide(this, fades))
 }
 
-private class DialogHeightGlide(private val dialog: AlertDialog) : HeightGlide {
+private class DialogHeightGlide(private val dialog: AlertDialog, private val fades: Boolean) : HeightGlide {
 	private var running = 0
 	// From a glide's start to the next draw, further changes belong to it.
 	private var pending = false
@@ -137,9 +137,13 @@ private class DialogHeightGlide(private val dialog: AlertDialog) : HeightGlide {
 		) {
 			return change()
 		}
-		val transition = ChangeBounds().apply {
-			this.duration = duration
-			interpolator = materialStandard
+		val transition = if (fades) {
+			buildBoundsFadeTransition(duration, smooth = true)
+		} else {
+			ChangeBounds().apply {
+				this.duration = duration
+				interpolator = materialStandard
+			}
 		}
 		if (!content.beginThen(transition) { settle(decor, box) }) return change()
 		running++

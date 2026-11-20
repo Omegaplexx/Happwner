@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:id="@+id/islandIntercept"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginBottom="@dimen/island_margin_bottom"
+	android:visibility="gone"
+	app:cardCornerRadius="@dimen/ui_corner_radius"
+	app:cardElevation="0dp"
+	app:strokeWidth="1dp"
+	app:strokeColor="?attr/happCardStroke"
+	app:cardBackgroundColor="?attr/happCardBg">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
+
+		<LinearLayout
+			android:id="@+id/historyHeader"
+			android:layout_width="match_parent"
+			android:layout_height="@dimen/card_header_height"
+			android:orientation="horizontal"
+			android:gravity="center_vertical"
+			android:paddingHorizontal="@dimen/spacing_normal"
+			android:paddingVertical="@dimen/spacing_tiny"
+			android:background="@drawable/bg_card_ripple"
+			android:clickable="true"
+			android:focusable="true">
+
+			<TextView
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:text="@string/label_captured_urls"
+				android:textColor="?attr/happAccent"
+				android:textStyle="bold"
+				android:textAllCaps="true" />
+
+			<ImageButton
+				android:id="@+id/btnClearHistory"
+				android:layout_width="@dimen/btn_icon_size"
+				android:layout_height="@dimen/btn_icon_size"
+				android:background="@drawable/bg_icon_ripple"
+				android:src="@drawable/ic_delete"
+				android:contentDescription="@string/cd_clear_history"
+				android:translationX="4dp"
+				android:visibility="gone"
+				app:tint="@color/text_secondary" />
+
+			<ImageView
+				android:id="@+id/btnExpandHistory"
+				android:layout_width="@dimen/btn_icon_size"
+				android:layout_height="@dimen/btn_icon_size"
+				android:padding="@dimen/spacing_small"
+				android:src="@drawable/ic_expand_more"
+				android:importantForAccessibility="no"
+				android:translationX="4dp"
+				app:tint="@color/text_secondary" />
+		</LinearLayout>
+
+		<LinearLayout
+			android:id="@+id/historyContent"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:paddingHorizontal="@dimen/island_padding"
+			android:paddingBottom="@dimen/spacing_tiny"
+			android:visibility="gone">
+
+			<TextView
+				android:id="@+id/emptyHistoryText"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/label_history_empty"
+				android:textColor="@color/text_secondary"
+				android:textSize="@dimen/text_size_secondary" />
+
+			<LinearLayout
+				android:id="@+id/capturedUrlsContainer"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical" />
+		</LinearLayout>
+	</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

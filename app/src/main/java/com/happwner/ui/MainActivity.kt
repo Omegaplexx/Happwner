@@ -17,7 +17,6 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -55,6 +54,7 @@ import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isEmpty
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -65,6 +65,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.happwner.R
 import com.happwner.bridge.BridgeController
 import com.happwner.bridge.BridgeLink
+import com.happwner.bridge.RequestIdentity
 import com.happwner.bridge.SubscriptionFetch
 import com.happwner.client.CryptLinkResult
 import com.happwner.client.HappCrypto
@@ -75,15 +76,17 @@ import com.happwner.client.IncyLinks
 import com.happwner.client.V2RayTunCrypto
 import com.happwner.client.V2RayTunLinks
 import com.happwner.convert.SubscriptionConverter
+import com.happwner.data.DeviceCatalog
+import com.happwner.data.IdentityStore
 import com.happwner.data.ModuleIds
 import com.happwner.data.ModuleStatus
 import com.happwner.data.PrefsManager
 import com.happwner.data.PublicSuffixList
+import com.happwner.data.SavedIdentity
 import com.happwner.data.SettingsProvider
 import com.happwner.data.UrlHistory
 import java.net.URI
 import kotlin.math.abs
-import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
@@ -95,7 +98,6 @@ class MainActivity : ThemedActivity() {
 
 	override val showsSplash = true
 	private lateinit var prefs: SharedPreferences
-	private var lastLayoutOrientation: Int = Configuration.ORIENTATION_UNDEFINED
 	private var lastKnownLang: String? = null
 	private var lastKnownTheme: Int? = null
 	private var lastKnownMonet: Boolean? = null
@@ -112,7 +114,18 @@ class MainActivity : ThemedActivity() {
 	private lateinit var inputHwid: EditText
 	private lateinit var inputUserAgent: LockableScrollEditText
 	private lateinit var hwidHint: TextView
+	private lateinit var identity: IdentityFields
+	private lateinit var identityStore: IdentityStore
+	private val devices by lazy { DeviceCatalog(resources) }
+	private lateinit var keyboard: KeyboardRoom
+	// While an identity is being put into the fields, the screen is told once at the end, not at every field.
+	private var applyingIdentity = false
+	private lateinit var infoButtons: List<View>
 	private lateinit var mainContainer: ViewGroup
+
+	// The page that scrolls the result: the whole page, or its own column when the screen is wide.
+	private val outputScroll: NoAutoScrollView
+		get() = findViewById(R.id.outputScrollView) ?: findViewById(R.id.mainScrollView)
 	private lateinit var islandIntercept: View
 	private lateinit var historyHeader: View
 	private lateinit var historyContent: View
@@ -150,6 +163,12 @@ class MainActivity : ThemedActivity() {
 				PrefsManager.PREF_USE_CUSTOM_HWID_SUBSTITUTION -> runOnUiThread {
 					if (isFinishing || isDestroyed) return@runOnUiThread
 					updateUiState()
+				}
+				// Without a transition: the URL field changes width, and a text that wraps anew inside a box
+				// that is still gliding to its height reads as a jump.
+				PrefsManager.PREF_ADVANCED_MODE -> runOnUiThread {
+					if (isFinishing || isDestroyed) return@runOnUiThread
+					applyAdvancedMode()
 				}
 			}
 		}
@@ -293,7 +312,6 @@ class MainActivity : ThemedActivity() {
 		val isColdStart = savedInstanceState == null && !wasInThemeTransition
 		ThemeTransition.preApplyBackground(this)
 		setContentView(R.layout.activity_main)
-		lastLayoutOrientation = resources.configuration.orientation
 		ThemeTransition.consumeOverlay(this)
 
 		if (isColdStart || wasInThemeTransition) {
@@ -320,10 +338,8 @@ class MainActivity : ThemedActivity() {
 		output = findViewById(R.id.output)
 		outputMore = findViewById(R.id.outputMore)
 		outputWaitLabel = findViewById(R.id.outputWaitLabel)
-		(findViewById<View>(R.id.mainScrollView) as? NoAutoScrollView)?.let { scrollView ->
-			scrollView.selectionView = output
-			scrollView.onNearBottom = { maybeLoadMoreHistory() }
-		}
+		outputScroll.selectionView = output
+		findViewById<NoAutoScrollView>(R.id.mainScrollView).onNearBottom = { maybeLoadMoreHistory() }
 		btnGetSubscription = findViewById(R.id.btnGetSubscription)
 		btnPasteUrlManual = findViewById(R.id.btnPasteUrlManual)
 		val button = findViewById<Button>(R.id.btnGet)
@@ -348,6 +364,15 @@ class MainActivity : ThemedActivity() {
 		val infoUrl = findViewById<ImageButton>(R.id.infoUrl)
 		val infoHwid = findViewById<ImageButton>(R.id.infoHwid)
 		val infoUserAgent = findViewById<ImageButton>(R.id.infoUserAgent)
+		infoButtons = listOf(infoUrl, infoHwid, infoUserAgent)
+		identityStore = IdentityStore(prefs)
+		identity = IdentityFields(
+			findViewById(R.id.identityBlock), devices, prefs,
+			onChanged = ::refreshIdentityState,
+			beginTransition = { mainContainer.beginDelayedTransitionIfEnabled(fastTransition) },
+			beginToggle = { mainContainer.beginAdaptiveToggleTransition(it, R.id.hwidHint) },
+			restyle = ::refreshFieldStyle
+		)
 		val btnEditHwidManual = findViewById<ImageButton>(R.id.btnEditHwidManual)
 		val btnEditUaManual = findViewById<ImageButton>(R.id.btnEditUaManual)
 		outputHeader = findViewById(R.id.outputHeader)
@@ -359,6 +384,8 @@ class MainActivity : ThemedActivity() {
 		findViewById<TextView>(R.id.labelResultHeader)?.setHtmlText(R.string.label_result)
 
 		wireEditToggles(btnEditHwidManual, btnEditUaManual)
+		wireIdentityButtons()
+		applyAdvancedMode()
 		wireFieldListeners()
 		wireSectionToggles()
 		wireOutputActions()
@@ -380,51 +407,28 @@ class MainActivity : ThemedActivity() {
 		}
 	}
 
-	// Insets for the system bars, plus auto-scroll to the focused field when the keyboard appears
 	private fun applyWindowInsets(toolbar: Toolbar, statusBarBackground: View) {
+		keyboard = KeyboardRoom(findViewById(R.id.mainScrollView))
 		ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets ->
 			val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-			val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-			val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
 
-			statusBarBackground.layoutParams.height = systemBars.top
-			statusBarBackground.requestLayout()
+			statusBarBackground.setBarHeight(systemBars.top)
 
 			// Keep the backdrop's status bar strip the same height, so the two line up exactly.
-			findViewById<View>(R.id.backdropStatusBar)?.let { backdrop ->
-				backdrop.layoutParams.height = systemBars.top
-				backdrop.requestLayout()
-			}
+			findViewById<View>(R.id.backdropStatusBar)?.setBarHeight(systemBars.top)
 
 			val scrollView = findViewById<ScrollView>(R.id.mainScrollView)
-			val bottomPadding = max(systemBars.bottom, imeInsets.bottom)
 
 			toolbar.setPadding(systemBars.left, toolbar.paddingTop, systemBars.right, toolbar.paddingBottom)
-
-			if (scrollView.paddingBottom != bottomPadding ||
-				scrollView.paddingLeft != systemBars.left ||
-				scrollView.paddingRight != systemBars.right) {
-				scrollView.setPadding(systemBars.left, 0, systemBars.right, bottomPadding)
-
-				if (imeVisible) {
-					currentFocus?.let { focused ->
-						if (!focused.isDescendantOfView(scrollView)) return@let
-						scrollView.post {
-							val rect = Rect()
-							focused.getDrawingRect(rect)
-							scrollView.offsetDescendantRectToMyCoords(focused, rect)
-							val density = resources.displayMetrics.density
-							val offset = (resources.getInteger(
-								R.integer.scroll_offset_ime_dp) * density).toInt()
-
-							val targetScrollY = rect.bottom - (scrollView.height - bottomPadding) + offset
-							if (targetScrollY > scrollView.scrollY) {
-								scrollView.smoothScrollToIfEnabled(targetScrollY)
-							}
-						}
-					}
-				}
+			// Side by side, each column takes the bar at its own edge.
+			val resultScroll = findViewById<View>(R.id.outputScrollView)
+			if (resultScroll == null) {
+				scrollView.updatePadding(left = systemBars.left, right = systemBars.right)
+			} else {
+				scrollView.updatePadding(left = systemBars.left)
+				resultScroll.updatePadding(right = systemBars.right, bottom = systemBars.bottom)
 			}
+			keyboard.onInsets(insets)
 
 			insets
 		}
@@ -433,22 +437,26 @@ class MainActivity : ThemedActivity() {
 			window.decorView,
 			object : WindowInsetsAnimationCompat.Callback(
 				WindowInsetsAnimationCompat.Callback.DISPATCH_MODE_STOP) {
+				override fun onPrepare(animation: WindowInsetsAnimationCompat) {
+					keyboard.onPrepare(animation)
+				}
+
+				override fun onStart(
+					animation: WindowInsetsAnimationCompat,
+					bounds: WindowInsetsAnimationCompat.BoundsCompat
+				): WindowInsetsAnimationCompat.BoundsCompat {
+					keyboard.onStart(animation)
+					return bounds
+				}
+
 				override fun onProgress(
 					insets: WindowInsetsCompat,
 					runningAnimations: MutableList<WindowInsetsAnimationCompat>
-				): WindowInsetsCompat {
-					try {
-						val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-						val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-						val bottomPadding = max(systemBars.bottom, ime.bottom)
-						val scrollView = findViewById<ScrollView>(R.id.mainScrollView)
-						scrollView?.setPadding(systemBars.left, 0, systemBars.right, bottomPadding)
-					} catch (_: Throwable) {}
-					return insets
-				}
+				): WindowInsetsCompat = insets
 
 				override fun onEnd(animation: WindowInsetsAnimationCompat) {
 					super.onEnd(animation)
+					keyboard.onEnd(animation)
 					if (pendingHintAnimAfterImeClose && !isFinishing && !isDestroyed) {
 						pendingHintAnimAfterImeClose = false
 						updateHwidHintVisibility(inputHwid.text?.toString())
@@ -456,6 +464,13 @@ class MainActivity : ThemedActivity() {
 				}
 			}
 		)
+	}
+
+	// The insets may arrive many times while the keyboard slides, and only a new height asks for a layout.
+	private fun View.setBarHeight(height: Int) {
+		if (layoutParams.height == height) return
+		layoutParams.height = height
+		requestLayout()
 	}
 
 	// Paste / edit-toggle buttons for the URL, HWID and UA fields. The fields' touch listener only
@@ -560,6 +575,7 @@ class MainActivity : ThemedActivity() {
 					PrefsManager.broadcastSettings(this@MainActivity)
 				}
 				updateHwidHintVisibility(text)
+				refreshIdentityState()
 			}
 			override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) {}
 			override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -570,6 +586,7 @@ class MainActivity : ThemedActivity() {
 
 			override fun afterTextChanged(editable: Editable?) {
 				prefs.edit { putString(PrefsManager.PREF_CUSTOM_USER_AGENT, editable.toString()) }
+				refreshIdentityState()
 				val currentLineCount = inputUserAgent.lineCount
 				if (currentLineCount != lastLineCount) {
 					val transitionDurationMs = resources.getInteger(
@@ -734,7 +751,7 @@ class MainActivity : ThemedActivity() {
 
 	// Copies the bridge URL for what the fields hold, enabling the bridge if needed.
 	private fun copySubscriptionLink() {
-		val (urlString, hwid, userAgent) = readFields()
+		val urlString = readUrl()
 
 		unusableUrlReason(urlString)?.let {
 			Toast.makeText(this, getString(it), Toast.LENGTH_SHORT).show()
@@ -757,7 +774,7 @@ class MainActivity : ThemedActivity() {
 			// The address handed out has to answer: an update leaves the preference on over a
 			// dead service, and this brings it back before the address is copied.
 			BridgeController.ensureServing(this)
-			copyLinkAndSaySo(urlString, hwid, userAgent)
+			copyLinkAndSaySo(urlString, readIdentity())
 			return
 		}
 
@@ -767,8 +784,7 @@ class MainActivity : ThemedActivity() {
 	// Turns the bridge on and copies the link, once bridgePermissions has asked what it had to.
 	private fun finishEnablingBridge() {
 		BridgeController.enable(this)
-		val (urlString, hwid, userAgent) = readFields()
-		copyLinkAndSaySo(urlString, hwid, userAgent)
+		copyLinkAndSaySo(readUrl(), readIdentity())
 	}
 
 	private fun wireInfoButtons(infoUrl: ImageButton, infoHwid: ImageButton, infoUserAgent: ImageButton) {
@@ -785,13 +801,14 @@ class MainActivity : ThemedActivity() {
 			// Fetch button: pull the subscription directly, decrypt/convert, then show the result
 			if (!fetchTap.accept()) return@setOnClickListener
 			currentFocus?.clearFocus()
-			val (urlString, hwid, userAgent) = readFields()
+			val urlString = readUrl()
 
 			unusableUrlReason(urlString)?.let {
 				Toast.makeText(this, getString(it), Toast.LENGTH_SHORT).show()
 				return@setOnClickListener
 			}
 
+			val request = readIdentity()
 			val gen = ++fetchGeneration
 			pendingConfigText = null
 			loadingPhaseRunning = true
@@ -826,7 +843,7 @@ class MainActivity : ThemedActivity() {
 				// way it ends; see LargeTurn.
 				val turn = SubscriptionFetch.LargeTurn()
 				coroutineContext.job.invokeOnCompletion { turn.close() }
-				val fetched = SubscriptionFetch.fetchHonouringSubUa(urlString, hwid, userAgent,
+				val fetched = SubscriptionFetch.fetchHonouringSubUa(urlString, request,
 					PrefsManager.preferSubscriptionUa(prefs), fromNetwork = false, turn = turn,
 					timeouts = fetchTimeouts)
 				val resp = fetched.resp
@@ -865,7 +882,9 @@ class MainActivity : ThemedActivity() {
 						SubscriptionConverter.ConversionResult(bodyToConvert, 0)
 					}
 				}
-				val converted = stats.text
+				// In advanced mode the result is the whole answer: its status line and headers, then the text.
+				val advanced = prefs.getBoolean(PrefsManager.PREF_ADVANCED_MODE, false)
+				val converted = if (advanced) resp.headText() + stats.text else stats.text
 
 				// The user only sees the skipped-count label below; the reason for each drop goes
 				// to logcat only. Any of the three passes can populate this.
@@ -1055,9 +1074,15 @@ class MainActivity : ThemedActivity() {
 				val link = savedInstanceState.getString(STATE_IMPORT_LINK) ?: return
 				reopenDialog(now) { showImportConfirmDialog(link) }
 			}
+			DIALOG_ADVANCED_IMPORT -> {
+				val link = savedInstanceState.getString(STATE_IMPORT_LINK) ?: return
+				reopenDialog(now) { showAdvancedImportDialog(link) }
+			}
 			DIALOG_UA_SELECT -> reopenDialog(now) {
 				showUaSelectDialog(savedInstanceState.getString(STATE_UA_PAGE))
 			}
+			DIALOG_DEVICE_PRESETS -> reopenDialog(now) { showDevicePresetsDialog() }
+			DIALOG_IDENTITIES -> reopenDialog(now) { showIdentitiesDialog() }
 		}
 	}
 
@@ -1090,7 +1115,7 @@ class MainActivity : ThemedActivity() {
 				currentDialogInfoTitle?.let { outState.putString(STATE_OPEN_DIALOG_TITLE, it) }
 				currentDialogInfoMessage?.let { outState.putString(STATE_OPEN_DIALOG_MESSAGE, it) }
 			}
-			DIALOG_IMPORT_CONFIRM ->
+			DIALOG_IMPORT_CONFIRM, DIALOG_ADVANCED_IMPORT ->
 				currentImportLink?.let { outState.putString(STATE_IMPORT_LINK, it) }
 			DIALOG_UA_SELECT -> uaPage?.let { outState.putString(STATE_UA_PAGE, it) }
 		}
@@ -1110,20 +1135,12 @@ class MainActivity : ThemedActivity() {
 		return true
 	}
 
-	// React to orientation / language / theme / Monet / anim-mode changes
+	// React to language / theme / Monet / anim-mode changes
 	override fun onResume() {
 		super.onResume()
 		// Brings back a bridge left on but not answering, as after an update. Once per return: not
 		// in onCreate, which this always follows, nor while the open settings pane does it.
 		if (!isSettingsVisible()) BridgeController.ensureServing(this)
-		val currentOrientation = resources.configuration.orientation
-		if (lastLayoutOrientation != Configuration.ORIENTATION_UNDEFINED &&
-			currentOrientation != lastLayoutOrientation) {
-			lastLayoutOrientation = currentOrientation
-			recreate()
-			return
-		}
-		lastLayoutOrientation = currentOrientation
 		updateUiState()
 
 		val prefs = PrefsManager.getSafePrefs(this)
@@ -1146,13 +1163,13 @@ class MainActivity : ThemedActivity() {
 	private val bridgePermissions =
 		BridgeController.Permissions(this, { this }) { finishEnablingBridge() }
 
-	// The copy and what the person sees of it. The address carries this subscription, device id and user agent,
-	// and leads where the settings say: this phone, or its network address.
-	private fun copyLinkAndSaySo(urlString: String, hwid: String, userAgent: String) {
+	// The copy and what the person sees of it. The address carries this subscription and the identity it is asked
+	// for under, and leads where the settings say: this phone, or its network address.
+	private fun copyLinkAndSaySo(urlString: String, request: RequestIdentity) {
 		val lanMode = BridgeController.isLanModeOn(this)
 		val address = BridgeLink.addressFor(lanMode)
 		try {
-			val link = BridgeLink.build(urlString, hwid, userAgent, address)
+			val link = BridgeLink.build(urlString, request, address)
 			copyToClipboard("Happwner Bridge URL", link)
 		} catch (_: Exception) {
 			Toast.makeText(this, getString(R.string.error_copy_failed), Toast.LENGTH_SHORT).show()
@@ -1169,14 +1186,31 @@ class MainActivity : ThemedActivity() {
 		}, 1000)
 	}
 
-	// What the three fields hold, as a request carries it. The URL and User-Agent fields keep line
-	// breaks out through their own filter.
-	private data class Fields(val url: String, val hwid: String, val userAgent: String)
+	private fun readUrl() = inputUrl.text.toString().trim()
 
-	private fun readFields() = Fields(
-		inputUrl.text.toString().trim(),
-		inputHwid.text.toString().trim(),
-		inputUserAgent.text.toString().trim()
+	// What the fields hold, as a request carries it. The URL and User-Agent fields keep line breaks out through
+	// their own filter, and the device fields count only in the advanced mode.
+	private fun readIdentity(): RequestIdentity {
+		val shown = inputHwid.text.toString().trim()
+		if (!prefs.getBoolean(PrefsManager.PREF_ADVANCED_MODE, false)) {
+			return RequestIdentity(shown, inputUserAgent.text.toString().trim())
+		}
+		return currentIdentity().copy(hwid = shown)
+	}
+
+	// The HWID an identity holds: the field's, or, while a hook holds the field, the one the hook will substitute.
+	private fun identityHwid() =
+		if (inputHwid.isEnabled) inputHwid.text.toString().trim()
+		else prefs.getString(PrefsManager.PREF_CUSTOM_HWID, "").orEmpty().trim()
+
+	// Every field the advanced mode has, whether or not the mode is on.
+	private fun currentIdentity() = RequestIdentity(
+		hwid = identityHwid(),
+		userAgent = inputUserAgent.text.toString().trim(),
+		model = identity.model,
+		os = identity.os,
+		osVersion = identity.osVersion,
+		headers = identity.headers
 	)
 
 	private val clipboard: ClipboardManager
@@ -1223,12 +1257,11 @@ class MainActivity : ThemedActivity() {
 		}
 	}
 
-	// Keep the recorded layout orientation in sync; an open dialog laid out for the old screen is put
-	// back for the new one, and the screen glides into its new bounds, as the settings do.
+	// Puts an open dialog back for the new screen and glides to the new bounds.
+	// A portrait/landscape turn is not heard here: the system recreates the activity.
 	override fun onConfigurationChanged(newConfig: Configuration) {
 		super.onConfigurationChanged(newConfig)
 		if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
-		lastLayoutOrientation = newConfig.orientation
 		// Under the open settings pane the screen isn't seen, and the settings glide on their own.
 		if (!isSettingsVisible() || isClosingSettings) {
 			findViewById<ViewGroup>(R.id.rootLayout)?.beginResizeTransition {
@@ -1405,8 +1438,8 @@ class MainActivity : ThemedActivity() {
 
 	// Puts the full text in the result without moving its scroll, selectable and with its links alive.
 	private fun swapInOutputText(text: CharSequence) {
-		val scrollView = findViewById<ScrollView>(R.id.mainScrollView)
-		val keepY = scrollView?.scrollY ?: 0
+		val scrollView = outputScroll
+		val keepY = scrollView.scrollY
 		val hadFocusable = output.isFocusableInTouchMode
 		output.isFocusableInTouchMode = false
 		outputBox.animate().cancel()
@@ -1419,7 +1452,7 @@ class MainActivity : ThemedActivity() {
 		(output.text as? Spannable)?.let { Selection.removeSelection(it) }
 		output.isFocusableInTouchMode = hadFocusable
 		applyOutputScrollbar()
-		scrollView?.onNextPreDraw { scrollView.scrollY = keepY }
+		scrollView.onNextPreDraw { scrollView.scrollY = keepY }
 	}
 
 	// Ends an expansion with the result shown whole and the wait label gone.
@@ -1566,35 +1599,14 @@ class MainActivity : ThemedActivity() {
 		updateOutputButtonsVisibility()
 	}
 
-	// A direct alpha animation, not TransitionManager: the view stays VISIBLE while it fades, so a tap's ripple finishes,
-	// and crossfadeContent re-measuring or an ancestor transition cannot disturb it.
-	private fun fadeIconButton(btn: View, visible: Boolean) {
-		val target = if (visible) View.VISIBLE else View.GONE
-		if (btn.visibility == target && (!visible || btn.alpha == 1f)) return
-		btn.animate().cancel()
-		if (skipProgrammaticAnimations()) {
-			btn.alpha = if (visible) 1f else 0f
-			btn.visibility = target
-			return
-		}
-		val duration = stateChangeDuration(R.integer.duration_standard_transition)
-		if (visible) {
-			btn.fadeIn(duration)
-		} else {
-			btn.animate().alpha(0f).setDuration(duration).withLayer().withEndAction {
-				btn.visibility = View.GONE
-			}.start()
-		}
-	}
-
 	// Strictly tied to what the Result area shows: nothing displayed -> no buttons; an error
 	// response -> Delete only; a real response -> all three.
 	private fun updateOutputButtonsVisibility() {
 		val hasResponse = outputShowsResponse && fullResponseText.isNotEmpty()
 		val showActions = hasResponse && !lastResponseWasError
-		fadeIconButton(btnClearOutput, hasResponse)
-		fadeIconButton(btnCopyOutput, showActions)
-		fadeIconButton(btnSaveOutput, showActions)
+		btnClearOutput.fadeTo(hasResponse)
+		btnCopyOutput.fadeTo(showActions)
+		btnSaveOutput.fadeTo(showActions)
 	}
 
 	// Domain for Happwneresp_<domain>[_suffix].txt, via PublicSuffixList (compound TLDs resolve
@@ -1618,7 +1630,7 @@ class MainActivity : ThemedActivity() {
 	// otherwise stock
 	private fun applyOutputScrollbar() {
 		val large = fullResponseText.length > MAX_DISPLAY_CHARS && outputBox.isVisible
-		(findViewById<View>(R.id.mainScrollView) as? NoAutoScrollView)?.setFastScrollActive(large)
+		outputScroll.setFastScrollActive(large)
 	}
 
 	// Decrypt a v2raytun:// or incy:// crypt link off-thread, then show it (or the error)
@@ -1632,22 +1644,50 @@ class MainActivity : ThemedActivity() {
 		}
 	}
 
-	// Parse the bridge URL back into the url/hwid/ua fields. What the link does not carry is left
-	// as the fields have it, so a link from someone else does not wipe this phone's id and agent.
+	// Parse the bridge URL back into the fields. What the link does not carry is left as the fields have it, so a
+	// link from someone else does not wipe this phone's id and agent. Device fields ask first when the mode is off.
 	private fun parseAndApplyBridgeUrl(bridgeUrl: String) {
 		val parts = BridgeLink.parse(bridgeUrl) ?: return
+		val carriesDevice = parts.model != null || parts.os != null || parts.osVersion != null || parts.headers != null
+		if (carriesDevice && !prefs.getBoolean(PrefsManager.PREF_ADVANCED_MODE, false)) {
+			showAdvancedImportDialog(bridgeUrl)
+			return
+		}
+		applyBridgeParts(parts, withDevice = true)
+	}
+
+	private fun applyBridgeParts(parts: BridgeLink.Parts, withDevice: Boolean) {
 		mainContainer.beginDelayedTransitionIfEnabled(fastTransition)
 		parts.url?.let { inputUrl.setText(it) }
 		parts.hwid?.let {
 			if (!inputHwid.isEnabled) handleToggleHwidEdit(true)
-			inputHwid.setText(it)
+			inputHwid.crossfadeText(it)
 		}
-		parts.userAgent?.let { inputUserAgent.setText(it) }
+		parts.userAgent?.let { inputUserAgent.crossfadeText(it) }
+		if (withDevice) identity.apply(parts.model, parts.os, parts.osVersion, parts.headers)
+	}
+
+	private fun showAdvancedImportDialog(link: String) {
+		if (alreadyShowing(DIALOG_ADVANCED_IMPORT) && currentImportLink == link) return
+		val parts = BridgeLink.parse(link) ?: return
+		currentImportLink = link
+		val dlg = AnimatedDialogBuilder(this)
+			.setTitle(fromHtml(getString(R.string.advanced_import_title)))
+			.setView(layoutInflater.infoView(getString(R.string.advanced_import_msg)))
+			.setPositiveButton(fromHtml(getString(R.string.btn_yes))) { _, _ ->
+				prefs.edit { putBoolean(PrefsManager.PREF_ADVANCED_MODE, true) }
+				applyBridgeParts(parts, withDevice = true)
+			}
+			.setNegativeButton(fromHtml(getString(R.string.btn_no))) { _, _ ->
+				applyBridgeParts(parts, withDevice = false)
+			}
+			.showAnimated()
+		track(dlg, DIALOG_ADVANCED_IMPORT) { currentImportLink = null }
 	}
 
 	// The HWID field has no filter of its own, so line breaks are taken out here.
 	private fun handlePasteHwid() {
-		clipboardTextOrSaySo()?.let { inputHwid.setText(it.replace("\n", "").replace("\r", "")) }
+		clipboardTextOrSaySo()?.let { inputHwid.crossfadeText(it.replace("\n", "").replace("\r", "")) }
 	}
 
 	// Toggle manual HWID entry; gracefully dismiss the keyboard and the hint animation
@@ -1826,6 +1866,7 @@ class MainActivity : ThemedActivity() {
 
 		val isInputEnabled = prefs.getBoolean(PrefsManager.PREF_USE_CUSTOM_HWID_INPUT, false)
 		inputHwid.isEnabled = if (hwidHooked) isInputEnabled else true
+		applyAdvancedMode()
 
 		val captured = prefs.getString(PrefsManager.PREF_CAPTURED_ID, "") ?: ""
 		val custom = prefs.getString(PrefsManager.PREF_CUSTOM_HWID, "") ?: ""
@@ -1839,17 +1880,13 @@ class MainActivity : ThemedActivity() {
 			else -> custom
 		}
 
-		if (inputHwid.text?.toString() != displayId && displayId.isNotEmpty()) {
-			inputHwid.setText(displayId)
-		}
+		if (displayId.isNotEmpty()) inputHwid.crossfadeText(displayId)
 		updateHwidHintVisibility(inputHwid.text?.toString())
 
-		val targetUa = getCurrentUa()
-		if (inputUserAgent.text.toString() != targetUa) {
-			inputUserAgent.setText(targetUa)
-		}
+		inputUserAgent.crossfadeText(getCurrentUa())
 
 		refreshAllFieldsStyle()
+		refreshIdentityState()
 	}
 
 	// The field behaves the hooked way only while a hook will substitute something. With spoofing off the hook
@@ -2100,7 +2137,7 @@ class MainActivity : ThemedActivity() {
 		}
 		// Nothing on screen, nothing to clear. Same fade the Result-area buttons use, so a tap's
 		// ripple finishes spreading while the button goes away.
-		fadeIconButton(btnClearHistory, !isEmpty)
+		btnClearHistory.fadeTo(!isEmpty)
 	}
 
 	// Compare version names numerically so 3.22.1 > 3.9.0; pulls digit groups, ignores the rest
@@ -2145,6 +2182,127 @@ class MainActivity : ThemedActivity() {
 	// UA to show on startup: whatever the user last had; empty by default (then UA is omitted)
 	private fun getCurrentUa(): String {
 		return PrefsManager.getSafePrefs(this).getString(PrefsManager.PREF_CUSTOM_USER_AGENT, "") ?: ""
+	}
+
+	private fun wireIdentityButtons() {
+		findViewById<ImageButton>(R.id.btnDevicePresets).setOnClickListener { showDevicePresetsDialog() }
+		layoutHwid.setEndIconOnClickListener { generateHwid() }
+		identity.personButton.setOnClickListener { showIdentitiesDialog() }
+		identity.saveButton.setOnClickListener { saveIdentity() }
+	}
+
+	private fun generateHwid() {
+		if (!inputHwid.isEnabled) return
+		inputHwid.crossfadeText(DeviceCatalog.generateHwid(identity.platform, inputUserAgent.text.toString()))
+	}
+
+	// The die in the HWID field dims with the field, so it is out of reach while a hook holds it.
+	private fun applyAdvancedMode() {
+		val advanced = prefs.getBoolean(PrefsManager.PREF_ADVANCED_MODE, false)
+		identity.setAdvanced(advanced)
+		infoButtons.forEach { it.isVisible = !advanced }
+		layoutHwid.isEndIconVisible = advanced
+		refreshIdentityState()
+	}
+
+	// The line above the fields names the identity they amount to, with a star once they have been changed, and
+	// the save button shows while what they hold is saved nowhere.
+	private fun refreshIdentityState() {
+		if (applyingIdentity) return
+		val fields = currentIdentity()
+		val standing = identityStore.resolve(fields)
+		val saved = standing.saved
+		val label = when {
+			saved == null -> DeviceCatalog.summary(fields.model, fields.userAgent)
+				.ifEmpty { getString(R.string.identity_none) }
+			standing.modified -> "${saved.name}*"
+			else -> saved.name
+		}
+		identity.show(label, canSave = standing.modified || (saved == null && fields != RequestIdentity()))
+	}
+
+	// Puts a saved identity into the fields. While a hook holds the HWID field, the HWID goes where the hook will
+	// read it and the field is left as it is.
+	private fun setIdentity(target: RequestIdentity) {
+		applyingIdentity = true
+		if (inputHwid.isEnabled) {
+			inputHwid.crossfadeText(target.hwid)
+		} else {
+			prefs.edit { putString(PrefsManager.PREF_CUSTOM_HWID, target.hwid) }
+		}
+		inputUserAgent.crossfadeText(target.userAgent) { refreshFieldStyle(layoutUserAgent, inputUserAgent) }
+		identity.apply(target.model, target.os, target.osVersion, target.headers)
+		applyingIdentity = false
+	}
+
+	private fun applyIdentity(saved: SavedIdentity) {
+		setIdentity(saved.identity)
+		identityStore.activeId = saved.id
+		refreshIdentityState()
+	}
+
+	// The save button: the identity the fields came from takes them over; with none, a name is asked for first.
+	private fun saveIdentity() {
+		val from = identityStore.find(identityStore.activeId)
+		if (from == null) {
+			showIdentitiesDialog(saveNew = true)
+			return
+		}
+		identityStore.overwrite(from.id, currentIdentity())
+		refreshIdentityState()
+	}
+
+	private fun showIdentitiesDialog(saveNew: Boolean = false) {
+		if (alreadyShowing(DIALOG_IDENTITIES)) return
+		val dialog = IdentitiesDialog(
+			this, identityStore, ::currentIdentity,
+			standing = { identityStore.resolve(currentIdentity()) },
+			defaultName = {
+				DeviceCatalog.summary(identity.model, inputUserAgent.text.toString().trim())
+					.ifEmpty { getString(R.string.identity_default_name) }
+			},
+			onPick = ::applyIdentity,
+			onChanged = ::refreshIdentityState
+		).show(saveNew)
+		track(dialog, DIALOG_IDENTITIES)
+	}
+
+	// Sets the model, OS and version, nothing else.
+	private fun showDevicePresetsDialog() {
+		if (alreadyShowing(DIALOG_DEVICE_PRESETS)) return
+		val dialogView = layoutInflater.inflate(R.layout.dialog_device_presets, null)
+		val group = dialogView.findViewById<RadioGroup>(R.id.dialogRadioGroup)
+		val presets = devices.presets
+		val none = presets.size
+		val current = if (identity.model.isEmpty() && identity.os.isEmpty() && identity.osVersion.isEmpty()) {
+			none
+		} else {
+			presets.indexOfFirst {
+				it.model == identity.model && it.platform == identity.platform && it.osVersion == identity.osVersion
+			}
+		}
+		val titles = presets.map { it.title } + getString(R.string.option_not_set)
+		titles.forEachIndexed { index, title ->
+			group.addView(layoutInflater.inflate(R.layout.item_dialog_radio, group, false).apply {
+				id = index
+				(this as MaterialRadioButton).text = title
+				isChecked = index == current
+			})
+		}
+		val dialog = AnimatedDialogBuilder(this)
+			.setTitle(fromHtml(getString(R.string.device_presets_title)))
+			.setView(dialogView)
+			.showAnimated()
+		track(dialog, DIALOG_DEVICE_PRESETS)
+		group.setOnCheckedChangeListener { _, checkedId ->
+			if (checkedId == none) {
+				identity.apply("", "", "")
+			} else {
+				val preset = presets[checkedId]
+				identity.apply(preset.model, preset.platform.header, preset.osVersion)
+			}
+			dialog.dismissAnimated()
+		}
 	}
 
 	// Picks one of 3 preset User-Agents; the field stays editable. Below the presets: whether a subscription that
@@ -2265,7 +2423,7 @@ class MainActivity : ThemedActivity() {
 	// Reflect a captured android_id into the HWID field
 	private fun updateHwidDisplay(id: String) {
 		if (!inputHwid.isEnabled) {
-			inputHwid.setText(id)
+			inputHwid.crossfadeText(id)
 			updateHwidHintVisibility(id)
 			return
 		}
@@ -2416,6 +2574,9 @@ class MainActivity : ThemedActivity() {
 		private const val DIALOG_INFO = "info"
 		private const val DIALOG_BRIDGE_HINT = "bridge_hint"
 		private const val DIALOG_IMPORT_CONFIRM = "import_confirm"
+		private const val DIALOG_ADVANCED_IMPORT = "advanced_import"
+		private const val DIALOG_DEVICE_PRESETS = "device_presets"
+		private const val DIALOG_IDENTITIES = "identities"
 		private const val DIALOG_UA_SELECT = "ua_select"
 		private const val PAGE_UA_NOTE = "ua_note"
 	}
@@ -2475,6 +2636,7 @@ class MainActivity : ThemedActivity() {
 		refreshFieldStyle(layoutUrl, inputUrl, animate = false)
 		refreshFieldStyle(layoutHwid, inputHwid, animate = false)
 		refreshFieldStyle(layoutUserAgent, inputUserAgent, animate = false)
+		identity.styled.forEach { (layout, input) -> refreshFieldStyle(layout, input, animate = false) }
 	}
 
 	// Field border/cursor/text colour for its state (focused / error / disabled)
@@ -2496,6 +2658,9 @@ class MainActivity : ThemedActivity() {
 		} else if (editText.id == R.id.inputUrl) {
 			focusedColor = getUrlCurrentColor()
 			unfocusedColor = if (focusedColor == accent) gray else focusedColor
+		} else if (layout.error != null) {
+			focusedColor = ContextCompat.getColor(this, R.color.error_red)
+			unfocusedColor = focusedColor
 		} else {
 			focusedColor = accent
 			unfocusedColor = gray
@@ -2533,8 +2698,14 @@ class MainActivity : ThemedActivity() {
 			intArrayOf(disabledColor, color, unfocusedColor)
 		)
 		layout.setBoxStrokeColorStateList(colorList)
+		// Under an error the box and the label take these, so they fade as the other states do.
+		layout.setBoxStrokeErrorColor(ColorStateList.valueOf(color))
+		layout.setErrorTextColor(ColorStateList.valueOf(color))
 		layout.hintTextColor = colorList
 		layout.defaultHintTextColor = colorList
+		if (layout.endIconMode == TextInputLayout.END_ICON_CUSTOM) {
+			layout.setEndIconTintList(ColorStateList.valueOf(unfocusedColor))
+		}
 		if (Build.VERSION.SDK_INT >= 29) {
 			layout.setCursorColor(ColorStateList.valueOf(color))
 		}

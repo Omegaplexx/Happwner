@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginStart="@dimen/dialog_checkbox_margin_start"
+	android:layout_marginEnd="@dimen/spacing_small"
+	android:background="@drawable/bg_row_ripple"
+	android:gravity="center_vertical"
+	android:minHeight="48dp"
+	android:orientation="horizontal">
+
+	<FrameLayout
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content">
+
+		<com.google.android.material.radiobutton.MaterialRadioButton
+			android:id="@+id/identityRadio"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:background="@null"
+			android:clickable="false"
+			android:focusable="false"
+			android:gravity="center_vertical|start"
+			android:minWidth="42dp"
+			app:buttonTint="@color/dialog_control_selector" />
+
+		<com.google.android.material.checkbox.MaterialCheckBox
+			android:id="@+id/identityCheck"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:background="@null"
+			android:clickable="false"
+			android:focusable="false"
+			android:gravity="center_vertical|start"
+			android:minWidth="42dp"
+			android:visibility="gone"
+			app:buttonIconTint="@color/dialog_control_selector"
+			app:buttonTint="@color/dialog_control_selector" />
+	</FrameLayout>
+
+	<FrameLayout
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="1">
+
+		<TextView
+			android:id="@+id/identityName"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textColor="@color/text_secondary"
+			android:textSize="@dimen/text_size_body" />
+
+		<EditText
+			android:id="@+id/identityNameEdit"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:background="@null"
+			android:hint="@string/hint_identity_name"
+			android:imeOptions="actionDone|flagNoExtractUi"
+			android:inputType="text"
+			android:maxLength="40"
+			android:maxLines="1"
+			android:minHeight="0dp"
+			android:padding="0dp"
+			android:textColor="@color/text_input_color_selector"
+			android:textSize="@dimen/text_size_body"
+			android:visibility="gone" />
+	</FrameLayout>
+
+	<LinearLayout
+		android:id="@+id/identityTools"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal"
+		android:visibility="gone">
+
+		<ImageButton
+			android:id="@+id/identityRename"
+			android:layout_width="@dimen/btn_icon_size"
+			android:layout_height="@dimen/btn_icon_size"
+			android:background="@drawable/bg_icon_ripple"
+			android:contentDescription="@string/cd_identity_rename"
+			android:src="@drawable/ic_edit"
+			app:tint="@color/text_secondary" />
+
+		<ImageView
+			android:id="@+id/identityMove"
+			android:layout_width="@dimen/btn_icon_size"
+			android:layout_height="@dimen/btn_icon_size"
+			android:contentDescription="@string/cd_identity_move"
+			android:padding="8dp"
+			android:src="@drawable/ic_drag_handle"
+			app:tint="@color/text_secondary" />
+	</LinearLayout>
+</LinearLayout>

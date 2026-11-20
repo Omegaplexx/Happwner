@@ -3,6 +3,7 @@ package com.happwner.ui
 import android.graphics.Color
 import android.text.PrecomputedText
 import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.TextView
@@ -47,23 +48,27 @@ class ShowFullTest {
 	}
 
 	@Test
-	fun `the full text is set as the precomputed one, selectable and with its prefix kept`() {
+	fun `the full text is set as the precomputed one, selectable and with the labels above it kept`() {
 		val output = activity.findViewById<TextView>(R.id.output)
+		val labels = activity.findViewById<TextView>(R.id.outputLabels)
+		activity.findViewById<View>(R.id.outputBox).visibility = View.VISIBLE
 		output.text = "head"
-		output.visibility = View.VISIBLE
 		output.setTextIsSelectable(true)
-		val prefix = SpannableStringBuilder("prefix\n").apply {
+		labels.text = SpannableStringBuilder("prefix").apply {
 			setSpan(ForegroundColorSpan(Color.RED), 0, 6, 0)
 		}
+		labels.visibility = View.VISIBLE
 		val body = (1..2000).joinToString("\n") { "vless://id-$it@host:443?type=tcp#node$it" }
 		val expand = MainActivity::class.java.getDeclaredMethod(
-			"expandOutputToFull", CharSequence::class.java, String::class.java, Int::class.javaPrimitiveType)
+			"expandOutputToFull", String::class.java, Int::class.javaPrimitiveType)
 		expand.isAccessible = true
-		expand.invoke(activity, prefix, body, field<Int>(activity, "fetchGeneration"))
+		expand.invoke(activity, body, field<Int>(activity, "fetchGeneration"))
 
 		assertTrue(settle(8000) { Thread.sleep(5); output.text.length > 10 })
 		assertTrue("measured off the UI thread: ${output.text.javaClass}", output.text is PrecomputedText)
-		assertEquals("prefix\n$body", output.text.toString())
+		assertEquals(body, output.text.toString())
 		assertTrue(output.isTextSelectable)
+		assertEquals("prefix", labels.text.toString())
+		assertEquals(1, (labels.text as Spanned).getSpans(0, 6, ForegroundColorSpan::class.java).size)
 	}
 }

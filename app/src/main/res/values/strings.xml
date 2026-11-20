@@ -164,6 +164,10 @@ What Happwner can do inside target/patched apps:<br/><br/>
 	<string name="setting_watchdog" translatable="false">Watchdog</string>
 	<string name="setting_watchdog_desc">Wake the service every 10 seconds for stable background operation. Don\'t enable unless you need to</string>
 
+	<string name="setting_header_other">Other</string>
+	<string name="setting_advanced">Advanced mode</string>
+	<string name="setting_advanced_desc">Support for identities and extra HTTP headers when requesting subscriptions, and the full server response with its headers in the result</string>
+
 	<string name="notif_action_hide">Hide</string>
 	<string name="notif_action_disconnect">Disable</string>
 	<string name="notif_channel_name">Subscription Bridge</string>
@@ -223,6 +227,27 @@ What Happwner can do inside target/patched apps:<br/><br/>
 	<string name="ua_default_v2raytun" translatable="false">v2raytun/android</string>
 	<string name="ua_default_incy" translatable="false">INCY/3.9.7</string>
 	<string name="ua_select_title">Select User-Agent</string>
+	<string name="hint_model">Model</string>
+	<string name="hint_os">System</string>
+	<string name="hint_os_version">Version</string>
+	<string name="option_not_set">Not set</string>
+	<string name="option_enter">Enter</string>
+	<string name="identity_none">No identity set</string>
+	<string name="identities_title">Identities</string>
+	<string name="identities_empty">Nothing here yet. Tap + to save the current values</string>
+	<string name="identities_hint">Hold an item to enter edit mode</string>
+	<string name="hint_identity_name">Name</string>
+	<string name="identity_default_name">Identity</string>
+	<string name="device_presets_title">Select device</string>
+	<string name="hint_header_name">Header name</string>
+	<string name="label_header_add">Add header</string>
+	<string name="cd_header_confirm">Add</string>
+	<string name="cd_header_cancel">Cancel</string>
+	<string name="cd_header_delete">Delete the header</string>
+	<string name="error_header_reserved">The app sets this header itself</string>
+	<string name="error_header_exists">This header is already added</string>
+	<string name="advanced_import_title">Advanced mode</string>
+	<string name="advanced_import_msg">This link contains extra subscription request parameters. Switch to advanced mode?</string>
 	<string name="ua_prefer_subscription">User-Agent from the subscription</string>
 	<string name="ua_prefer_subscription_info_title">VPN provider\'s User-Agent</string>
 	<string name="ua_prefer_subscription_info_msg">Some providers send a User-Agent along with the subscription that is needed to get the full server list. Happwner automatically repeats the subscription request using the User-Agent the provider expects.
@@ -239,6 +264,14 @@ What Happwner can do inside target/patched apps:<br/><br/>
 	<string name="cd_info_ua">User-Agent help</string>
 	<string name="cd_edit_hwid">Edit Hardware ID</string>
 	<string name="cd_paste_hwid">Paste Hardware ID</string>
+	<string name="cd_generate_hwid">Generate Hardware ID</string>
+	<string name="cd_device_presets">Device presets</string>
+	<string name="cd_identity_save">Save identity</string>
+	<string name="cd_identities">Identities</string>
+	<string name="cd_identity_add">Save current values as an identity</string>
+	<string name="cd_identity_delete">Delete selected identities</string>
+	<string name="cd_identity_rename">Rename</string>
+	<string name="cd_identity_move">Move</string>
 	<string name="cd_clear_result">Clear result</string>
 	<string name="cd_save_result">Save result</string>
 	<string name="cd_copy_result">Copy result</string>

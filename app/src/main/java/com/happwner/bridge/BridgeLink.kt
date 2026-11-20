@@ -21,15 +21,32 @@ internal object BridgeLink {
 
 	// Null for a parameter not carried; older links that always wrote "&hwid=&ua=" send empty
 	// instead, and both must overwrite nothing.
-	data class Parts(val url: String?, val hwid: String?, val userAgent: String?)
+	data class Parts(
+		val url: String?,
+		val hwid: String?,
+		val userAgent: String?,
+		val model: String? = null,
+		val os: String? = null,
+		val osVersion: String? = null,
+		val headers: List<Pair<String, String>>? = null
+	) {
+		fun identity() = RequestIdentity(
+			hwid.orEmpty(), userAgent.orEmpty(), model.orEmpty(), os.orEmpty(), osVersion.orEmpty(),
+			headers.orEmpty()
+		)
+	}
 
 	// Empty fields are left out, not sent empty: the bridge reads both the same, so this leaves
 	// whoever pastes the link's own fields as they are.
-	fun build(url: String, hwid: String, userAgent: String, address: String): String =
+	fun build(url: String, identity: RequestIdentity, address: String): String =
 		buildString {
 			append(address).append("/url=").append(encode(url))
-			if (hwid.isNotEmpty()) append("&hwid=").append(encode(hwid))
-			if (userAgent.isNotEmpty()) append("&ua=").append(encode(userAgent))
+			val fields = listOf(
+				"hwid" to identity.hwid, "ua" to identity.userAgent, "model" to identity.model,
+				"os" to identity.os, "osver" to identity.osVersion
+			)
+			for ((key, value) in fields) if (value.isNotEmpty()) append("&$key=").append(encode(value))
+			for ((name, value) in identity.headers) append("&h=").append(encode("$name:$value"))
 		}
 
 	// A link in the bridge's shape, with whatever address it was built on - this phone's or another's.
@@ -38,20 +55,27 @@ internal object BridgeLink {
 
 	fun parse(link: String): Parts? {
 		if (!link.contains("/url=")) return null
-		var url: String? = null
-		var hwid: String? = null
-		var userAgent: String? = null
-		for (parameter in ("url=" + link.substringAfter("/url=")).split("&")) {
+		return parseQuery("url=" + link.substringAfter("/url="))
+	}
+
+	fun parseQuery(query: String): Parts {
+		val values = mutableMapOf<String, String>()
+		val headers = mutableListOf<Pair<String, String>>()
+		for (parameter in query.split("&")) {
 			val pair = parameter.split("=", limit = 2)
 			if (pair.size < 2) continue
-			val value = decode(pair[1]).ifEmpty { null }
-			when (pair[0]) {
-				"url" -> url = value
-				"hwid" -> hwid = value
-				"ua" -> userAgent = value
+			val value = decode(pair[1])
+			if (pair[0] != "h") {
+				values[pair[0]] = value
+			} else if (headers.size < CustomHeaders.MAX_FROM_LINK) {
+				CustomHeaders.fromPair(value)?.let { headers += it }
 			}
 		}
-		return Parts(url, hwid, userAgent)
+		fun carried(key: String) = values[key]?.ifEmpty { null }
+		return Parts(
+			carried("url"), carried("hwid"), carried("ua"), carried("model"), carried("os"),
+			carried("osver"), headers.ifEmpty { null }
+		)
 	}
 
 	// IPv4 only: this address goes to another device, and a link-local IPv6 carries a scope

@@ -186,6 +186,7 @@ class SettingsFragment : Fragment() {
 		bindLanModeItem(view)
 		bindBridgeInstructionIcon(view)
 		bindWatchdogItem(view)
+		bindAdvancedItem(view)
 		bindXposedCardItem(view)
 		followPatchSession()
 		PatchSession.sweep(view.context)
@@ -367,6 +368,8 @@ class SettingsFragment : Fragment() {
 			BridgeController.ensureServing(ctx)
 		root.findViewById<SwitchMaterial>(R.id.switchWatchdog)?.isChecked =
 			prefs.getBoolean(PrefsManager.PREF_BRIDGE_WATCHDOG, false)
+		root.findViewById<SwitchMaterial>(R.id.switchAdvanced)?.isChecked =
+			prefs.getBoolean(PrefsManager.PREF_ADVANCED_MODE, false)
 
 		val animationOptions = resources.getStringArray(R.array.animation_options)
 		root.findViewById<TextView>(R.id.textAnimationsStatus)?.text =
@@ -1692,6 +1695,18 @@ class SettingsFragment : Fragment() {
 			}
 		}
 		item.setOnClickListener { update(!switch.isChecked) }
+	}
+
+	private fun bindAdvancedItem(view: View) {
+		val item = view.findViewById<MaterialCardView>(R.id.itemAdvanced)
+		val switch = view.findViewById<SwitchMaterial>(R.id.switchAdvanced)
+		val prefs = PrefsManager.getSafePrefs(requireContext())
+		switch.isChecked = prefs.getBoolean(PrefsManager.PREF_ADVANCED_MODE, false)
+		item.setOnClickListener {
+			val checked = !switch.isChecked
+			prefs.edit { putBoolean(PrefsManager.PREF_ADVANCED_MODE, checked) }
+			switch.isChecked = checked
+		}
 	}
 
 	// Setting: LAN mode, which opens the bridge from this phone alone to the local network too.

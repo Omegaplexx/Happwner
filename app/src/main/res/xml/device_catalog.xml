@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- versions: separated by spaces, none for a platform without them.
+     hwid: hex8, hex16, uuid_lower or uuid_upper. -->
+<catalog>
+	<platform name="Android" hwid="hex8" versions="17 16 15 14 13 12 11 10" />
+	<platform name="iOS" hwid="uuid_upper" versions="27 26 18 17 16 15" />
+	<platform name="macOS" hwid="uuid_upper" versions="27 26 15 14 13 12" />
+	<platform name="Windows" hwid="uuid_lower" versions="11 10" />
+	<platform name="Linux" hwid="hex16" />
+
+	<preset model="Pixel 8 Pro" platform="Android" version="15" />
+	<preset model="SM-S921B" platform="Android" version="15" />
+	<preset model="iPhone 15" platform="iOS" version="18" />
+	<preset model="iPad Pro" platform="iOS" version="18" />
+	<preset model="MacBook Pro" platform="macOS" version="15" />
+	<preset model="Windows PC" platform="Windows" version="11" />
+	<preset model="Linux PC" platform="Linux" />
+</catalog>

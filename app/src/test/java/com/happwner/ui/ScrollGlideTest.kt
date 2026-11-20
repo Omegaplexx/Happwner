@@ -3,7 +3,6 @@ package com.happwner.ui
 import android.transition.ChangeBounds
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import com.happwner.R
@@ -49,7 +48,7 @@ class ScrollGlideTest {
 	// A tall block at the end of the content, for a change to take away.
 	private fun addBlock(scroll: ScrollView): View {
 		val block = View(activity)
-		(scroll.getChildAt(0) as LinearLayout).addView(block, LinearLayout.LayoutParams(
+		(scroll.getChildAt(0) as ViewGroup).addView(block, ViewGroup.LayoutParams(
 			ViewGroup.LayoutParams.MATCH_PARENT, 3000))
 		idle(100)
 		return block
@@ -75,19 +74,17 @@ class ScrollGlideTest {
 	}
 
 	@Test
-	fun `collapsing the result glides the main screen`() {
+	fun `the main screen glides when the result collapses, and on any other animated change`() {
 		val scroll = activity.findViewById<ScrollView>(R.id.mainScrollView)
 		val output = activity.findViewById<TextView>(R.id.output)
+		val box = activity.findViewById<View>(R.id.outputBox)
 		output.text = (1..300).joinToString("\n") { "line $it" }
-		output.visibility = View.VISIBLE
+		// The result starts collapsed: shown, so that the click collapses it.
+		box.visibility = View.VISIBLE
 		idle(100)
 		assertGlides(scroll) { activity.findViewById<View>(R.id.outputHeader).performClick() }
-		assertEquals(View.GONE, output.visibility)
-	}
+		assertEquals(View.GONE, box.visibility)
 
-	@Test
-	fun `any animated change on the main screen glides, not only a button's`() {
-		val scroll = activity.findViewById<ScrollView>(R.id.mainScrollView)
 		val block = addBlock(scroll)
 		assertGlides(scroll) {
 			(scroll.getChildAt(0) as ViewGroup).beginDelayedTransitionIfEnabled(

@@ -104,11 +104,16 @@ class InstalledAppsPickerTest {
 	private fun type(query: String) = search.setText(query)
 
 	@Test
-	fun `only the user's apps are listed, in the order of their names`() {
+	fun `only the user's apps are listed, in the order of their names, and a tap hands back the app with its base apk first and its splits after`() {
 		assertTrue(waitFor { list.adapter!!.itemCount == 2 })
 		idle(100)
 		assertEquals(listOf("Alpha", "Beta"), labels())
 		assertFalse(status.isVisible)
+		list.findViewHolderForAdapterPosition(1)!!.itemView.performClick()
+		val app = picked
+		assertNotNull(app)
+		assertEquals("com.example.beta", app!!.packageName)
+		assertEquals(listOf("com.example.beta.apk", "split_config.en.apk"), app.apks.map { it.name })
 	}
 
 	@Test
@@ -129,26 +134,11 @@ class InstalledAppsPickerTest {
 	}
 
 	@Test
-	fun `a tap hands back the app with its base apk first and its splits after`() {
-		assertTrue(waitFor { list.adapter!!.itemCount == 2 })
-		idle(100)
-		list.findViewHolderForAdapterPosition(1)!!.itemView.performClick()
-		val app = picked
-		assertNotNull(app)
-		assertEquals("com.example.beta", app!!.packageName)
-		assertEquals(listOf("com.example.beta.apk", "split_config.en.apk"), app.apks.map { it.name })
-	}
-
-	@Test
-	fun `the search field takes the cursor and the selection colour from the accent`() {
+	fun `the search field takes the cursor and the selection colour from the accent, and its action takes the focus off it`() {
 		val accent = MaterialColors.getColor(search, R.attr.happAccent, 0)
 		val layout = page.findViewById<TextInputLayout>(R.id.layoutInstalledSearch)
 		assertEquals(accent, layout.cursorColor!!.defaultColor)
 		assertEquals(Color.argb(115, Color.red(accent), Color.green(accent), Color.blue(accent)), search.highlightColor)
-	}
-
-	@Test
-	fun `the search action takes the focus off the field`() {
 		search.requestFocus()
 		assertTrue(search.hasFocus())
 		search.onEditorAction(EditorInfo.IME_ACTION_SEARCH)

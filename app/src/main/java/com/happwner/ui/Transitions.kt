@@ -1,10 +1,13 @@
 package com.happwner.ui
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.transition.ChangeBounds
 import android.transition.Fade
 import android.transition.Transition
 import android.transition.TransitionManager
 import android.transition.TransitionSet
+import android.transition.TransitionValues
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
@@ -40,6 +43,21 @@ private fun View.glideScrolls(): List<GlideScrollView> =
 	generateSequence(this) { it.parent as? View }.filterIsInstance<GlideScrollView>().take(1).toList()
 		.ifEmpty { allViews.filterIsInstance<GlideScrollView>().toList() }
 
+// A view that fades out of the layout is measured as present until its fade ends, and is hidden then with no request
+// to lay out again. A layout meanwhile (the keyboard's room) would leave the space it took; this asks for one.
+private class SettlingFade : Fade() {
+	override fun onDisappear(
+		sceneRoot: ViewGroup,
+		view: View,
+		startValues: TransitionValues?,
+		endValues: TransitionValues?
+	): Animator? = super.onDisappear(sceneRoot, view, startValues, endValues)?.also {
+		it.addListener(object : AnimatorListenerAdapter() {
+			override fun onAnimationEnd(animation: Animator) = view.requestLayout()
+		})
+	}
+}
+
 fun buildBoundsFadeTransition(
 	durationMs: Long,
 	smooth: Boolean = false,
@@ -47,7 +65,7 @@ fun buildBoundsFadeTransition(
 ): Transition {
 	return TransitionSet().apply {
 		addTransition(ChangeBounds())
-		addTransition(Fade().apply {
+		addTransition(SettlingFade().apply {
 			if (excludeFadeTargetId != View.NO_ID) excludeTarget(excludeFadeTargetId, true)
 		})
 		ordering = TransitionSet.ORDERING_TOGETHER

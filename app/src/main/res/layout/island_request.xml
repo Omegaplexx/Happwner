@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	app:cardCornerRadius="@dimen/ui_corner_radius"
+	app:cardElevation="0dp"
+	app:strokeWidth="1dp"
+	app:strokeColor="?attr/happCardStroke"
+	app:cardBackgroundColor="?attr/happCardBg">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:paddingHorizontal="@dimen/island_padding"
+		android:paddingTop="@dimen/spacing_small"
+		android:paddingBottom="@dimen/spacing_small">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:layout_marginBottom="@dimen/island_margin_bottom">
+
+			<com.happwner.ui.FieldRow
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal">
+
+				<com.google.android.material.textfield.TextInputLayout
+					android:id="@+id/layoutUrl"
+					style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:hint="@string/hint_url"
+					app:errorEnabled="false">
+
+					<com.happwner.ui.LockableScrollEditText
+						android:id="@+id/inputUrl"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:paddingTop="@dimen/field_padding_vertical"
+						android:paddingBottom="@dimen/field_padding_vertical"
+						android:inputType="textMultiLine"
+						android:saveEnabled="false"
+						android:minLines="1"
+						android:maxLines="8"
+						android:imeOptions="actionDone"
+						android:textColor="@color/text_input_color_selector"
+						android:gravity="top|start"
+						android:paddingEnd="0dp" />
+				</com.google.android.material.textfield.TextInputLayout>
+
+				<ImageButton
+					android:id="@+id/btnPasteUrlManual"
+					android:layout_width="@dimen/btn_icon_size"
+					android:layout_height="@dimen/btn_icon_size"
+					android:layout_marginStart="@dimen/spacing_small"
+					android:background="@drawable/bg_icon_ripple"
+					android:src="@drawable/ic_paste"
+					android:contentDescription="@string/cd_paste_link"
+					app:tint="@color/text_secondary" />
+
+				<ImageButton
+					android:id="@+id/infoUrl"
+					android:layout_width="@dimen/btn_icon_size"
+					android:layout_height="@dimen/btn_icon_size"
+					android:background="@drawable/bg_icon_ripple"
+					android:src="@drawable/ic_info"
+					android:contentDescription="@string/cd_info_url"
+					app:tint="@color/text_secondary" />
+			</com.happwner.ui.FieldRow>
+
+			<TextView
+				android:id="@+id/urlErrorText"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:textColor="@color/error_red"
+				android:textSize="@dimen/text_size_tiny"
+				android:paddingStart="@dimen/spacing_medium"
+				android:paddingTop="@dimen/spacing_tiny"
+				android:visibility="gone" />
+		</LinearLayout>
+
+		<LinearLayout
+			android:id="@+id/identityBlock"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
+
+			<LinearLayout
+				android:id="@+id/identityHeader"
+				android:layout_width="match_parent"
+				android:layout_height="42dp"
+				android:layout_marginBottom="@dimen/island_margin_bottom"
+				android:orientation="horizontal"
+				android:gravity="center_vertical"
+				android:paddingHorizontal="@dimen/spacing_tiny"
+				android:background="@drawable/bg_row_ripple"
+				android:clickable="true"
+				android:focusable="true"
+				android:visibility="gone">
+
+				<TextView
+					android:id="@+id/identitySummary"
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:singleLine="true"
+					android:ellipsize="end"
+					android:textColor="?attr/happAccent"
+					android:textStyle="bold"
+					android:textAllCaps="true" />
+
+				<ImageButton
+					android:id="@+id/identitySave"
+					android:layout_width="@dimen/btn_icon_size"
+					android:layout_height="@dimen/btn_icon_size"
+					android:background="@drawable/bg_icon_ripple"
+					android:src="@drawable/ic_floppy"
+					android:contentDescription="@string/cd_identity_save"
+					android:translationX="4dp"
+					android:visibility="invisible"
+					app:tint="@color/text_secondary" />
+
+				<ImageButton
+					android:id="@+id/identityPerson"
+					android:layout_width="@dimen/btn_icon_size"
+					android:layout_height="@dimen/btn_icon_size"
+					android:background="@drawable/bg_icon_ripple"
+					android:src="@drawable/ic_person"
+					android:contentDescription="@string/cd_identities"
+					android:translationX="4dp"
+					app:tint="@color/text_secondary" />
+
+				<ImageView
+					android:id="@+id/identityExpand"
+					android:layout_width="@dimen/btn_icon_size"
+					android:layout_height="@dimen/btn_icon_size"
+					android:padding="@dimen/spacing_small"
+					android:src="@drawable/ic_expand_less"
+					android:importantForAccessibility="no"
+					android:translationX="4dp"
+					app:tint="@color/text_secondary" />
+			</LinearLayout>
+
+			<LinearLayout
+				android:id="@+id/identityFields"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical">
+
+				<com.happwner.ui.FieldRow
+					android:id="@+id/rowDevice"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal"
+					android:gravity="center_vertical"
+					android:layout_marginBottom="@dimen/island_margin_bottom"
+					android:visibility="gone">
+					<LinearLayout
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:orientation="vertical">
+						<com.google.android.material.textfield.TextInputLayout
+							android:id="@+id/layoutModel"
+							style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginBottom="@dimen/island_margin_bottom"
+							android:hint="@string/hint_model"
+							app:errorEnabled="false"
+							app:helperTextEnabled="false">
+							<com.google.android.material.textfield.TextInputEditText
+								android:id="@+id/inputModel"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:paddingTop="@dimen/field_padding_vertical"
+								android:paddingBottom="@dimen/field_padding_vertical"
+								android:textColor="@color/text_input_color_selector"
+								android:imeOptions="actionDone"
+								android:inputType="text"
+								android:maxLength="50" />
+						</com.google.android.material.textfield.TextInputLayout>
+						<LinearLayout
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:orientation="horizontal">
+							<com.happwner.ui.DropdownLayout
+								android:id="@+id/layoutOs"
+								android:layout_width="0dp"
+								android:layout_height="wrap_content"
+								android:layout_weight="1"
+								android:hint="@string/hint_os"
+								app:endIconMode="dropdown_menu"
+								app:errorEnabled="false"
+								app:helperTextEnabled="false">
+								<com.happwner.ui.DropdownField
+									android:id="@+id/inputOs"
+									android:layout_width="match_parent"
+									android:layout_height="wrap_content"
+									android:paddingTop="@dimen/field_padding_vertical"
+									android:paddingBottom="@dimen/field_padding_vertical"
+									android:inputType="none"
+									android:textColor="@color/text_input_color_selector" />
+							</com.happwner.ui.DropdownLayout>
+							<com.happwner.ui.DropdownLayout
+								android:id="@+id/layoutOsVersion"
+								android:layout_width="0dp"
+								android:layout_height="wrap_content"
+								android:layout_weight="1"
+								android:layout_marginStart="@dimen/field_gap_side"
+								android:hint="@string/hint_os_version"
+								app:endIconMode="dropdown_menu"
+								app:errorEnabled="false"
+								app:helperTextEnabled="false">
+								<com.happwner.ui.DropdownField
+									android:id="@+id/inputOsVersion"
+									android:layout_width="match_parent"
+									android:layout_height="wrap_content"
+									android:paddingTop="@dimen/field_padding_vertical"
+									android:paddingBottom="@dimen/field_padding_vertical"
+									android:inputType="none"
+									android:imeOptions="actionDone"
+									android:maxLength="20"
+									android:textColor="@color/text_input_color_selector" />
+							</com.happwner.ui.DropdownLayout>
+						</LinearLayout>
+					</LinearLayout>
+					<ImageButton
+						android:id="@+id/btnDevicePresets"
+						android:layout_width="@dimen/btn_icon_size"
+						android:layout_height="@dimen/btn_icon_size"
+						android:layout_marginStart="@dimen/spacing_small"
+						android:background="@drawable/bg_icon_ripple"
+						android:src="@drawable/ic_list_alt"
+						android:contentDescription="@string/cd_device_presets"
+						app:tint="@color/text_secondary" />
+				</com.happwner.ui.FieldRow>
+
+				<com.happwner.ui.FieldRow
+					android:id="@+id/rowHwid"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal"
+					android:gravity="center_vertical"
+					android:layout_marginBottom="@dimen/island_margin_bottom">
+					<com.google.android.material.textfield.TextInputLayout
+						android:id="@+id/layoutHwid"
+						style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:hint="@string/hint_hwid"
+						app:endIconMode="custom"
+						app:endIconDrawable="@drawable/ic_casino"
+						app:endIconCheckable="false"
+						app:endIconContentDescription="@string/cd_generate_hwid"
+						app:errorEnabled="false"
+						app:helperTextEnabled="false">
+						<com.google.android.material.textfield.TextInputEditText
+							android:id="@+id/inputHwid"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:paddingTop="@dimen/field_padding_vertical"
+							android:paddingBottom="@dimen/field_padding_vertical"
+							android:textColor="@color/text_input_color_selector"
+							android:imeOptions="actionDone"
+							android:inputType="text"
+							android:maxLength="50" />
+					</com.google.android.material.textfield.TextInputLayout>
+					<ImageButton
+						android:id="@+id/btnEditHwidManual"
+						android:layout_width="@dimen/btn_icon_size"
+						android:layout_height="@dimen/btn_icon_size"
+						android:layout_marginStart="@dimen/spacing_small"
+						android:background="@drawable/bg_icon_ripple"
+						android:src="@drawable/ic_edit"
+						android:contentDescription="@string/cd_edit_hwid"
+						app:tint="@color/text_secondary" />
+					<ImageButton
+						android:id="@+id/infoHwid"
+						android:layout_width="@dimen/btn_icon_size"
+						android:layout_height="@dimen/btn_icon_size"
+						android:background="@drawable/bg_icon_ripple"
+						android:src="@drawable/ic_info"
+						android:contentDescription="@string/cd_info_hwid"
+						app:tint="@color/text_secondary" />
+				</com.happwner.ui.FieldRow>
+
+				<TextView
+					android:id="@+id/hwidHint"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textSize="@dimen/text_size_tiny"
+					android:textColor="@color/text_secondary"
+					android:paddingStart="@dimen/spacing_medium"
+					android:paddingEnd="@dimen/spacing_medium"
+					android:layout_marginBottom="@dimen/island_margin_bottom"
+					android:visibility="gone" />
+
+				<com.happwner.ui.FieldRow
+					android:id="@+id/rowUserAgent"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal"
+					android:gravity="center_vertical"
+					android:layout_marginBottom="@dimen/spacing_normal">
+					<com.google.android.material.textfield.TextInputLayout
+						android:id="@+id/layoutUserAgent"
+						style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:hint="@string/hint_ua"
+						app:errorEnabled="false"
+						app:helperTextEnabled="false">
+						<com.happwner.ui.LockableScrollEditText
+							android:id="@+id/inputUserAgent"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:paddingTop="@dimen/field_padding_vertical"
+							android:paddingBottom="@dimen/field_padding_vertical"
+							android:inputType="textMultiLine"
+							android:saveEnabled="false"
+							android:textColor="@color/text_input_color_selector"
+							android:maxLines="2" />
+					</com.google.android.material.textfield.TextInputLayout>
+					<ImageButton
+						android:id="@+id/btnEditUaManual"
+						android:layout_width="@dimen/btn_icon_size"
+						android:layout_height="@dimen/btn_icon_size"
+						android:layout_marginStart="@dimen/spacing_small"
+						android:background="@drawable/bg_icon_ripple"
+						android:src="@drawable/ic_list_alt"
+						android:contentDescription="@string/ua_select_title"
+						app:tint="@color/text_secondary" />
+					<ImageButton
+						android:id="@+id/infoUserAgent"
+						android:layout_width="@dimen/btn_icon_size"
+						android:layout_height="@dimen/btn_icon_size"
+						android:background="@drawable/bg_icon_ripple"
+						android:src="@drawable/ic_info"
+						android:contentDescription="@string/cd_info_ua"
+						app:tint="@color/text_secondary" />
+				</com.happwner.ui.FieldRow>
+
+				<LinearLayout
+					android:id="@+id/headersBlock"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="vertical"
+					android:layout_marginBottom="@dimen/island_margin_bottom"
+					android:visibility="gone">
+
+					<LinearLayout
+						android:id="@+id/headerRows"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:orientation="vertical" />
+
+					<FrameLayout
+						android:id="@+id/rowHeaderAdd"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginBottom="@dimen/island_margin_bottom">
+						<LinearLayout
+							android:id="@+id/headerAdd"
+							android:layout_width="match_parent"
+							android:layout_height="@dimen/btn_icon_size"
+							android:background="@drawable/bg_row_ripple"
+							android:clickable="true"
+							android:focusable="true"
+							android:gravity="center_vertical"
+							android:orientation="horizontal"
+							android:paddingHorizontal="@dimen/spacing_small">
+							<ImageView
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:importantForAccessibility="no"
+								android:src="@drawable/ic_add"
+								app:tint="@color/text_secondary" />
+							<TextView
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:layout_marginStart="@dimen/spacing_small"
+								android:text="@string/label_header_add"
+								android:textColor="@color/text_secondary"
+								android:textSize="@dimen/text_size_body" />
+						</LinearLayout>
+						<com.happwner.ui.FieldRow
+							android:id="@+id/headerEntry"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:orientation="horizontal"
+							android:visibility="gone">
+							<com.google.android.material.textfield.TextInputLayout
+								android:id="@+id/layoutHeaderName"
+								style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+								android:layout_width="0dp"
+								android:layout_height="wrap_content"
+								android:layout_weight="1"
+								android:hint="@string/hint_header_name"
+								app:errorEnabled="false"
+								app:errorIconDrawable="@null"
+								app:helperTextEnabled="false">
+								<com.google.android.material.textfield.TextInputEditText
+									android:id="@+id/inputHeaderName"
+									android:layout_width="match_parent"
+									android:layout_height="wrap_content"
+									android:paddingTop="@dimen/field_padding_vertical"
+									android:paddingBottom="@dimen/field_padding_vertical"
+									android:textColor="@color/text_input_color_selector"
+									android:imeOptions="actionDone|flagNoExtractUi"
+									android:inputType="text|textNoSuggestions"
+									android:maxLines="1" />
+							</com.google.android.material.textfield.TextInputLayout>
+							<ImageButton
+								android:id="@+id/headerCancel"
+								android:layout_width="@dimen/btn_icon_size"
+								android:layout_height="@dimen/btn_icon_size"
+								android:layout_marginStart="@dimen/spacing_small"
+								android:background="@drawable/bg_icon_ripple"
+								android:src="@drawable/ic_close"
+								android:contentDescription="@string/cd_header_cancel"
+								app:tint="@color/text_secondary" />
+							<ImageButton
+								android:id="@+id/headerConfirm"
+								android:layout_width="@dimen/btn_icon_size"
+								android:layout_height="@dimen/btn_icon_size"
+								android:background="@drawable/bg_icon_ripple"
+								android:src="@drawable/ic_check"
+								android:contentDescription="@string/cd_header_confirm"
+								app:tint="@color/text_secondary" />
+						</com.happwner.ui.FieldRow>
+					</FrameLayout>
+				</LinearLayout>
+			</LinearLayout>
+		</LinearLayout>
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal">
+
+			<Button
+				android:id="@+id/btnGet"
+				style="@style/Widget.MaterialComponents.Button"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:minHeight="48dp"
+				android:text="@string/btn_get_proxy"
+				android:textColor="@color/btn_get_text"
+				app:cornerRadius="@dimen/spacing_tiny"
+				android:layout_marginEnd="@dimen/spacing_small" />
+
+			<Button
+				android:id="@+id/btnGetSubscription"
+				style="@style/Widget.MaterialComponents.Button"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:minHeight="48dp"
+				android:text="@string/btn_get_subscription"
+				android:textColor="@color/btn_get_text"
+				app:cornerRadius="@dimen/spacing_tiny" />
+		</LinearLayout>
+
+	</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

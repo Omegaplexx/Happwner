@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<dimen name="toolbar_height">42dp</dimen>
+	<dimen name="toolbar_button">36dp</dimen>
+	<dimen name="toolbar_button_padding">8dp</dimen>
+	<dimen name="toolbar_title_size">16sp</dimen>
+	<dimen name="field_padding_vertical">13dp</dimen>
+	<dimen name="settings_column_half_gap">4dp</dimen>
+	<dimen name="settings_second_section_gap">0dp</dimen>
+
+</resources>

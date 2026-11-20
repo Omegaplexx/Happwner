@@ -21,18 +21,19 @@ class BridgeLinkTest {
 	@Test
 	fun `a link carries what it was given and comes back as it went in, with no empty parameter`() {
 		assertEquals("http://127.0.0.1:${SubscriptionService.BRIDGE_PORT}", loopback)
-		val link = BridgeLink.build(subscription, "", "", loopback)
+		val link = BridgeLink.build(subscription, RequestIdentity(), loopback)
 		assertEquals(
 			"$loopback/url=https%3A%2F%2Fexample.com%2Fsub%3Ftoken%3Dabc%26x%3D1",
 			link
 		)
 		assertFalse(link, link.contains("hwid="))
 		assertFalse(link, link.contains("ua="))
-		val onlyUa = BridgeLink.build(subscription, "", "Happ/4.2.0", loopback)
+		val onlyUa = BridgeLink.build(subscription, RequestIdentity(userAgent = "Happ/4.2.0"), loopback)
 		assertFalse(onlyUa, onlyUa.contains("hwid="))
 		assertTrue(onlyUa, onlyUa.contains("&ua=Happ%2F4.2.0"))
 
-		val parts = BridgeLink.parse(BridgeLink.build(subscription, "ABC-123", "Happ/4.2.0 (test)", loopback))
+		val parts = BridgeLink.parse(
+			BridgeLink.build(subscription, RequestIdentity("ABC-123", "Happ/4.2.0 (test)"), loopback))
 		assertEquals(subscription, parts?.url)
 		assertEquals("ABC-123", parts?.hwid)
 		// The space went out as "+", which reads as a space only when decoded the same way.
@@ -51,7 +52,7 @@ class BridgeLinkTest {
 
 		// A link for another device carries that address and parses the same.
 		val address = "http://192.168.1.5:${SubscriptionService.BRIDGE_PORT}"
-		val other = BridgeLink.build(subscription, "ABC-123", "", address)
+		val other = BridgeLink.build(subscription, RequestIdentity(hwid = "ABC-123"), address)
 		assertTrue(other, other.startsWith("$address/url="))
 		assertTrue(other, BridgeLink.matches(other))
 		assertEquals(subscription, BridgeLink.parse(other)?.url)
@@ -61,6 +62,25 @@ class BridgeLinkTest {
 		assertNull(BridgeLink.parse("happ://add/aHR0cHM6Ly9leGFtcGxlLmNvbQ"))
 		assertFalse(BridgeLink.matches("https://example.com/sub?token=abc"))
 		assertFalse(BridgeLink.matches("happ://add/aHR0cHM6Ly9leGFtcGxlLmNvbQ"))
+	}
+
+	@Test
+	fun `the device fields and custom headers travel in the link, and a header that is not allowed does not`() {
+		val identity = RequestIdentity(
+			model = "iPhone 15", os = "iOS", osVersion = "18",
+			headers = listOf("x-token" to "a:b c")
+		)
+		val link = BridgeLink.build(subscription, identity, loopback)
+		assertFalse(link, link.contains("hwid=") || link.contains("ua="))
+		val parts = BridgeLink.parse(link)
+		assertEquals("iPhone 15", parts?.model)
+		assertEquals("iOS", parts?.os)
+		assertEquals("18", parts?.osVersion)
+		assertEquals(listOf("x-token" to "a:b c"), parts?.headers)
+
+		val crafted = BridgeLink.parse("$loopback/$encodedUrl&h=Host%3Aevil&h=x-hwid%3A1&h=x-ok%3A1&h=x-empty%3A")
+		assertEquals(listOf("x-ok" to "1"), crafted?.headers)
+		assertNull(BridgeLink.parse(link.substringBefore("&model="))?.model)
 	}
 
 	@Test

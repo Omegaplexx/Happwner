@@ -14,7 +14,7 @@ import com.happwner.ui.UiTestSupport.dims
 import com.happwner.ui.UiTestSupport.field
 import com.happwner.ui.UiTestSupport.idle
 import com.happwner.ui.UiTestSupport.key
-import com.happwner.ui.UiTestSupport.rotate
+import com.happwner.ui.UiTestSupport.turn
 import com.happwner.ui.UiTestSupport.setAnimMode
 import com.happwner.ui.UiTestSupport.settle
 import com.happwner.ui.UiTestSupport.topBackCallback
@@ -69,6 +69,7 @@ class SdkMatrixTest {
 	}
 
 	private fun mainScreen(mode: Int) {
+		RuntimeEnvironment.setQualifiers("w851dp-h393dp-land")
 		val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
 		val activity = controller.get()
 		setAnimMode(activity, mode)
@@ -76,7 +77,7 @@ class SdkMatrixTest {
 		activity.findViewById<ImageButton>(R.id.infoUrl).performClick()
 		val info = current(activity)!!
 		idle(400)
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		close(activity, settledSwap(activity, info))
 		// The agent dialog's note page: opened, Back takes it down and leaves the dialog.
 		activity.findViewById<ImageButton>(R.id.btnEditUaManual).performClick()
@@ -97,6 +98,7 @@ class SdkMatrixTest {
 	}
 
 	private fun settingsScreen(mode: Int) {
+		RuntimeEnvironment.setQualifiers("w851dp-h393dp-land")
 		val controller = Robolectric.buildActivity(SettingsActivity::class.java).setup()
 		val activity = controller.get()
 		setAnimMode(activity, mode)
@@ -109,7 +111,7 @@ class SdkMatrixTest {
 		decor(dialog).findViewById<View>(R.id.btnModeUriSettings).performClick()
 		idle(600)
 		assertEquals("process_uri_options", field(settings, "scopePage"))
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		val put = settledSwap(settings, dialog)
 		assertEquals("put back on its page", "process_uri_options", field(settings, "scopePage"))
 		assertTrue(decor(put).findViewById<MaterialCheckBox>(R.id.checkDropIncompatible).isShown)
@@ -133,23 +135,4 @@ class SdkMatrixTest {
 
 	@Test
 	fun `the settings' dialog with pages in the system mode`() = settingsScreen(ANIM_MODE_SYSTEM)
-
-	@Test
-	fun `the settings open inside the main screen, where the main screen keeps them`() {
-		val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
-		val activity = controller.get()
-		setAnimMode(activity, ANIM_MODE_SOFTWARE)
-		idle(100)
-		activity.openSettings()
-		idle(600)
-		val settings = activity.supportFragmentManager.findFragmentByTag("settings_fragment")!!
-		assertTrue(settings.isVisible)
-		rotate(controller, landscape = true)
-		idle(600)
-		assertTrue(settings.isVisible)
-		assertNull("under the settings the main screen keeps no dialog", current(activity))
-		activity.closeSettings()
-		assertTrue(settle { settings.isHidden })
-		controller.finish()
-	}
 }

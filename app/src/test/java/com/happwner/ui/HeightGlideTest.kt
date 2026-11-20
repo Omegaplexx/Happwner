@@ -3,7 +3,6 @@ package com.happwner.ui
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -91,9 +90,10 @@ class HeightGlideTest {
 	}
 
 	@Test
-	fun `a status line taking more lines grows the dialog in steps, its frame with it`() {
+	fun `a status line taking more lines grows the dialog in steps, its frame with it, two changes in a frame being one glide`() {
 		val dialog = openXposedDialog()
 		val before = card(dialog).height
+		status(dialog).crossfadeText(lines(3))
 		status(dialog).crossfadeText(lines(6))
 		assertEquals("nothing jumps before the first frame", before, card(dialog).height)
 
@@ -111,7 +111,9 @@ class HeightGlideTest {
 	}
 
 	@Test
-	fun `the line the pencil asks for changes through the dialog's glide`() {
+	fun `the HWID spoofing toggle shows and hides its status line through the dialog's glide`() {
+		// Spoofing is on by default with the hooks, so it is set off for the toggle to turn it on.
+		PrefsManager.getSafePrefs(activity).edit().putBoolean(PrefsManager.PREF_USE_CUSTOM_HWID_SUBSTITUTION, false).commit()
 		val dialog = openXposedDialog()
 		// Text here has no width to wrap at, so what the line does to the height is seen above; this
 		// is that the toggle's own change goes the same way.
@@ -123,15 +125,16 @@ class HeightGlideTest {
 		})
 		val toggle = decor(dialog).findViewById<View>(R.id.rowHwidSpoofToggle)
 		val line = status(dialog)
-		val first = line.text.toString()
+		assertEquals(View.GONE, line.visibility)
 		toggle.performClick()
 		assertEquals(1, glides)
-		assertTrue("the line took another text", line.text.toString() != first)
 		idle(600)
+		assertEquals(View.VISIBLE, line.visibility)
+		assertTrue("the line has its text", line.text.isNotEmpty())
 		toggle.performClick()
 		assertEquals(2, glides)
 		idle(600)
-		assertEquals(first, line.text.toString())
+		assertEquals(View.GONE, line.visibility)
 	}
 
 	@Test
@@ -147,28 +150,12 @@ class HeightGlideTest {
 	}
 
 	@Test
-	fun `two changes in a frame are one glide`() {
-		val dialog = openXposedDialog()
-		val before = card(dialog).height
-		status(dialog).crossfadeText(lines(3))
-		status(dialog).crossfadeText(lines(6))
-		val seen = watch(dialog)
-		val end = card(dialog).height
-		assertTrue("grown: $before to $end", end > before)
-		assertEquals("in one run to the later size", seen.cards.sorted(), seen.cards)
-		assertTrue("with steps: ${seen.cards}", seen.cards.any { it in (before + 1) until end })
-	}
-
-	@Test
-	fun `a view with no host above it just changes`() {
-		val view = TextView(activity)
+	fun `the nearest host above a view glides it, and with none the change is just made`() {
+		val bare = TextView(activity)
 		var ran = 0
-		view.glideHeights { ran++ }
+		bare.glideHeights { ran++ }
 		assertEquals(1, ran)
-	}
 
-	@Test
-	fun `the nearest host above a view glides it`() {
 		val outer = FrameLayout(activity)
 		val inner = FrameLayout(activity)
 		val leaf = TextView(activity)
@@ -185,9 +172,9 @@ class HeightGlideTest {
 	fun `what a settings row's height moves glides on the screen`() {
 		val root = settings.requireView() as ViewGroup
 		val scroll = root.findViewById<ViewGroup>(R.id.settingsScrollView)
-		val content = scroll.getChildAt(0) as LinearLayout
+		val content = scroll.getChildAt(0) as ViewGroup
 		val block = View(activity)
-		content.addView(block, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 400))
+		content.addView(block, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 400))
 		idle(100)
 		val before = content.height
 		block.glideHeights { block.visibility = View.GONE }

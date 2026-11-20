@@ -28,6 +28,7 @@
 
 		<item name="android:textColorHighlight">@color/ripple_gray</item>
 		<item name="colorControlHighlight">@color/ripple_gray</item>
+		<item name="textAppearanceSubtitle1">@style/TextAppearance_Happwner_Subtitle1</item>
 
 		<item name="materialAlertDialogTheme">@style/Theme_Happwner_Dialog</item>
 
@@ -42,6 +43,15 @@
 		<item name="happToolbarBg">@color/brand_purple</item>
 		<item name="happDialogStroke">@android:color/transparent</item>
 		<item name="happAccent">@color/brand_purple_secondary</item>
+	</style>
+
+	<!-- The text of a field in a TextInputLayout takes its selection colour from here, not from the theme's own. -->
+	<style name="TextAppearance_Happwner_Subtitle1" parent="TextAppearance.MaterialComponents.Subtitle1">
+		<item name="android:textColorHighlight">@color/ripple_gray</item>
+	</style>
+
+	<style name="TextAppearance_Happwner_ToolbarTitle" parent="TextAppearance.MaterialComponents.Headline6">
+		<item name="android:textSize">@dimen/toolbar_title_size</item>
 	</style>
 
 	<style name="Widget_Happwner_TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">

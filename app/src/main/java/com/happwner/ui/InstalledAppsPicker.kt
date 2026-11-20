@@ -1,15 +1,12 @@
 package com.happwner.ui
 
 import android.content.Context
-import android.content.res.ColorStateList
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
@@ -20,9 +17,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.color.MaterialColors
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.happwner.R
 import com.happwner.patcher.AppIcons
 import com.happwner.patcher.InstalledApp
@@ -41,16 +36,6 @@ class InstalledAppsPicker(private val onPick: (InstalledApp) -> Unit) {
 	private val job = SupervisorJob()
 	private val scope = CoroutineScope(Dispatchers.Main.immediate + job)
 
-	// The cursor, selection handles and highlight take the accent colour, as in the main fields.
-	private fun tintSearchField(layout: TextInputLayout, search: TextInputEditText) {
-		val accent = MaterialColors.getColor(
-			search, R.attr.happAccent,
-			ContextCompat.getColor(search.context, R.color.brand_purple_secondary)
-		)
-		if (Build.VERSION.SDK_INT >= 29) layout.setCursorColor(ColorStateList.valueOf(accent))
-		updateTextViewHandlesColor(search, accent)
-	}
-
 	fun create(parent: ViewGroup): View {
 		val context = parent.context
 		val root = LayoutInflater.from(context).inflate(R.layout.page_installed_apps, parent, false)
@@ -60,7 +45,7 @@ class InstalledAppsPicker(private val onPick: (InstalledApp) -> Unit) {
 		})
 
 		val search = root.findViewById<TextInputEditText>(R.id.inputInstalledSearch)
-		tintSearchField(root.findViewById(R.id.layoutInstalledSearch), search)
+		tintAccent(root.findViewById(R.id.layoutInstalledSearch), search)
 		val status = root.findViewById<TextView>(R.id.textInstalledStatus)
 		val list = root.findViewById<RecyclerView>(R.id.listInstalledApps)
 		val adapter = AppAdapter(context, scope, onPick)

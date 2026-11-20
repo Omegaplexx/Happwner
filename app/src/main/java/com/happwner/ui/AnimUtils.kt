@@ -12,6 +12,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Interpolator
 import android.view.animation.PathInterpolator
 import android.widget.ScrollView
+import com.happwner.R
 import com.happwner.data.PrefsManager
 
 // The Material curves every animation in the app runs on.
@@ -76,6 +77,29 @@ fun View.fadeIn(duration: Long) {
 	alpha = 0f
 	visibility = View.VISIBLE
 	animate().alpha(1f).setDuration(duration).withLayer().start()
+}
+
+// Fades a button by alpha, not a transition: it stays VISIBLE while it fades, so a tap's ripple finishes.
+// Hidden, it is GONE or INVISIBLE.
+internal fun View.fadeTo(visible: Boolean, hidden: Int = View.GONE) {
+	val target = if (visible) View.VISIBLE else hidden
+	if (visibility == target && (!visible || alpha == 1f)) return
+	animate().cancel()
+	if (context.skipProgrammaticAnimations()) {
+		alpha = if (visible) 1f else 0f
+		visibility = target
+		return
+	}
+	val duration = context.stateChangeDuration(R.integer.duration_standard_transition)
+	if (visible) {
+		if (visibility != View.VISIBLE) {
+			alpha = 0f
+			visibility = View.VISIBLE
+		}
+		animate().alpha(1f).setDuration(duration).withLayer().start()
+	} else {
+		animate().alpha(0f).setDuration(duration).withLayer().withEndAction { visibility = hidden }.start()
+	}
 }
 
 fun View.isDescendantOfView(ancestor: View): Boolean {

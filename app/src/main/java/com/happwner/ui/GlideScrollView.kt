@@ -55,6 +55,7 @@ open class GlideScrollView @JvmOverloads constructor(
 		}
 	}
 
+	// The content keeps the height the scroll stands on: its own, or what a viewport that grew leaves it past.
 	private fun hold(glide: Glide, content: View) {
 		val margins = (content.layoutParams as? ViewGroup.MarginLayoutParams)
 			?.let { it.topMargin + it.bottomMargin } ?: 0
@@ -62,8 +63,35 @@ open class GlideScrollView @JvmOverloads constructor(
 		val end = max(0, content.measuredHeight + margins - viewport)
 		if (scrollY <= end) return
 		glide.to = end
-		glide.held = content.height
+		glide.held = max(content.height, scrollY + viewport)
 		holding = glide
+	}
+
+	// A change made at once (the keyboard's room) glides beside it, on the clock and curve of an area's toggle of this size.
+	internal fun glideBeside(deltaPx: Int) {
+		val mode = context.animMode()
+		if (mode != ANIM_MODE_OFF) glideWith(pace(mode, deltaPx), curveFor(mode, materialStandard))
+	}
+
+	// Scrolls to y as a change that asks for it would: on the glide begun beside it, or else on one of its own.
+	internal fun glideTo(y: Int) {
+		waiting?.let {
+			it.to = y
+			return
+		}
+		val mode = context.animMode()
+		if (mode == ANIM_MODE_OFF || !isLaidOut) return scrollTo(scrollX, y)
+		start(Glide(pace(mode, y - scrollY), curveFor(mode, materialStandard)).also { it.to = y })
+	}
+
+	private fun pace(mode: Int, deltaPx: Int) =
+		context.durationFor(mode, adaptiveAnimDuration(deltaPx, resources.displayMetrics.density))
+
+	// A glide goes back toward the end the content will have, which may not be laid out yet (a transition keeps the
+	// layout back). Meanwhile neither the glide nor a layout may cut the scroll to the content's height as it stands.
+	override fun scrollTo(x: Int, y: Int) {
+		if (y > scrollY || (waiting == null && holding == null && running == null)) return super.scrollTo(x, y)
+		onOverScrolled(x, max(0, y), false, false)
 	}
 
 	// Scrolled by anything else on the way (a person), the scroll is theirs and the glide lets go.
@@ -71,7 +99,9 @@ open class GlideScrollView @JvmOverloads constructor(
 		val to = glide.to ?: return
 		running?.cancel()
 		var placed = scrollY
-		running = ValueAnimator.ofInt(placed, to).apply {
+		// Set before it starts: its first step is already a scroll that must not be cut.
+		val animator = ValueAnimator.ofInt(placed, to).also { running = it }
+		animator.apply {
 			duration = glide.duration
 			glide.interpolator?.let { interpolator = it }
 			addUpdateListener {

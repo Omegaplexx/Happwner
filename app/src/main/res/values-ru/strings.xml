@@ -143,6 +143,10 @@ Happwner встроит свой Xposed-модуль в выбранное пр�
 	<string name="setting_enable_bridge_desc">Локальная HTTP-служба для обновления подписок в других приложениях</string>
 	<string name="setting_watchdog_desc">Пробуждать службу каждые 10 секунд для стабильной работы в фоне. Не включайте без надобности</string>
 
+	<string name="setting_header_other">Другое</string>
+	<string name="setting_advanced">Продвинутый режим</string>
+	<string name="setting_advanced_desc">Поддержка идентичностей и дополнительных HTTP-заголовков при запросе подписок, а также полный ответ сервера с заголовками в результате</string>
+
 	<string name="notif_action_hide">Скрыть</string>
 	<string name="notif_action_disconnect">Отключить</string>
 	<string name="notif_channel_name">Мост подписок</string>
@@ -199,6 +203,27 @@ Happwner встроит свой Xposed-модуль в выбранное пр�
 	<string name="setting_monet_accent_desc">Динамический цвет на основе обоев главного экрана</string>
 
 	<string name="ua_select_title">Выбор User-Agent</string>
+	<string name="hint_model">Модель</string>
+	<string name="hint_os">Система</string>
+	<string name="hint_os_version">Версия</string>
+	<string name="option_not_set">Не задано</string>
+	<string name="option_enter">Ввести</string>
+	<string name="identity_none">Идентичность не задана</string>
+	<string name="identities_title">Идентичности</string>
+	<string name="identities_empty">Здесь пока ничего нет. Нажмите «+», чтобы сохранить текущие значения</string>
+	<string name="identities_hint">Удерживайте элемент для входа в режим редактирования</string>
+	<string name="hint_identity_name">Название</string>
+	<string name="identity_default_name">Идентичность</string>
+	<string name="device_presets_title">Выбор устройства</string>
+	<string name="hint_header_name">Название заголовка</string>
+	<string name="label_header_add">Добавить заголовок</string>
+	<string name="cd_header_confirm">Добавить</string>
+	<string name="cd_header_cancel">Отмена</string>
+	<string name="cd_header_delete">Удалить заголовок</string>
+	<string name="error_header_reserved">Этот заголовок приложение задаёт само</string>
+	<string name="error_header_exists">Такой заголовок уже добавлен</string>
+	<string name="advanced_import_title">Продвинутый режим</string>
+	<string name="advanced_import_msg">Эта ссылка содержит дополнительные параметры запроса подписки. Перейти в продвинутый режим?</string>
 	<string name="ua_prefer_subscription">User-Agent из подписки</string>
 	<string name="ua_prefer_subscription_info_title">User-Agent VPN-провайдера</string>
 	<string name="ua_prefer_subscription_info_msg">Некоторые провайдеры отправляют вместе с подпиской ещё и User-Agent, необходимый для получения полного списка серверов. Happwner автоматически повторяет запрос подписки, используя ожидаемый провайдером User-Agent.
@@ -215,6 +240,14 @@ Happwner встроит свой Xposed-модуль в выбранное пр�
 	<string name="cd_info_ua">Справка: User-Agent</string>
 	<string name="cd_edit_hwid">Изменить Hardware ID</string>
 	<string name="cd_paste_hwid">Вставить Hardware ID</string>
+	<string name="cd_generate_hwid">Сгенерировать Hardware ID</string>
+	<string name="cd_device_presets">Предустановки устройств</string>
+	<string name="cd_identity_save">Сохранить идентичность</string>
+	<string name="cd_identities">Идентичности</string>
+	<string name="cd_identity_add">Сохранить текущие значения как идентичность</string>
+	<string name="cd_identity_delete">Удалить выбранные идентичности</string>
+	<string name="cd_identity_rename">Переименовать</string>
+	<string name="cd_identity_move">Переместить</string>
 	<string name="cd_clear_result">Очистить результат</string>
 	<string name="cd_save_result">Сохранить результат</string>
 	<string name="cd_copy_result">Скопировать результат</string>

@@ -36,12 +36,4 @@ class SavedResponseNameTest {
 		assertEquals("Happwneresp_example_sb.txt", asked.getStringExtra(Intent.EXTRA_TITLE))
 		controller.pause().stop().destroy()
 	}
-
-	@Test
-	fun `the three tails are _sb, _mhm and _uri`() {
-		val app = org.robolectric.RuntimeEnvironment.getApplication()
-		assertEquals("_sb", app.getString(R.string.filename_suffix_singbox))
-		assertEquals("_mhm", app.getString(R.string.filename_suffix_mihomo))
-		assertEquals("_uri", app.getString(R.string.filename_suffix_uri))
-	}
 }

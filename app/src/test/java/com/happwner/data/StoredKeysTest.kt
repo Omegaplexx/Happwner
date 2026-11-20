@@ -8,7 +8,7 @@ import org.junit.Test
 class StoredKeysTest {
 
 	@Test
-	fun `every stored key keeps its name`() {
+	fun `every stored key keeps its name, and so does each scope's conversion key`() {
 		val names = mapOf(
 			PrefsManager.PREF_ANIM_MODE to "anim_mode",
 			PrefsManager.PREF_APP_LANG to "app_lang",
@@ -39,10 +39,6 @@ class StoredKeysTest {
 			PrefsManager.SCOPE_SERVER to "server",
 		)
 		for ((key, name) in names) assertEquals(name, key)
-	}
-
-	@Test
-	fun `each scope's conversion keys keep their names`() {
 		for (scope in listOf(PrefsManager.SCOPE_MANUAL, PrefsManager.SCOPE_SERVER)) {
 			assertEquals("process_mode_$scope", PrefsManager.conversionModeKey(scope))
 			assertEquals("process_b64_$scope", PrefsManager.base64ChoiceKey(scope))

@@ -3,7 +3,6 @@ package com.happwner.client
 import kotlinx.coroutines.runBlocking
 import com.happwner.patcher.ReleaseAsset
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -32,7 +31,7 @@ class HappanionBridgeTest {
 	}
 
 	@Test
-	fun `the built-in keys come first, and Happanion only when they fail`() = runBlocking {
+	fun `the built-in keys come first, Happanion only when they fail, and its failure keeps their reason`() = runBlocking {
 		val fromKeys = HappCrypto.HappLinkResult.Decrypted("https://sub.example/keys", "crypt4")
 		var asked = 0
 		val happanion: suspend (String) -> String? = { asked++; "https://sub.example/happanion" }
@@ -49,16 +48,11 @@ class HappanionBridgeTest {
 			assertEquals(expected, result)
 		}
 		assertEquals(3, asked)
-	}
 
-	@Test
-	fun `Happanion failing too keeps the built-in reason, and a non-link never reaches it`() = runBlocking {
-		val error = HappCrypto.HappLinkResult.Error("crypt3", "bad input")
-		assertEquals(error, HappanionBridge.decryptWithFallback("l", { error }, { null }))
-		var asked = false
-		HappanionBridge.decryptWithFallback(
-			"l", { HappCrypto.HappLinkResult.NotHappLink }, { asked = true; "x" }
-		)
-		assertFalse(asked)
+		// Happanion failing too keeps the built-in reason, and a non-link never reaches it.
+		val failed = HappCrypto.HappLinkResult.Error("crypt3", "bad input")
+		assertEquals(failed, HappanionBridge.decryptWithFallback("l", { failed }, { null }))
+		HappanionBridge.decryptWithFallback("l", { HappCrypto.HappLinkResult.NotHappLink }, { asked++; "x" })
+		assertEquals(3, asked)
 	}
 }

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// How a subscription is fetched, for the bridge and the app's screen alike: x-hwid and User-Agent sent, redirects
+// How a subscription is fetched, for the bridge and the app's screen alike: the request's identity sent, redirects
 // followed one hop at a time, a large body taking its turn, the answer decrypted, one repeat for a named User-Agent.
 object SubscriptionFetch {
 	private const val LOG_TAG = "Happwner:Fetch"
@@ -62,8 +62,19 @@ object SubscriptionFetch {
 		val body: String,
 		val headers: Map<String, List<String>>,
 		val isError: Boolean,
-		val status: Int
-	)
+		val status: Int,
+		val statusLine: String = ""
+	) {
+		// The status line and headers as the site sent them, a blank line after; empty when it never answered.
+		fun headText(): String {
+			if (statusLine.isEmpty() && headers.isEmpty()) return ""
+			return buildString {
+				if (statusLine.isNotEmpty()) appendLine(statusLine)
+				for ((name, values) in headers) for (value in values) appendLine("$name: $value")
+				appendLine()
+			}
+		}
+	}
 
 	// What the bridge answers a failed fetch with: the site's own error status, else a bad gateway.
 	fun bridgeStatusFor(response: Response): Int =
@@ -106,14 +117,13 @@ object SubscriptionFetch {
 	// repeated with that name and only the second answer kept. The caller closes the turn claim once the answer is out.
 	suspend fun fetchHonouringSubUa(
 		url: String,
-		hwid: String,
-		userAgent: String,
+		identity: RequestIdentity,
 		preferSubscriptionUa: Boolean,
 		fromNetwork: Boolean,
 		turn: LargeTurn,
 		timeouts: Timeouts = Timeouts()
 	): Result {
-		val first = fetch(url, hwid, userAgent, fromNetwork, timeouts, turn)
+		val first = fetch(url, identity, fromNetwork, timeouts, turn)
 		var firstDecryption: HappCrypto.Result? = null
 		suspend fun firstDecrypted(): HappCrypto.Result =
 			firstDecryption ?: decrypt(url, first).also { firstDecryption = it }
@@ -129,10 +139,10 @@ object SubscriptionFetch {
 
 		// Byte for byte what already went out: nothing to repeat, but still reported. Anything less than exact is repeated -
 		// a stray space is the kind of difference a provider checks for.
-		if (wanted == userAgent) return Result(first, firstDecrypted(), wanted)
+		if (wanted == identity.userAgent) return Result(first, firstDecrypted(), wanted)
 
 		Log.d(LOG_TAG, "Subscription asked for User-Agent \"$wanted\", repeating the request")
-		val second = fetch(url, hwid, wanted, fromNetwork, timeouts, turn)
+		val second = fetch(url, identity.copy(userAgent = wanted), fromNetwork, timeouts, turn)
 		// A retry that fails must not cost the answer that already arrived.
 		if (second.isError || second.body.isEmpty()) {
 			Log.w(LOG_TAG,
@@ -151,18 +161,21 @@ object SubscriptionFetch {
 			HappParams.changeUserAgent(null, HappCrypto.plaintextOf(decrypted, rawBody))
 		}
 
-	private suspend fun fetch(url: String, hwid: String, userAgent: String, fromNetwork: Boolean,
+	private suspend fun fetch(url: String, identity: RequestIdentity, fromNetwork: Boolean,
 		timeouts: Timeouts, turn: LargeTurn): Response = withContext(Dispatchers.IO) {
 		var conn: HttpURLConnection? = null
 		try {
-			conn = openFollowingRedirects(url, hwid, userAgent, fromNetwork, timeouts)
+			conn = openFollowingRedirects(url, identity, fromNetwork, timeouts)
 
-			val headers = conn.headerFields.filterKeys { it != null }
+			val fields = conn.headerFields
+			val headers = fields.filterKeys { it != null }
+			// The status line comes under no name.
+			val statusLine = fields[null]?.firstOrNull().orEmpty()
 			val status = conn.responseCode
 			if (status == HttpURLConnection.HTTP_OK) {
-				Response(readBodyCapped(conn.inputStream, turn), headers, isError = false, status)
+				Response(readBodyCapped(conn.inputStream, turn), headers, isError = false, status, statusLine)
 			} else {
-				Response(errorText(status, conn), headers, isError = true, status)
+				Response(errorText(status, conn), headers, isError = true, status, statusLine)
 			}
 		} catch (error: Exception) {
 			Response("Error: ${error.message}", emptyMap(), isError = true, status = 0)
@@ -238,8 +251,8 @@ object SubscriptionFetch {
 
 	// Redirects are followed one hop at a time so each address is checked before it's opened: one
 	// leading back to the bridge would leave this fetch waiting on itself.
-	private fun openFollowingRedirects(first: String, hwid: String,
-		userAgent: String, fromNetwork: Boolean, timeouts: Timeouts): HttpURLConnection {
+	private fun openFollowingRedirects(first: String, identity: RequestIdentity,
+		fromNetwork: Boolean, timeouts: Timeouts): HttpURLConnection {
 		var address = URL(first)
 		var hops = 0
 		while (true) {
@@ -264,8 +277,7 @@ object SubscriptionFetch {
 			val conn = (address.openConnection() as HttpURLConnection).apply {
 				requestMethod = "GET"
 				instanceFollowRedirects = false
-				setRequestProperty("x-hwid", hwid)
-				if (userAgent.isNotBlank()) setRequestProperty("User-Agent", userAgent)
+				identity.applyTo(this)
 				connectTimeout = timeouts.connectMs
 				readTimeout = timeouts.readMs
 			}

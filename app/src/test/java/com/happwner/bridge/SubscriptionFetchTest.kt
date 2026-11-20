@@ -79,7 +79,7 @@ class SubscriptionFetchTest {
 		val asksForXray = mapOf("change-user-agent" to "xray")
 		fun redirect(location: String) = Reply(302, headers = mapOf("Location" to location))
 		return when (path) {
-			"/plain" -> Reply(200, "vless://plain")
+			"/plain" -> Reply(200, "vless://plain", mapOf("Profile-Title" to "Mine"))
 			"/large" -> Reply(200, "a".repeat(large))
 			"/large-wants-xray" ->
 				Reply(200, (if (userAgent == "xray") "x" else "s").repeat(large), asksForXray)
@@ -117,18 +117,24 @@ class SubscriptionFetchTest {
 		val claim = turn ?: SubscriptionFetch.LargeTurn()
 		try {
 			SubscriptionFetch.fetchHonouringSubUa(
-				"$base$path", "hwid-1", userAgent, prefer, fromNetwork, claim)
+				"$base$path", RequestIdentity(hwid = "hwid-1", userAgent = userAgent), prefer, fromNetwork,
+				claim)
 		} finally {
 			if (turn == null) claim.close()
 		}
 	}
 
 	@Test
-	fun `a subscription comes back, asked for with the hwid and User-Agent`() {
+	fun `a subscription comes back, asked for with the hwid and User-Agent, its status line and headers readable as text`() {
 		val result = fetch("/plain")
 		assertFalse(result.resp.isError)
 		assertEquals("vless://plain", result.resp.body)
 		assertEquals(listOf(Seen("/plain", "happ/1", "hwid-1")), seen.toList())
+		val text = result.resp.headText()
+		assertTrue(text.startsWith("HTTP/1.1 200 Status\n"))
+		assertTrue(text.contains("Profile-Title: Mine\n"))
+		assertTrue(text.endsWith("\n\n"))
+		assertEquals("", SubscriptionFetch.Response("Error: boom", emptyMap(), isError = true, status = 0).headText())
 	}
 
 	@Test
@@ -201,7 +207,8 @@ class SubscriptionFetchTest {
 		val result = SubscriptionFetch.LargeTurn().use { turn ->
 			runBlocking {
 				SubscriptionFetch.fetchHonouringSubUa(
-					"http://127.1:$bridge/x", "hwid-1", "happ/1", true, fromNetwork = false, turn)
+					"http://127.1:$bridge/x", RequestIdentity(hwid = "hwid-1", userAgent = "happ/1"), true,
+					fromNetwork = false, turn)
 			}
 		}
 		assertEquals("Error: Subscription leads back to the Bridge", result.resp.body)
@@ -265,12 +272,15 @@ class SubscriptionFetchTest {
 	}
 
 	@Test
-	fun `a small subscription never waits for the turn`() {
+	fun `while the turn is held a small subscription goes through, and a large one gives up after its wait`() {
 		SubscriptionFetch.LargeTurn(waitMs = 10_000).use { held ->
 			fetch("/large", turn = held)
 			// Asking for the turn at all would fail within the millisecond.
 			val small = fetch("/plain", turn = SubscriptionFetch.LargeTurn(waitMs = 1))
 			assertEquals("vless://plain", small.resp.body)
+			val refused = fetch("/large", turn = SubscriptionFetch.LargeTurn(waitMs = 300))
+			assertEquals("Error: Another large subscription is being processed, try again",
+				refused.resp.body)
 		}
 	}
 
@@ -286,16 +296,6 @@ class SubscriptionFetchTest {
 		SubscriptionFetch.LargeTurn(waitMs = 500).use { next ->
 			assertEquals("free again once that request is done", large,
 				fetch("/large", turn = next).resp.body.length)
-		}
-	}
-
-	@Test
-	fun `waiting for the turn has a limit, and the client is told`() {
-		SubscriptionFetch.LargeTurn(waitMs = 10_000).use { held ->
-			fetch("/large", turn = held)
-			val refused = fetch("/large", turn = SubscriptionFetch.LargeTurn(waitMs = 300))
-			assertEquals("Error: Another large subscription is being processed, try again",
-				refused.resp.body)
 		}
 	}
 

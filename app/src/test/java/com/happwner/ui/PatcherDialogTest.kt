@@ -238,7 +238,7 @@ class PatcherDialogTest {
 	}
 
 	@Test
-	fun `a finger on the field or on its arrow opens a plain list that stands still, a bare click does not`() {
+	fun `a finger on a field or its arrow opens a plain list that stands still, a bare click does not, and choosing sets the field`() {
 		val dialog = openPatcher()
 		focusWindow(decor(dialog))
 		fields(dialog).forEach { dropdown ->
@@ -260,12 +260,8 @@ class PatcherDialogTest {
 				assertFalse(dropdown.isPopupShowing)
 			}
 		}
-	}
 
-	@Test
-	fun `choosing in a list sets the field, tells its owner and closes the list`() {
-		val dialog = openPatcher()
-		focusWindow(decor(dialog))
+		// Choosing in a list sets the field, tells its owner and closes the list.
 		val dropdown = fields(dialog)[1]
 		var picked = -1
 		dropdown.setOnItemClickListener { _, _, position, _ -> picked = position }

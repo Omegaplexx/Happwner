@@ -12,6 +12,7 @@ import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.AutoCompleteTextView
+import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 
 // Dialog timings, and the size it grows from.
@@ -174,4 +175,9 @@ internal fun Context.hideKeyboard() {
 internal fun View.hideKeyboard() {
 	(context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
 		?.hideSoftInputFromWindow(windowToken, 0)
+}
+
+internal fun EditText.showKeyboard() {
+	requestFocus()
+	(context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.showSoftInput(this, 0)
 }

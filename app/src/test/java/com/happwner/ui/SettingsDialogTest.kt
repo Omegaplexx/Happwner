@@ -16,10 +16,10 @@ import com.happwner.ui.UiTestSupport.dims
 import com.happwner.ui.UiTestSupport.field
 import com.happwner.ui.UiTestSupport.idle
 import com.happwner.ui.UiTestSupport.key
-import com.happwner.ui.UiTestSupport.rotate
 import com.happwner.ui.UiTestSupport.setAnimMode
 import com.happwner.ui.UiTestSupport.settle
 import com.happwner.ui.UiTestSupport.topBackCallback
+import com.happwner.ui.UiTestSupport.turn
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -51,7 +51,7 @@ class SettingsDialogTest {
 	@Before
 	fun setUp() {
 		UiTestSupport.pacedFrames()
-		RuntimeEnvironment.setQualifiers("port")
+		RuntimeEnvironment.setQualifiers("w851dp-h393dp-land")
 		controller = Robolectric.buildActivity(MainActivity::class.java).setup()
 		setAnimMode(activity, ANIM_MODE_SOFTWARE)
 		idle(100)
@@ -102,8 +102,13 @@ class SettingsDialogTest {
 	}
 
 	@Test
-	fun `the uri options open over the mode page, and Back peels them off`() {
+	fun `the mode dialog links to the limitations file, and Back, by key or by the dispatcher, peels the uri options off it`() {
 		val dialog = openModeDialog()
+		val text = decor(dialog).findViewById<TextView>(R.id.textProcessLimits).text as Spanned
+		val links = text.getSpans(0, text.length, URLSpan::class.java)
+		assertEquals(1, links.size)
+		assertTrue(links[0].url.endsWith("/conversion_limitations.md"))
+
 		val box = openUriOptions(dialog)
 		assertFalse(box.isChecked)
 		box.performClick()
@@ -115,25 +120,9 @@ class SettingsDialogTest {
 		assertTrue(dialog.isShowing)
 		turned()
 		// Nothing was saved: the boxes are written when OK takes the page.
-		val prefs = PrefsManager.getSafePrefs(activity)
-		assertFalse(prefs.getBoolean(PrefsManager.uriDropIncompatibleKey(scope), false))
-		key(dialog, KeyEvent.KEYCODE_BACK)
-		assertTrue(settle { !dialog.isShowing })
-		assertNull(current())
-	}
+		assertFalse(PrefsManager.getSafePrefs(activity).getBoolean(PrefsManager.uriDropIncompatibleKey(scope), false))
 
-	@Test
-	fun `the mode dialog says not every profile converts and links to the limitations file`() {
-		val dialog = openModeDialog()
-		val text = decor(dialog).findViewById<TextView>(R.id.textProcessLimits).text as Spanned
-		val links = text.getSpans(0, text.length, URLSpan::class.java)
-		assertEquals(1, links.size)
-		assertTrue(links[0].url.endsWith("/conversion_limitations.md"))
-	}
-
-	@Test
-	fun `on Android 16 Back reaches the dialog through its window's dispatcher and turns a page back`() {
-		val dialog = openModeDialog()
+		// On Android 16 Back reaches the dialog through its window's dispatcher.
 		openUriOptions(dialog)
 		val callback = topBackCallback(dialog.window!!)
 		assertNotNull("the dialog's own callback stands first", callback)
@@ -151,7 +140,7 @@ class SettingsDialogTest {
 	fun `a rotation puts the dialog back on the page it was on`() {
 		val old = openModeDialog()
 		openUriOptions(old)
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		assertTrue(settle { current() !== old && current() != null })
 		val next = current()!!
 		assertNotSame(old, next)
@@ -244,14 +233,12 @@ class SettingsDialogTest {
 	}
 
 	@Test
-	fun `a list of hooks that does not fit the screen makes the dialog four fifths of it`() {
-		val card = hooksDialogCard()
+	fun `the hooks dialog is four fifths of a screen its list does not fit, and only as tall as the list on one that does`() {
 		val screen = activity.resources.displayMetrics.heightPixels
-		assertTrue("${card.height} of $screen", card.height in (screen * 0.79f).toInt()..(screen * 0.8f).toInt() + 1)
-	}
+		val tall = hooksDialogCard().height
+		assertTrue("$tall of $screen", tall in (screen * 0.79f).toInt()..(screen * 0.8f).toInt() + 1)
 
-	@Test
-	fun `a list of hooks that fits the screen makes the dialog only as tall as the list`() {
+		current()?.dismiss()
 		controller.pause().stop().destroy()
 		RuntimeEnvironment.setQualifiers("w393dp-h851dp-port-xxhdpi")
 		controller = Robolectric.buildActivity(MainActivity::class.java).setup()
@@ -259,8 +246,8 @@ class SettingsDialogTest {
 		idle(100)
 		activity.openSettings()
 		idle(600)
-		val card = hooksDialogCard()
-		val screen = activity.resources.displayMetrics.heightPixels
-		assertTrue("${card.height} of $screen", card.height < screen * 0.79f)
+		val roomy = activity.resources.displayMetrics.heightPixels
+		val short = hooksDialogCard().height
+		assertTrue("$short of $roomy", short < roomy * 0.79f)
 	}
 }

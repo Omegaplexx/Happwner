@@ -13,11 +13,20 @@
 
 	<dimen name="island_padding">12dp</dimen>
 	<dimen name="island_margin_bottom">8dp</dimen>
+	<dimen name="field_gap_side">10dp</dimen>
 	<dimen name="card_content_padding">16dp</dimen>
 
 	<dimen name="icon_size_standard">24dp</dimen>
 	<dimen name="icon_size_small">20dp</dimen>
 	<dimen name="btn_icon_size">40dp</dimen>
+	<dimen name="toolbar_height">56dp</dimen>
+	<dimen name="toolbar_button">40dp</dimen>
+	<dimen name="toolbar_button_padding">0dp</dimen>
+	<dimen name="toolbar_title_size">20sp</dimen>
+	<dimen name="field_padding_vertical">17dp</dimen>
+	<dimen name="settings_column_half_gap">0dp</dimen>
+	<dimen name="settings_second_section_gap">24dp</dimen>
+	<dimen name="card_header_height">50dp</dimen>
 	<dimen name="app_icon_size">40dp</dimen>
 	<dimen name="dialog_tall_margin">24dp</dimen>
 

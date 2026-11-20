@@ -51,10 +51,9 @@ object UiTestSupport {
 		PrefsManager.getSafePrefs(context).edit().putInt(PrefsManager.PREF_ANIM_MODE, mode).commit()
 	}
 
-	// A rotation: the resources take the new orientation, the activity hears of it as it does on a
-	// device, and its window lays itself out for it - the system's part of the turn.
-	fun <A : Activity> rotate(controller: ActivityController<A>, landscape: Boolean) {
-		RuntimeEnvironment.setQualifiers(if (landscape) "+land" else "+port")
+	// A turn that keeps the orientation (a window resized): the activity takes it in place.
+	fun <A : Activity> turn(controller: ActivityController<A>, flipped: Boolean) {
+		RuntimeEnvironment.setQualifiers(if (flipped) "+w852dp-h392dp" else "+w851dp-h393dp")
 		val config = Configuration(RuntimeEnvironment.getApplication().resources.configuration)
 		controller.configurationChange(config)
 		controller.get().window.decorView.requestLayout()

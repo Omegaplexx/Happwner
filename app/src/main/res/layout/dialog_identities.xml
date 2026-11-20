@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical"
+	android:paddingTop="@dimen/dialog_content_padding_top"
+	android:paddingBottom="@dimen/spacing_small">
+
+	<androidx.recyclerview.widget.RecyclerView
+		android:id="@+id/identityList"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_weight="1"
+		android:clipToPadding="false"
+		android:overScrollMode="never" />
+
+	<TextView
+		android:id="@+id/identitiesEmpty"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingHorizontal="@dimen/dialog_message_padding"
+		android:paddingBottom="@dimen/spacing_small"
+		android:text="@string/identities_empty"
+		android:textColor="@color/text_secondary"
+		android:textSize="@dimen/text_size_secondary"
+		android:visibility="gone" />
+
+	<TextView
+		android:id="@+id/identitiesHint"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingHorizontal="@dimen/dialog_message_padding"
+		android:paddingTop="@dimen/spacing_small"
+		android:paddingBottom="@dimen/spacing_normal"
+		android:text="@string/identities_hint"
+		android:textColor="@color/text_secondary"
+		android:textSize="@dimen/text_size_secondary"
+		android:visibility="gone" />
+</LinearLayout>

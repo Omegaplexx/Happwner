@@ -14,9 +14,9 @@ import com.happwner.ui.UiTestSupport.field
 import com.happwner.ui.UiTestSupport.frames
 import com.happwner.ui.UiTestSupport.idle
 import com.happwner.ui.UiTestSupport.key
-import com.happwner.ui.UiTestSupport.rotate
 import com.happwner.ui.UiTestSupport.setAnimMode
 import com.happwner.ui.UiTestSupport.settle
+import com.happwner.ui.UiTestSupport.turn
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -33,8 +33,8 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
 
-// A dialog open on the main screen through a rotation: put back for the new screen in every
-// animation mode, with the one laid out for the old screen gone once the new one is in.
+// A dialog open through a resize that keeps the orientation: put back for the new screen in every animation mode,
+// the old one gone once the new is in.
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class MainDialogRotationTest {
@@ -44,7 +44,7 @@ class MainDialogRotationTest {
 	@Before
 	fun setUp() {
 		UiTestSupport.pacedFrames()
-		RuntimeEnvironment.setQualifiers("port")
+		RuntimeEnvironment.setQualifiers("w851dp-h393dp-land")
 	}
 
 	@After
@@ -130,7 +130,7 @@ class MainDialogRotationTest {
 		val old = openInfo()
 		idle(600)
 		assertTrue(settled())
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		assertTrue("the old one goes from sight", old.dialogState.puttingBack)
 		assertEquals(0f, decor(old).alpha)
 		assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS,
@@ -151,7 +151,7 @@ class MainDialogRotationTest {
 		launch(ANIM_MODE_SYSTEM)
 		val old = openInfo()
 		idle(600)
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		assertEquals(0f, decor(old).alpha)
 		assertTrue(settle { current() !== old })
 		val next = current()!!
@@ -174,7 +174,7 @@ class MainDialogRotationTest {
 		launch(ANIM_MODE_OFF)
 		val old = openInfo()
 		idle(100)
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		val next = current()!!
 		assertNotSame(old, next)
 		assertEquals(1f, decor(next).alpha)
@@ -189,7 +189,7 @@ class MainDialogRotationTest {
 		val old = openInfo()
 		frames(2)
 		assertTrue("caught on its way in", decor(old).alpha < 1f)
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		assertEquals("stopped at full size", 1f, decor(old).scaleX)
 		// Its way in is cancelled: it stays out of sight while it is being replaced.
 		var seen = false
@@ -205,7 +205,7 @@ class MainDialogRotationTest {
 		val old = openImportConfirm(link)
 		idle(600)
 		assertCopies(old, link)
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		assertTrue(settle { settled() && current() !== old })
 		assertEquals("import_confirm", currentTag())
 		assertCopies(current()!!, link)
@@ -219,7 +219,7 @@ class MainDialogRotationTest {
 		key(dialog, KeyEvent.KEYCODE_BACK)
 		assertTrue("closing", dialog.dialogState.dismissing)
 		assertNull("forgotten as its way out begins", current())
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		assertFalse("not taken for a swap", dialog.dialogState.puttingBack)
 		assertTrue(settle { !dialog.isShowing })
 		idle(500)
@@ -232,11 +232,11 @@ class MainDialogRotationTest {
 		launch(ANIM_MODE_SOFTWARE)
 		val old = openInfo()
 		idle(600)
-		rotate(controller, landscape = true)
+		turn(controller, flipped = true)
 		assertTrue(settle { current() !== old })
 		val middle = current()!!
 		assertTrue("caught halfway through being put back", middle.dialogState.waiting != null)
-		rotate(controller, landscape = false)
+		turn(controller, flipped = false)
 		assertFalse("shown at once, to be the one replaced now", middle.dialogState.waiting != null)
 		assertTrue(middle.dialogState.puttingBack)
 		assertTrue(settle { settled() && current() !== middle })
@@ -245,8 +245,23 @@ class MainDialogRotationTest {
 		assertTrue("the middle one goes once the last is in", settle { !middle.isShowing })
 		assertTrue(last.isShowing)
 		assertEquals("info", currentTag())
-		assertEquals(1, last.context.resources.configuration.orientation)
+		assertEquals(2, last.context.resources.configuration.orientation)
 		assertFalse(middle.dialogState.waiting != null)
 		assertFalse(last.dialogState.puttingBack)
+	}
+
+	@Test
+	fun `the settings open inside the main screen stay open through a turn, with no dialog of the main screen under them`() {
+		launch(ANIM_MODE_SOFTWARE)
+		activity.openSettings()
+		idle(600)
+		val settings = activity.supportFragmentManager.findFragmentByTag("settings_fragment")!!
+		assertTrue(settings.isVisible)
+		turn(controller, flipped = true)
+		idle(600)
+		assertTrue(settings.isVisible)
+		assertNull(current())
+		activity.closeSettings()
+		assertTrue(settle { settings.isHidden })
 	}
 }

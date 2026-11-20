@@ -2,6 +2,7 @@ package com.happwner.ui
 
 import android.content.Context
 import android.graphics.RectF
+import android.os.Build
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -18,6 +19,12 @@ class NoAutoScrollView @JvmOverloads constructor(
 	attrs: AttributeSet? = null,
 	defStyleAttr: Int = 0
 ) : GlideScrollView(context, attrs, defStyleAttr) {
+
+	// The content takes the focus a field gives up; the page is not to scroll to show it.
+	override fun onFinishInflate() {
+		super.onFinishInflate()
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) getChildAt(0)?.revealOnFocusHint = false
+	}
 
 	// The selectable result view whose focus-driven scroll is suppressed.
 	var selectionView: TextView? = null

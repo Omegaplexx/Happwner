@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<com.happwner.ui.NoAutoScrollView
+		android:id="@+id/mainScrollView"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:fillViewport="true"
+		android:clipToPadding="false"
+		android:overScrollMode="never"
+		android:scrollbars="vertical">
+
+		<LinearLayout
+			android:id="@+id/mainContainer"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:padding="@dimen/island_padding"
+			android:focusable="true"
+			android:focusableInTouchMode="true">
+
+			<include layout="@layout/island_intercept" />
+
+			<include layout="@layout/island_request" />
+
+			<include layout="@layout/island_output" />
+
+		</LinearLayout>
+	</com.happwner.ui.NoAutoScrollView>
+
+	<TextView
+		android:id="@+id/outputWaitLabel"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center"
+		android:text="@string/msg_please_wait"
+		android:textColor="@color/text_primary"
+		android:textSize="16sp"
+		android:alpha="0"
+		android:visibility="gone" />
+
+	<com.happwner.ui.FastScrollThumb
+		android:id="@+id/fastScrollThumb"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent" />
+
+</FrameLayout>

@@ -12,20 +12,26 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.appcompat.R as AppCompatR
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.graphics.drawable.DrawableWrapperCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.withClip
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePaddingRelative
 import com.happwner.R
 
 // Pages shown inside the dialog's own window, replacing its page; the frame glides to the new height.
-// OK, Back and a tap outside return to the page beneath instead of closing.
+// OK, Back and a tap outside return to the page beneath; on the home page onHomeClose may take them first.
 class DialogPages(
 	context: Context,
 	private val homeTitle: CharSequence,
-	private val homeButtons: Boolean = true,
+	private var homeButtons: Boolean = true,
 	private val onPage: (String?) -> Unit = {},
+	private val onHomeClose: (confirmed: Boolean) -> Boolean = { false },
+	private val homeActions: ((ViewGroup) -> View)? = null, // buttons at the end of the home page's title row
 	createHome: (ViewGroup) -> View
 ) {
 	// Built on every open. The key lets a host reopen it after a recreate; a tall page gets most of the screen.
@@ -36,6 +42,7 @@ class DialogPages(
 		val buttons: Boolean = true,
 		val textInput: Boolean = false,
 		val tall: Boolean = false,
+		val closesDialog: Boolean = false,
 		val create: (ViewGroup) -> View
 	)
 
@@ -56,20 +63,23 @@ class DialogPages(
 	private var turning = false
 	// Stopped if the dialog closes mid-turn.
 	private var glide: ValueAnimator? = null
+	private var afterTurn: (() -> Unit)? = null
 	// The window's margins as shown, and the focus rule a turn replaces.
 	private var restPadding: Rect? = null
 	private var restFocus: Int? = null
+	private var titleActions: View? = null
 
 	fun attach(dialog: AlertDialog) {
 		this.dialog = dialog
 		buttonBar()?.visibility = if (homeButtons) View.VISIBLE else View.GONE
+		addTitleActions(dialog)
 		dialog.holdTall()
 		dialog.window?.decorView?.let {
 			restPadding = Rect(it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom)
 		}
 		dialog.setOnExternalDismissListener { glide?.cancel() }
 		dialog.setStayOpenHook { button ->
-			if (shownPages.isEmpty()) return@setStayOpenHook turning
+			if (shownPages.isEmpty()) return@setStayOpenHook turning || onHomeClose(button == AlertDialog.BUTTON_POSITIVE)
 			if (!turning) closeTop(confirmed = button == AlertDialog.BUTTON_POSITIVE)
 			true
 		}
@@ -84,6 +94,10 @@ class DialogPages(
 		val (page, pageView) = shownPages.removeLast()
 		if (confirmed) page.onOk(pageView)
 		if (page.textInput) pageView.hideKeyboard()
+		if (confirmed && page.closesDialog) {
+			dialog?.dismissAnimated()
+			return
+		}
 		val beneath = shownPages.lastOrNull()
 		onPage(beneath?.first?.key)
 		// No page types any more: the window stops taking the keyboard.
@@ -95,10 +109,10 @@ class DialogPages(
 			fitWindowMargins(shownPages.any { it.first.tall })
 			if (beneath == null) {
 				home.visibility = View.VISIBLE
-				show(homeTitle, homeButtons)
+				show(homeTitle, homeButtons, home = true)
 			} else {
 				beneath.second.visibility = View.VISIBLE
-				show(beneath.first.title, beneath.first.buttons)
+				show(beneath.first.title, beneath.first.buttons, home = false)
 			}
 		}
 	}
@@ -133,13 +147,54 @@ class DialogPages(
 			beneath.visibility = View.GONE
 			pageView.visibility = View.VISIBLE
 			fitWindowMargins(page.tall)
-			show(page.title, page.buttons)
+			show(page.title, page.buttons, home = false)
 		}
 	}
 
-	private fun show(title: CharSequence, buttons: Boolean) {
+	// A change to the home page, dissolved into place as a turn is; buttons is whether the bar shows from then on,
+	// and after runs once the change has settled.
+	fun morphHome(buttons: Boolean, animated: Boolean = true, after: (() -> Unit)? = null, change: () -> Unit) {
+		homeButtons = buttons
+		val flip = {
+			change()
+			if (shownPages.isEmpty()) buttonBar()?.visibility = if (buttons) View.VISIBLE else View.GONE
+		}
+		if (turning || shownPages.isNotEmpty()) {
+			flip()
+			after?.invoke()
+			return
+		}
+		afterTurn = after
+		turn(animated, flip)
+	}
+
+	// A change to the home page in place, with no dissolving: what it moves glides. The dialog must host height glides.
+	fun reshapeHome(change: () -> Unit) {
+		if (turning || shownPages.isNotEmpty()) change() else view.glideHeights(change = change)
+	}
+
+	fun takeKeyboard(on: Boolean) {
+		val window = dialog?.window ?: return
+		if (on) window.clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+		else window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+	}
+
+	private fun show(title: CharSequence, buttons: Boolean, home: Boolean) {
 		dialog?.setTitle(title)
 		buttonBar()?.visibility = if (buttons) View.VISIBLE else View.GONE
+		titleActions?.visibility = if (home) View.VISIBLE else View.GONE
+	}
+
+	// The title takes the room the buttons leave, and shortens first. The buttons end where a list's rows do.
+	private fun addTitleActions(dialog: AlertDialog) {
+		val create = homeActions ?: return
+		val row = dialog.findViewById<ViewGroup>(AppCompatR.id.title_template) ?: return
+		row.updatePaddingRelative(end = view.resources.getDimensionPixelSize(R.dimen.spacing_small))
+		dialog.findViewById<View>(AppCompatR.id.alertTitle)?.updateLayoutParams<LinearLayout.LayoutParams> {
+			width = 0
+			weight = 1f
+		}
+		titleActions = create(row).also { row.addView(it) }
 	}
 
 	// One page turn: the frame glides to the new height as the old page, kept as a picture, dissolves
@@ -166,6 +221,10 @@ class DialogPages(
 		view.closeDropdowns()
 		restFocus?.let { view.descendantFocusability = it }
 		restFocus = null
+		afterTurn?.let {
+			afterTurn = null
+			it()
+		}
 	}
 
 	// The old page is kept as a picture; without memory for it, the new page fades in alone.

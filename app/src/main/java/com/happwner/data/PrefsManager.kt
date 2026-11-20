@@ -27,6 +27,7 @@ object PrefsManager {
 	const val PREF_FORCE_HAPPANION = "force_happlib"
 
 	// The settings, and the state the app keeps beside them.
+	const val PREF_ADVANCED_MODE = "advanced_mode"
 	const val PREF_ANIM_MODE = "anim_mode"
 	const val PREF_APP_LANG = "app_lang"
 	const val PREF_BRIDGE_ENABLED = "bridge_enabled"
@@ -40,6 +41,14 @@ object PrefsManager {
 	const val PREF_CUSTOM_HWID = "custom_hwid"
 	const val PREF_CUSTOM_USER_AGENT = "custom_user_agent"
 	const val PREF_HOOK_HAPP_UNLOCK_SETTINGS = "hook_happ_unlock_settings"
+	const val PREF_IDENTITIES = "identities"
+	const val PREF_IDENTITY_ACTIVE = "identity_active"
+	const val PREF_IDENTITY_HEADERS = "identity_headers"
+	const val PREF_IDENTITY_HINT_DONE = "identity_hint_done"
+	const val PREF_IDENTITY_EXPANDED = "identity_expanded"
+	const val PREF_IDENTITY_MODEL = "identity_model"
+	const val PREF_IDENTITY_OS = "identity_os"
+	const val PREF_IDENTITY_OS_VERSION = "identity_os_version"
 	const val PREF_INTERCEPT_ENABLED = "intercept_enabled"
 	const val PREF_LAST_URL = "last_url"
 	const val PREF_LSPATCH_APPS = "lspatch_apps"

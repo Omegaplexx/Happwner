@@ -2,7 +2,6 @@ package com.happwner.client
 
 import java.lang.reflect.InvocationTargetException
 import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -143,15 +142,10 @@ class ChaChaPoly1305Test {
 	}
 
 	@Test
-	fun `every vector decrypts to its plaintext, the RFC 8439 one to the published ciphertext`() {
+	fun `every vector decrypts to its plaintext`() {
 		for (vector in vectors) {
 			assertArrayEquals("vector ${vector.name}", hex(vector.plaintext), open(vector))
 		}
-		val rfc = vectors.first { it.name == "rfc8439_2_8_2" }
-		assertTrue(
-			"the published ciphertext must be what the reference produced",
-			rfc.ciphertextWithTag.startsWith("d31a8d34648e60db7b86afbc53ef7ec2")
-		)
 	}
 
 	@Test

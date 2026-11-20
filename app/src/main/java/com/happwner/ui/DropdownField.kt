@@ -6,10 +6,12 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.os.SystemClock
+import android.text.InputType
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import androidx.appcompat.content.res.AppCompatResources
@@ -27,6 +29,10 @@ class DropdownField @JvmOverloads constructor(
 	private var touchedAt = NEVER
 	private var askedAt = NEVER
 	private var dismissListener: OnDismissListener? = null
+	private var typing = false
+
+	// Items that do something when picked, and leave the text as it is.
+	var commands: List<Any?> = emptyList()
 
 	// The list a Spinner opens, without the platform list's grow animation and stretch under a finger. Made on first use:
 	// the platform asks whether it is open while the field is built.
@@ -83,9 +89,38 @@ class DropdownField @JvmOverloads constructor(
 			drawableState.filter { it != android.R.attr.state_focused }.toIntArray()
 	}
 
+	// Opens the field to typing, which lasts until it loses the focus. The keyboard waits for the window's focus,
+	// which the list that was just closed still holds.
+	fun startTyping() {
+		typing = true
+		inputType = InputType.TYPE_CLASS_TEXT
+		askedAt = SystemClock.uptimeMillis()
+		if (hasWindowFocus()) takeKeyboard() else viewTreeObserver.addOnWindowFocusChangeListener(
+			object : ViewTreeObserver.OnWindowFocusChangeListener {
+				override fun onWindowFocusChanged(hasFocus: Boolean) {
+					if (!hasFocus) return
+					viewTreeObserver.removeOnWindowFocusChangeListener(this)
+					if (typing) takeKeyboard()
+				}
+			})
+	}
+
+	private fun takeKeyboard() {
+		showKeyboard()
+		selectAll()
+	}
+
+	override fun onFocusChanged(focused: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+		super.onFocusChanged(focused, direction, previouslyFocusedRect)
+		if (!focused && typing) {
+			typing = false
+			inputType = InputType.TYPE_NULL
+		}
+	}
+
 	override fun showDropDown() {
 		if (isPopupShowing) return
-		if (hasWindowFocus() && isShown && wanted()) {
+		if (hasWindowFocus() && isShown && wanted() && !typing) {
 			menu().apply {
 				setAdapter(adapter)
 				setBackgroundDrawable(dropDownBackground)
@@ -116,8 +151,13 @@ class DropdownField @JvmOverloads constructor(
 		val item = adapter.getItem(position)
 		val list = popup?.listView
 		dismissDropDown()
-		setText(convertSelectionToString(item), false)
+		if (item !in commands) crossfadeTo(convertSelectionToString(item).toString())
 		onItemClickListener?.onItemClick(list, row, position, id)
+	}
+
+	// The text fades into the new one, as a field's does, and the list is left as it is.
+	fun crossfadeTo(value: String) {
+		if (text.toString() != value) crossfadeSnapshot { setText(value, false) }
 	}
 
 	override fun requestFocus(direction: Int, previouslyFocusedRect: Rect?): Boolean =
